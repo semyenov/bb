@@ -80,7 +80,6 @@
     "yaml-eslint-parser": "^1.2.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config-ts": "^0.43.1",
     "@antfu/utils": "^0.7.10",
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.14.11",

@@ -34,9 +34,7 @@
     "build": "pkgroll --minify",
     "dev": "yarn esno src/index.ts",
     "typecheck": "yarn tsc --noEmit",
-    "release": "yarn npm publish",
-    "lint": "yarn eslint --config eslint.config.js",
-    "clean": "yarn exec rm -rf src"
+    "release": "yarn npm publish"
   },
   "dependencies": {
     "@regioni/lib-jose": "workspace:^",

@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import Elliptic from 'elliptic'
 import {
   type JWK,
@@ -15,7 +15,7 @@ import {
 } from 'jose'
 
 import type { PrivateKeys as PrivateKey } from '@orbitdb/core'
-import type { KeyPair } from '@regioni/lib/jose'
+import type { KeyPair } from '@regioni/lib-jose'
 import type { BN } from 'bn.js'
 
 const logger = createLogger({

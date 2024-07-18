@@ -51,22 +51,30 @@
     "generate:types": "yarn tsx scripts/generate_types.ts",
     "generate:keys": "yarn tsx scripts/generate_keys.ts"
   },
+  "peerDependencies": {
+    "@helia/block-brokers": "^3.0.2",
+    "@libp2p/circuit-relay-v2": "^1.1.2",
+    "@libp2p/interface": "1.1.4",
+    "@libp2p/keychain": "^4.1.2",
+    "@libp2p/peer-collections": "^5.2.6",
+    "libp2p": "^1.3.0"
+  },
   "dependencies": {
     "@antfu/utils": "^0.7.10",
     "@chainsafe/libp2p-gossipsub": "^13.1.0",
-    "@helia/block-brokers": "^3.0.2",
     "@ipld/dag-cbor": "^9.2.1",
-    "@libp2p/circuit-relay-v2": "^1.1.2",
-    "@libp2p/keychain": "^4.1.2",
-    "@libp2p/peer-collections": "^5.2.6",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@orbitdb/core": "^2.2.0",
+    "@regioni/lib-ajv": "workspace:^",
+    "@regioni/lib-bullmq": "workspace:^",
+    "@regioni/lib-logger": "workspace:^",
+    "@regioni/lib-mongodb": "workspace:^",
+    "@regioni/lib-ws": "workspace:^",
     "@sinclair/typebox": "^0.32.34",
     "@stablelib/random": "^2.0.0",
     "@stablelib/x25519": "^2.0.0",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
-    "@types/orbitdb__core": "workspace:^",
     "@typeschema/typebox": "^0.13.4",
     "blockcodec-to-ipld-format": "^2.0.0",
     "blockstore-level": "^1.1.8",
@@ -86,7 +94,6 @@
     "h3": "^1.12.0",
     "helia": "^4.2.4",
     "jose": "^5.6.3",
-    "libp2p": "1.3.0",
     "listhen": "^1.7.2",
     "multiformats": "^13.1.3",
     "nanoid": "^5.0.7",
@@ -95,9 +102,9 @@
     "unstorage": "^1.10.2"
   },
   "devDependencies": {
-    "@libp2p/interface": "1.1.4",
     "@libp2p/interface-internal": "^1.3.1",
     "@types/elliptic": "^6.4.18",
+    "@types/orbitdb__core": "workspace:^",
     "pkgroll": "^2.1.1",
     "tsx": "^4.16.2"
   }

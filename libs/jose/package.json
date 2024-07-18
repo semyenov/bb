@@ -29,13 +29,14 @@
     "build": "pkgroll --minify",
     "dev": "yarn esno src/index.ts",
     "typecheck": "yarn tsc --noEmit",
-    "release": "yarn npm publish",
-    "lint": "yarn eslint --config eslint.config.js",
-    "clean": "yarn exec rm -rf src"
+    "release": "yarn npm publish"
   },
   "dependencies": {
     "@libp2p/crypto": "^4.1.6",
     "@orbitdb/core": "^2.2.0",
+    "@regioni/lib-jose": "workspace:^",
+    "@regioni/lib-logger": "workspace:^",
+    "bn.js": "^5.2.0",
     "consola": "^3.2.3",
     "elliptic": "^6.5.5",
     "jose": "^5.6.3"
