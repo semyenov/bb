@@ -1,4 +1,4 @@
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import { validate } from '@typeschema/typebox'
 import { loadConfig as c12LoadConfig } from 'c12'
 

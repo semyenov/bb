@@ -1,17 +1,17 @@
-import {
-  GossipSub,
-  gossipsub,
-} from '@chainsafe/libp2p-gossipsub'
+import { type GossipSub, gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
-import { circuitRelayTransport, circuitRelayServer } from '@libp2p/circuit-relay-v2'
+import {
+  circuitRelayServer,
+  circuitRelayTransport,
+} from '@libp2p/circuit-relay-v2'
 import { type Identify, identify } from '@libp2p/identify'
 import { mdns } from '@libp2p/mdns'
 import { tcp } from '@libp2p/tcp'
 import { webRTC } from '@libp2p/webrtc'
 import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 
 import type { PubSub, ServiceMap } from '@libp2p/interface'
 import type { Libp2pOptions } from 'libp2p'
@@ -46,11 +46,7 @@ export const DefaultLibp2pOptions: Options = {
     },
   },
   peerDiscovery: [mdns()],
-  transports: [
-    tcp(),
-    webRTC(),
-    webSockets({ filter: all }),
-  ],
+  transports: [tcp(), webRTC(), webSockets({ filter: all })],
   connectionEncryption: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
