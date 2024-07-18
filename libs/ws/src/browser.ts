@@ -1,9 +1,8 @@
+import { sign, verify } from '@regioni/lib-jose'
+import { createLogger } from '@regioni/lib-logger'
 import WebSocket, { type MessageEvent } from 'ws'
 
-import { sign, verify } from '../jose/sign'
-import { createLogger } from '../logger'
-
-import type { IJoseVerify } from '../jose/types'
+import type { IJoseVerify } from '@regioni/lib-jose'
 
 type BufferLike = string | ArrayBufferView | ArrayBufferLike
 

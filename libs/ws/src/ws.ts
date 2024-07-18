@@ -2,7 +2,7 @@ import { WebSocket as WebSocketNode } from 'ws'
 
 import { wrapSocket } from './wrapper'
 
-import type { IJoseVerify } from '../jose/types'
+import type { IJoseVerify } from '@regioni/lib-jose'
 import type { ClientOptions } from 'ws'
 
 export class WebSocketProxy extends WebSocketNode {

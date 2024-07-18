@@ -1,7 +1,7 @@
 // import { createAjv } from '@regioni/lib/ajv'
-import { createAjv } from '@regioni/lib/ajv'
-import { bullmq } from '@regioni/lib/bullmq'
-import { createRedisStore } from '@regioni/lib/redis'
+import { createAjv } from '@regioni/lib-ajv'
+import { bullmq } from '@regioni/lib-bullmq'
+import { createRedisStore } from '@regioni/lib-redis'
 
 // import { createMongoDBStore } from '@regioni/lib/mongodb'
 

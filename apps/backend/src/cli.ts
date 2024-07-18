@@ -1,7 +1,7 @@
 import process from 'node:process'
 
-import { sign, verify } from '@regioni/lib/jose'
-import { createLogger } from '@regioni/lib/logger'
+import { sign, verify } from '@regioni/lib-jose'
+import { createLogger } from '@regioni/lib-logger'
 import { Argument, Command } from 'commander'
 import { consola } from 'consola'
 

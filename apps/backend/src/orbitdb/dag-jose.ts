@@ -1,6 +1,6 @@
 import process from 'node:process'
 
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import { randomBytes } from '@stablelib/random'
 import { generateKeyPairFromSeed } from '@stablelib/x25519'
 // import { convert as toLegacyIpld } from 'blockcodec-to-ipld-format'

@@ -1,9 +1,8 @@
+import { sign, verify } from '@regioni/lib-jose'
 import consola from 'consola'
 
-import { sign, verify } from '../jose/sign'
-
 import type { WebSocketProxy } from './ws'
-import type { IJoseVerify } from '../jose/types'
+import type { IJoseVerify } from '@regioni/lib-jose'
 import type Buffer from 'node:buffer'
 
 type BufferLike =

@@ -1,5 +1,5 @@
 import * as dagCbor from '@ipld/dag-cbor'
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import { CID } from 'multiformats'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'

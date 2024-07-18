@@ -1,5 +1,5 @@
-import { createLogger } from '@regioni/lib/logger'
-import { transformer } from '@regioni/lib/superjson'
+import { createLogger } from '@regioni/lib-logger'
+import { transformer } from '@regioni/lib-superjson'
 import { initTRPC } from '@trpc/server'
 
 import type { Context } from './context'

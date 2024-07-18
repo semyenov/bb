@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@regioni/lib-pointers",
+  "version": "0.0.2",
+  "packageManager": "yarn@4.0.1",
+  "description": "Rollup lib script",
+  "type": "module",
+  "keywords": [],
+  "license": "MIT",
+  "homepage": "https://gitea.local/regioni/lib#readme",
+  "bugs": "https://gitea.local/regioni/lib/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitea.local/regioni/lib.git"
+  },
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "pkgroll --minify",
+    "dev": "yarn esno src/index.ts",
+    "typecheck": "yarn tsc --noEmit",
+    "start": "cross-env NODE_OPTIONS=\"--no-warnings --experimental-modules --experimental-import-meta-resolve\" yarn node src/esm/index.mjs",
+    "schema": "yarn typescript-json-schema --out schema.json --skipLibCheck src/index.ts Options",
+    "release": "yarn npm publish",
+    "lint": "yarn eslint --config eslint.config.js",
+    "clean": "yarn exec rm -rf src"
+  },
+  "dependencies": {
+    "remeda": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "pkgroll": "^2.1.1",
+    "typescript": "^5.5.3"
+  }
+}

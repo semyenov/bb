@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@regioni/lib-ajv",
+  "version": "0.0.2",
+  "packageManager": "yarn@4.0.1",
+  "description": "Rollup lib script",
+  "type": "module",
+  "keywords": [],
+  "license": "MIT",
+  "homepage": "https://gitea.local/regioni/lib#readme",
+  "bugs": "https://gitea.local/regioni/lib/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitea.local/regioni/lib.git"
+  },
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "pkgroll --minify",
+    "dev": "yarn esno src/index.ts",
+    "typecheck": "yarn tsc --noEmit",
+    "release": "yarn npm publish",
+    "lint": "yarn eslint --config eslint.config.js",
+    "clean": "yarn exec rm -rf src"
+  },
+  "dependencies": {
+    "@trpc/server": "^10.45.2",
+    "ajv": "^8.17.1",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^3.0.1",
+    "ajv-i18n": "^4.2.0",
+    "ajv-keywords": "^5.1.0",
+    "consola": "^3.2.3",
+    "fast-glob": "^3.3.2",
+    "winston": "^3.13.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "pkgroll": "^2.1.1",
+    "typescript": "^5.5.3",
+    "typescript-json-schema": "0.64.0"
+  }
+}

@@ -1,4 +1,4 @@
-import { parsePath } from '@regioni/lib/pointers'
+import { parsePath } from '@regioni/lib-pointers'
 import { wrap } from '@typeschema/typebox'
 import consola from 'consola'
 

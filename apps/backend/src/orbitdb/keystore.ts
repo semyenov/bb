@@ -6,7 +6,7 @@ import {
   PublicKeyIdentityProvider,
   createOrbitDB,
 } from '@orbitdb/core'
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
 

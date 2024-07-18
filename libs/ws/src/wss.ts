@@ -3,7 +3,7 @@ import { WebSocketServer } from 'ws'
 
 import { wrapSocket } from './wrapper'
 
-import type { IJoseVerify } from '../jose/types'
+import type { IJoseVerify } from '@regioni/lib-jose'
 import type { ServerOptions, WebSocket } from 'ws'
 
 const logger = consola.withTag('wss')

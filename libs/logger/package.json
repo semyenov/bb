@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@regioni/lib-logger",
+  "version": "0.0.2",
+  "packageManager": "yarn@4.0.1",
+  "description": "Rollup lib script",
+  "type": "module",
+  "keywords": [],
+  "license": "MIT",
+  "homepage": "https://gitea.local/regioni/lib#readme",
+  "bugs": "https://gitea.local/regioni/lib/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitea.local/regioni/lib.git"
+  },
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "pkgroll --minify",
+    "dev": "yarn esno src/index.ts",
+    "typecheck": "yarn tsc --noEmit",
+    "release": "yarn npm publish",
+    "lint": "yarn eslint --config eslint.config.js",
+    "clean": "yarn exec rm -rf src"
+  },
+  "dependencies": {
+    "winston": "^3.13.1"
+  },
+  "devDependencies": {
+    "pkgroll": "^2.1.1",
+    "typescript": "^5.5.3"
+  }
+}

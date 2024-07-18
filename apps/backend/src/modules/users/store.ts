@@ -1,6 +1,6 @@
-import { secp256k1ToJWK } from '@regioni/lib/jose'
-import { createLogger } from '@regioni/lib/logger'
-import { KeyStore } from '@regioni/lib/orbit'
+import { secp256k1ToJWK } from '@regioni/lib-jose'
+import { createLogger } from '@regioni/lib-logger'
+import { KeyStore } from '@regioni/lib-orbit'
 import {
   type FlattenedJWSInput,
   type JWK,

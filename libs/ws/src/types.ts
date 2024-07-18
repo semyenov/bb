@@ -1,4 +1,4 @@
-import type { IJoseVerify } from '../jose/types'
+import type { IJoseVerify } from '@regioni/lib-jose'
 
 declare module 'ws' {
   export interface WebSocketServer {
