@@ -14,7 +14,6 @@ export type CreateContextOptions =
   | CreateWSSContextFnOptions
 
 export async function createContext() {
-  // _opts: CreateContextOptions
   const ajv = await createAjv()
   const redis = await createRedisStore({
     url: 'redis://redis:6379',
@@ -24,6 +23,5 @@ export async function createContext() {
     ajv,
     redis,
     bullmq,
-    // mongodb,
   }
 }

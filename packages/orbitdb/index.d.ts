@@ -63,6 +63,7 @@ export { KeyStore, signMessage, verifyMessage } from './key-store'
 
 export type {
   AccessController,
+  AccessControllerOptions,
   AccessControllerInstance,
   OrbitDBAccessControllerInstance,
 } from './access-controller'

@@ -7,24 +7,20 @@ import ajvErrors from 'ajv-errors'
 import ajvFormats from 'ajv-formats'
 import ajvI18n from 'ajv-i18n'
 import ajvKeywords from 'ajv-keywords'
-import consola from 'consola'
+import { createLogger } from '@regioni/lib/logger'
 import glob from 'fast-glob'
 
 import { userSchema } from './schema'
 
 import type { AnySchemaObject } from 'ajv'
 
-const logger = consola.withTag('ajv')
+const logger = createLogger({
+  defaultMeta: {
+    service: 'ajv',
+    label: 'create',
+  },
+})
 
-/**
- * Creates an instance of Ajv, a JSON schema validator, and returns an object
- * containing helper functions for adding and validating schemas.
- *
- * @return {object} An object with the following properties:
- *   - addSchema: A function that adds a schema to the Ajv instance.
- *   - getSchema: A function that retrieves a schema from the Ajv instance.
- *   - validateSchema: A function that validates data against a schema.
- */
 export async function createAjv() {
   const ajv = new Ajv({
     logger,

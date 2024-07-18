@@ -32,10 +32,10 @@
     "@lerna-lite/version": "^3.7.1",
     "@lerna-lite/watch": "^3.7.1",
     "@regioni/eslint-config": "workspace:*",
-    "@types/node": "^20.14.10",
+    "@types/node": "^20.14.11",
     "@types/semver": "^7.5.8",
     "eslint": "^9.7.0",
-    "semver": "^7.6.2",
+    "semver": "^7.6.3",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3"
   },

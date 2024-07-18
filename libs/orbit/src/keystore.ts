@@ -1,39 +1,36 @@
 import { generateKeyPair, importKey } from '@libp2p/crypto/keys'
-import { createStorage } from 'unstorage'
-import fsDriver, { type FSStorageOptions } from 'unstorage/drivers/fs'
+import { createStorage, CreateStorageOptions } from 'unstorage'
+
+import { ErrorKeyNotFound } from './errors'
 
 import type { KeyStoreInstance } from '@orbitdb/core'
 
 const PASSWORD = 'password' // Константы обычно пишутся заглавными буквами
 
-export function KeyStore(
-  options?: FSStorageOptions,
-): Promise<KeyStoreInstance> {
-  const storage = createStorage<string>({
-    driver: fsDriver(options),
-  })
-
+export const KeyStore = async (
+  options: CreateStorageOptions,
+): Promise<KeyStoreInstance> => {
+  const storage = createStorage<string>(options)
   const keyStore: KeyStoreInstance = {
+    clear: () => storage.clear(),
+    close: () => storage.dispose(),
+    hasKey: (id) => storage.hasItem(id),
+    createKey: () => generateKeyPair('secp256k1'),
+    removeKey: (id: string) => storage.removeItem(id),
     async addKey(id, key) {
       const keyString = await key.export(PASSWORD, 'libp2p-key')
       await storage.setItem(id, keyString)
     },
-    clear: () => storage.clear(),
-    close: () => storage.dispose(),
-    createKey: () => generateKeyPair('secp256k1'),
-    removeKey: (id: string) => storage.removeItem(id),
-    async getKey(id) {
-      const keyString = await storage.getItem(id)
-      if (!keyString) {
-        throw new Error('Ключ не найден')
-      }
-      return importKey<'secp256k1'>(keyString, PASSWORD)
-    },
     getPublic(keys) {
       return keys.public.marshal().toString()
     },
-    hasKey: (id) => storage.hasItem(id),
+    async getKey(id) {
+      const keyString = await storage.getItem(id)
+      if (!keyString) throw ErrorKeyNotFound
+
+      return importKey<'secp256k1'>(keyString, PASSWORD)
+    },
   }
 
-  return Promise.resolve(keyStore)
+  return keyStore
 }

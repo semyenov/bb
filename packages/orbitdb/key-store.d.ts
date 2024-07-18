@@ -1,5 +1,5 @@
 import type { StorageInstance } from './storage'
-import type { PrivateKeys, Secp256k1PrivateKey } from './vendor'
+import type { PrivateKey, Secp256k1PrivateKey } from './vendor'
 
 interface KeyObject {
   publicKey: Uint8Array
@@ -11,15 +11,15 @@ interface KeyStoreOptions {
   path?: string
 }
 interface KeyStoreInstance {
-  addKey: (id: string, key: PrivateKeys) => Promise<void>
+  addKey: (id: string, key: PrivateKey) => Promise<void>
   clear: () => Promise<void>
   close: () => Promise<void>
-  createKey: (id: string) => Promise<PrivateKeys>
+  createKey: (id: string) => Promise<PrivateKey>
   removeKey: (id: string) => Promise<void>
-  getKey: (id: string) => Promise<PrivateKeys>
-  getPublic: (keys: PrivateKeys, options?: { format: 'hex' }) => string
+  getKey: (id: string) => Promise<PrivateKey>
+  getPublic: (keys: PrivateKey, options?: { format: 'hex' }) => string
   getPublic: (
-    keys: PrivateKeys,
+    keys: PrivateKey,
     options?: { format: 'buffer' },
   ) => Promise<Uint8Array>
   hasKey: (id: string) => Promise<boolean>
@@ -30,7 +30,7 @@ export type {
   KeyObject,
   KeyStoreInstance,
   KeyStoreOptions,
-  PrivateKeys,
+  PrivateKey as PrivateKeys,
   Secp256k1PrivateKey,
 }
 export { KeyStore }

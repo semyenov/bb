@@ -1,4 +1,4 @@
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 
 import type {
   AccessController,

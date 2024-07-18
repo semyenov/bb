@@ -34,8 +34,8 @@ async function createUser(userStore: UserStoreInstance, id: string) {
       legend: `${id}@regioni.io`,
     },
 
-    roles: ['admin'],
     status: 'active',
+    roles: ['admin'],
 
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -72,20 +72,20 @@ async function signData(
   id: string,
   data: string,
 ) {
-  const { user, jwk } = await userStore.getUser(id)
+  const user = await userStore.getUser(id)
   if (!user) {
     throw ErrorUserNotFound
   } else if (!user.keys || !user.keys[0]) {
     throw ErrorUserKeyNotFound
   }
 
-  const jwt = await sign(jwk, { data })
+  const jwt = await sign(user.jwk.privateKey, { data })
   logger.info('signData:', { jwt })
 }
 
 async function verifyData(userStore: UserStoreInstance, data: string) {
-  const keyset = await userStore.createJWKSet()
-  const { payload, protectedHeader, key } = await verify(data, keyset, {})
+  const keyset = await userStore.getJWKSet()
+  const { payload, protectedHeader, key } = await verify(data, keyset)
 
   logger.info('verifyData:', { payload, protectedHeader, key })
 }
@@ -109,21 +109,21 @@ async function run() {
     .aliases(['add', 'new'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Create a new user')
-    .action((id) => createUser(userStore, id))
+    .action((id: string) => createUser(userStore, id))
 
   userCommand
     .command('delete')
     .aliases(['remove', 'rm', 'del'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Delete a user')
-    .action((id) => deleteUser(userStore, id))
+    .action((id: string) => deleteUser(userStore, id))
 
   userCommand
     .command('get')
     .aliases(['show'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Get user information')
-    .action((id) => getUser(userStore, id))
+    .action((id: string) => getUser(userStore, id))
 
   userCommand
     .command('sign')
@@ -131,14 +131,14 @@ async function run() {
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .addArgument(new Argument('data', 'data to sign'))
     .description('Sign data')
-    .action((id, data) => signData(userStore, id, data))
+    .action((id: string, data: string) => signData(userStore, id, data))
 
   userCommand
     .command('verify')
     .aliases(['test', 'verify-data'])
     .addArgument(new Argument('data', 'JWT to verify'))
     .description('Verify data signature')
-    .action((data) => verifyData(userStore, data))
+    .action((data: string) => verifyData(userStore, data))
 
   await program.parseAsync(process.argv)
 }

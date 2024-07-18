@@ -1,8 +1,8 @@
-import type { GenerateKeyPairResult, JWTVerifyGetKey, KeyLike } from 'jose'
+import type { JWK, JWTVerifyGetKey } from 'jose'
 
-export type KeyPair = GenerateKeyPairResult<KeyLike>
+export type KeyPair = { privateKey: JWK; publicKey: JWK }
 
 export interface IJoseVerify {
-  key: KeyPair
+  keyPair: KeyPair
   jwks: JWTVerifyGetKey
 }

@@ -95,7 +95,7 @@ async function customSend(
 
   logger.debug('Signing payload: ', { payload: data, jose: this.jose })
 
-  const jws = await sign(this.jose.key.privateKey, {
+  const jws = await sign(this.jose.keyPair.privateKey, {
     payload: JSON.parse(data.toString()),
   })
 

@@ -8,7 +8,6 @@ import {
   type KeyLike,
   createLocalJWKSet,
 } from 'jose'
-import { omit } from 'remeda'
 import { createStorage } from 'unstorage'
 import fsDriver, { type FSStorageOptions } from 'unstorage/drivers/fs'
 
@@ -27,26 +26,11 @@ export interface UserStoreInstance {
   keystore: KeyStoreInstance
   storage: ReturnType<typeof createStorage>
 
-  getUser: (id: string) => Promise<{
-    jwk: JWK
-    user: User
-  }>
-  updateUser: (
-    id: string,
-    data: User,
-  ) => Promise<{
-    jwk: JWK
-    user: User
-  }>
-  createUser: (
-    id: string,
-    data: User,
-  ) => Promise<{
-    jwk: JWK
-    user: User
-  }>
+  getUser: (id: string) => Promise<User>
+  createUser: (id: string, data: Omit<User, 'keys' | 'jwk'>) => Promise<User>
+  updateUser: (id: string, data: User) => Promise<User>
   removeUser: (id: string) => Promise<void>
-  createJWKSet: () => Promise<
+  getJWKSet: () => Promise<
     (
       protectedHeader?: JWSHeaderParameters,
       token?: FlattenedJWSInput,
@@ -66,103 +50,106 @@ export async function UsersStore(
 ): Promise<UserStoreInstance> {
   const storage = createStorage<User>({
     driver: fsDriver({
-      ...options,
       base: `${options?.base}/users` || './.out/users',
+      ...options,
     }),
   })
   const keystore = await KeyStore({
-    ...options,
-    base: `${options?.base}/keys` || './.out/keys',
+    driver: fsDriver({
+      base: `${options?.base}/keys` || './.out/keys',
+      ...options,
+    }),
   })
 
   const getUser = async (id: string) => {
     const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
-    } else if (!user.keys || !user.keys[0]) {
+    } else if (!user.keys[0]) {
       throw ErrorUserKeyNotFound
     }
 
-    const kid = user.keys[0] || 'unknown'
-    const key = await keystore.getKey(kid)
-    const jwk = await secp256k1ToJWK(key)
+    // const kid = user.keys[0] || 'unknown'
+    // const key = await keystore.getKey(kid)
+    // const jwk = await secp256k1ToJWK(key)
 
-    return { jwk, user }
+    return user
   }
 
-  const updateUser = async (id: string, user: User) => {
-    const existingUser = await storage.getItem(id)
-    if (!existingUser) {
-      throw ErrorUserNotFound
-    } else if (!existingUser.keys || !existingUser.keys[0]) {
-      throw ErrorUserKeyNotFound
-    }
-
-    const kid = existingUser.keys[0] || 'unknown'
-    const key = await keystore.getKey(kid)
-    const jwk = await secp256k1ToJWK(key)
-
-    await storage.setItem(id, {
-      ...user,
-      keys: existingUser.keys.concat(user.keys || []),
-    })
-
-    return { jwk, user }
-  }
-
-  const createUser = async (id: string, user: User) => {
+  const createUser = async (
+    id: string,
+    payload: Omit<User, 'keys' | 'jwk'>,
+  ) => {
     if (await storage.hasItem(id)) {
       throw ErrorUserExists
     }
 
     const key = await keystore.createKey(id)
     const kid = (await key.id()) || 'unknown'
+    const jwk = await secp256k1ToJWK(key)
+    const user = Object.assign(Object.create(null), payload, {
+      jwk,
+      keys: [kid],
+    })
 
     await keystore.addKey(kid, key)
-    await storage.setItem(id, { ...user, keys: [kid] })
-
-    const jwk = await secp256k1ToJWK(key)
+    await storage.setItem(id, user)
 
     logger.info('User created', { user })
-    logger.debug('User jwk', { jwk })
 
-    return { jwk, user }
+    return user
+  }
+
+  const updateUser = async (id: string, payload: User) => {
+    const existingUser = await storage.getItem(id)
+    if (!existingUser) {
+      throw ErrorUserNotFound
+    } else if (!existingUser.keys[0]) {
+      throw ErrorUserKeyNotFound
+    }
+
+    const kid = existingUser.keys[0] || 'unknown'
+    const key = await keystore.getKey(kid)
+    const jwk = await secp256k1ToJWK(key)
+    const user = Object.assign(Object.create(null), existingUser, payload, {
+      jwk,
+      keys: [kid],
+    })
+
+    await storage.setItem(id, user)
+
+    return user
   }
 
   const removeUser = async (id: string) => {
     const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
-    } else if (!user.keys || !user.keys[0]) {
+    } else if (!user.keys[0]) {
       throw ErrorUserKeyNotFound
+    }
+
+    for (const kid of user.keys) {
+      await keystore.removeKey(kid)
+      logger.debug('Key deleted', { userId: user.id, kid })
     }
 
     await storage.removeItem(id)
     logger.debug('User deleted', { user })
-
-    for (const kid of user.keys) {
-      await keystore.removeKey(kid)
-      logger.debug('User deleted with key', { kid })
-    }
   }
 
-  const getKeyset = async () => {
-    const jwks: JWK[] = []
-
+  const getJWKSet = async () => {
+    const keys: JWK[] = []
     for (const id of await storage.getKeys()) {
       const user = await storage.getItem(id)
-      if (!user || !user.keys || !user.keys[0]) {
+      if (!user || !user.jwk) {
         continue
       }
 
-      const kid = user.keys[0] || 'unknown'
-      const key = await keystore.getKey(kid)
-
-      const jwk = await secp256k1ToJWK(key)
-      jwks.push(omit(jwk, ['d']))
+      keys.push(user.jwk.publicKey)
     }
 
-    return createLocalJWKSet({ keys: jwks })
+    return createLocalJWKSet({ keys })
   }
 
   return {
@@ -173,6 +160,6 @@ export async function UsersStore(
     createUser,
     updateUser,
     removeUser,
-    createJWKSet: getKeyset,
+    getJWKSet,
   }
 }

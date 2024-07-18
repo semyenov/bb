@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@regioni/lib",
+  "version": "0.0.2",
+  "packageManager": "yarn@4.0.1",
+  "description": "Rollup lib script",
+  "type": "module",
+  "keywords": [],
+  "license": "MIT",
+  "homepage": "https://gitea.local/regioni/lib#readme",
+  "bugs": "https://gitea.local/regioni/lib/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitea.local/regioni/lib.git"
+  },
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./ajv": {
+      "types": "./dist/ajv/index.d.ts",
+      "require": "./dist/ajv/index.cjs",
+      "import": "./dist/ajv/index.mjs"
+    },
+    "./bullmq": {
+      "types": "./dist/bullmq/index.d.ts",
+      "require": "./dist/bullmq/index.cjs",
+      "import": "./dist/bullmq/index.mjs"
+    },
+    "./jose": {
+      "types": "./dist/jose/index.d.ts",
+      "require": "./dist/jose/index.cjs",
+      "import": "./dist/jose/index.mjs"
+    },
+    "./orbit": {
+      "types": "./dist/orbit/index.d.ts",
+      "require": "./dist/orbit/index.cjs",
+      "import": "./dist/orbit/index.mjs"
+    },
+    "./logger": {
+      "types": "./dist/logger/index.d.ts",
+      "require": "./dist/logger/index.cjs",
+      "import": "./dist/logger/index.mjs"
+    },
+    "./mongodb": {
+      "types": "./dist/mongodb/index.d.ts",
+      "require": "./dist/mongodb/index.cjs",
+      "import": "./dist/mongodb/index.mjs"
+    },
+    "./quicktype": {
+      "types": "./dist/quicktype/index.d.ts",
+      "require": "./dist/quicktype/index.cjs",
+      "import": "./dist/quicktype/index.mjs"
+    },
+    "./redis": {
+      "types": "./dist/redis/index.d.ts",
+      "require": "./dist/redis/index.cjs",
+      "import": "./dist/redis/index.mjs"
+    },
+    "./superjson": {
+      "types": "./dist/superjson/index.d.ts",
+      "require": "./dist/superjson/index.cjs",
+      "import": "./dist/superjson/index.mjs"
+    },
+    "./transformer": {
+      "types": "./dist/transformer/index.d.ts",
+      "require": "./dist/transformer/index.cjs",
+      "import": "./dist/transformer/index.mjs"
+    },
+    "./ws": {
+      "types": "./dist/ws/index.d.ts",
+      "require": "./dist/ws/index.cjs",
+      "import": "./dist/ws/index.mjs"
+    },
+    "./ws/browser": {
+      "types": "./dist/ws/browser.d.ts",
+      "require": "./dist/ws/browser.cjs",
+      "import": "./dist/ws/browser.mjs"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "pkgroll --minify",
+    "dev": "yarn esno src/index.ts",
+    "typecheck": "yarn tsc --noEmit",
+    "start": "cross-env NODE_OPTIONS=\"--no-warnings --experimental-modules --experimental-import-meta-resolve\" yarn node src/esm/index.mjs",
+    "schema": "yarn typescript-json-schema --out schema.json --skipLibCheck src/index.ts Options",
+    "release": "yarn npm publish",
+    "lint": "yarn eslint --config eslint.config.js",
+    "clean": "yarn exec rm -rf src"
+  },
+  "dependencies": {
+    "@libp2p/crypto": "^4.1.6",
+    "@msgpack/msgpack": "^3.0.0-beta2",
+    "@orbitdb/core": "^2.2.0",
+    "@trpc/server": "^10.45.2",
+    "@types/bn.js": "^5",
+    "@types/orbitdb__core": "workspace:^",
+    "ajv": "^8.17.1",
+    "ajv-errors": "^3.0.0",
+    "ajv-formats": "^3.0.1",
+    "ajv-i18n": "^4.2.0",
+    "ajv-keywords": "^5.1.0",
+    "bn.js": "^5.2.1",
+    "bullmq": "^5.10.0",
+    "chokidar": "^3.6.0",
+    "consola": "^3.2.3",
+    "elliptic": "^6.5.6",
+    "fast-glob": "^3.3.2",
+    "helia": "^4.2.4",
+    "jose": "^5.6.3",
+    "libp2p": "^1.8.1",
+    "mongodb": "^6.8.0",
+    "quicktype-core": "^23.0.170",
+    "redis": "^4.6.15",
+    "remeda": "^2.6.0",
+    "superjson": "^2.2.1",
+    "uint8arrays": "^5.1.0",
+    "unstorage": "^1.10.2",
+    "winston": "^3.13.1",
+    "ws": "^8.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "@types/orbitdb__core": "workspace:^",
+    "pkgroll": "^2.1.1",
+    "typescript": "^5.5.3",
+    "typescript-json-schema": "0.64.0",
+    "zod": "^3.23.8"
+  }
+}
