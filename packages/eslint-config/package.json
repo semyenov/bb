@@ -1,35 +1,33 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@regioni/eslint-config",
+  "type": "module",
   "version": "0.0.2",
   "packageManager": "yarn@4.0.1",
   "description": "Eslint-config CLI",
-  "type": "module",
-  "keywords": [],
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/semyenov/eslint-config#readme",
-  "bugs": "https://github.com/semyenov/eslint-config/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/semyenov/eslint-config.git"
   },
-  "author": "Alexander Semyenov <semyenov@hotmail.com>",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
+  "bugs": "https://github.com/semyenov/eslint-config/issues",
+  "keywords": [],
+  "sideEffects": false,
   "exports": {
-    "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
-    },
     "import": {
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
+    },
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
     }
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
   "typesVersions": {
     "*": {
       "*": [
@@ -38,7 +36,9 @@
       ]
     }
   },
-  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "esno src/index.ts",
     "build": "pkgroll --minify",
@@ -50,9 +50,8 @@
     "clean": "yarn exec rm -rf dist"
   },
   "dependencies": {
-    "@antfu/eslint-config": "^2.22.4",
+    "@antfu/eslint-config": "^2.23.0",
     "@eslint/eslintrc": "^3.1.0",
-    "@sxzz/eslint-config": "^3.14.0",
     "@types/eslint-plugin-security": "^3.0.0",
     "@types/eslint__eslintrc": "^2.1.1",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
@@ -88,8 +87,10 @@
     "consola": "^3.2.3",
     "cross-env": "^7.0.3",
     "eslint": "^9.7.0",
+    "eslint-config-hardcore": "^47.0.1",
     "esno": "^4.7.0",
     "tslib": "^2.6.3",
+    "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "typescript-json-schema": "0.64.0"
   }
