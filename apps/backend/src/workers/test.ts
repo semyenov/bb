@@ -1,10 +1,8 @@
 import consola from 'consola'
 
-interface TestType {
-  [key: string]: string[]
-}
+type TestType = Record<string, string[]>
 
-function generateCombinations(test: { [key: string]: string[] }): string[][] {
+function generateCombinations(test: Record<string, string[]>): string[][] {
   const keys = Object.keys(test)
   const combinations: string[][] = []
 
@@ -15,9 +13,7 @@ function generateCombinations(test: { [key: string]: string[] }): string[][] {
       return
     }
 
-    // eslint-disable-next-line security/detect-object-injection
     const key = keys[index]!
-    // eslint-disable-next-line security/detect-object-injection
     const values = test[key]
 
     for (const value of values!) {

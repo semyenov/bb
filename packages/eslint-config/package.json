@@ -75,6 +75,7 @@
     "eslint-plugin-yml": "^1.14.0",
     "jsonc-eslint-parser": "^2.4.0",
     "pkgroll": "^2.1.1",
+    "typescript-eslint": "^7.16.1",
     "vue-eslint-parser": "^9.4.3",
     "yaml-eslint-parser": "^1.2.3"
   },

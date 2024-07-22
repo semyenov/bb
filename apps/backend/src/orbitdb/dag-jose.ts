@@ -20,7 +20,7 @@ import { sha256 } from 'multiformats/hashes/sha2'
 import type { CID } from 'multiformats/cid'
 import type { BlockDecoder, BlockEncoder } from 'multiformats/codecs/interface'
 
-const store: Map<string, Uint8Array> = new Map()
+const store = new Map<string, Uint8Array>()
 // const dagJoseIpldFormat = toLegacyIpld(dagJose)
 
 const logger = createLogger({
@@ -51,35 +51,36 @@ async function symmetric() {
     logger.info('Encrypted block contents:\n', block.value)
     // store the block, this could be in IPFS or any other CID:Bytes block store
     store.set(block.cid.toString(), block.bytes)
-    return block.cid
-  }
 
-  // Load an encrypted block from a CID and decrypt the payload using a secret key
-  const loadEncrypted = async (cid: CID, key: Uint8Array) => {
-    const dirDecrypter = xc20pDirDecrypter(key)
-    const bytes = store.get(cid.toString())!
-    // decode the DAG-JOSE envelope and verify the bytes match the CID
-    const block = await Block.create({
-      bytes,
-      cid,
-      codec: dagJose as unknown as BlockDecoder<133, JWE>,
-      hasher: sha256,
-    })
-    // decrypt the encrypted payload
-    const decryptedData = await decryptJWE(block.value, dirDecrypter)
-    return decodeCleartext(decryptedData)
+    return block.cid
   }
 
   const key = randomBytes(32)
   const secretz = { my: 'secret message' }
   logger.info('Encrypting and storing secret:\u001B[1m', secretz, '\u001B[22m')
   const cid = await storeEncrypted(secretz, key)
-  const decoded = await loadEncrypted(cid, key)
+  const decoded = await loadEncrypted2(cid, key)
   logger.info(
     'Loaded and decrypted block content:\u001B[1m',
     decoded,
     '\u001B[22m',
   )
+}
+// Load an encrypted block from a CID and decrypt the payload using a secret key
+async function loadEncrypted2(cid: CID, key: Uint8Array) {
+  const dirDecrypter = xc20pDirDecrypter(key)
+  const bytes = store.get(cid.toString())!
+  // decode the DAG-JOSE envelope and verify the bytes match the CID
+  const block = await Block.create({
+    bytes,
+    cid,
+    codec: dagJose as unknown as BlockDecoder<133, JWE>,
+    hasher: sha256,
+  })
+  // decrypt the encrypted payload
+  const decryptedData = await decryptJWE(block.value, dirDecrypter)
+
+  return decodeCleartext(decryptedData)
 }
 
 // Asymmetric encryption using a private and public key
@@ -104,26 +105,8 @@ async function asymmetric() {
     logger.info('Encrypted block contents:\n', block.value)
     // store the block, this could be in IPFS or any other CID:Bytes block store
     store.set(block.cid.toString(), block.bytes)
-    return block.cid
-  }
 
-  // Load an encrypted block from a CID and decrypt the payload using a secret key
-  const loadEncrypted = async (cid: CID, privkey: Uint8Array) => {
-    const asymDecrypter = x25519Decrypter(privkey)
-    const bytes = store.get(cid.toString())!
-    // decode the DAG-JOSE envelope
-    const block = await Block.create({
-      bytes,
-      cid,
-      codec: dagJose as unknown as BlockDecoder<133, JWE>,
-      hasher: sha256,
-    })
-    if (!block.cid.equals(cid)) {
-      throw new Error('CID mismatch')
-    }
-    // decrypt the encrypted payload
-    const decryptedData = await decryptJWE(block.value, asymDecrypter)
-    return decodeCleartext(decryptedData)
+    return block.cid
   }
 
   const privkey = randomBytes(32)
@@ -142,6 +125,26 @@ async function asymmetric() {
     decoded,
     '\u001B[22m',
   )
+}
+
+// Load an encrypted block from a CID and decrypt the payload using a secret key
+async function loadEncrypted(cid: CID, privkey: Uint8Array) {
+  const asymDecrypter = x25519Decrypter(privkey)
+  const bytes = store.get(cid.toString())!
+  // decode the DAG-JOSE envelope
+  const block = await Block.create({
+    bytes,
+    cid,
+    codec: dagJose as unknown as BlockDecoder<133, JWE>,
+    hasher: sha256,
+  })
+  if (!block.cid.equals(cid)) {
+    throw new Error('CID mismatch')
+  }
+  // decrypt the encrypted payload
+  const decryptedData = await decryptJWE(block.value, asymDecrypter)
+
+  return decodeCleartext(decryptedData)
 }
 
 // Run!

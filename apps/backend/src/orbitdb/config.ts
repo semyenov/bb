@@ -1,4 +1,4 @@
-import { type GossipSub, gossipsub } from '@chainsafe/libp2p-gossipsub'
+import { type GossipSub, GossipsubEvents, gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
 import {
@@ -50,7 +50,9 @@ export const DefaultLibp2pOptions: Options = {
   connectionEncryption: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
-    denyDialMultiaddr: () => false,
+    denyDialMultiaddr: () => {
+      return false
+    },
   },
   services: {
     identify: identify(),
@@ -61,10 +63,7 @@ export const DefaultLibp2pOptions: Options = {
   },
 }
 
-export const DefaultLibp2pBrowserOptions: Options<{
-  identify: Identify
-  pubsub: GossipSub
-}> = {
+export const DefaultLibp2pBrowserOptions: Options = {
   addresses: {
     listen: ['/webrtc'],
   },
@@ -77,7 +76,9 @@ export const DefaultLibp2pBrowserOptions: Options<{
   connectionEncryption: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
-    denyDialMultiaddr: () => false,
+    denyDialMultiaddr: () => {
+      return false
+    },
   },
   services: {
     identify: identify(),

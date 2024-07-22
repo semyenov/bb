@@ -13,7 +13,9 @@ const logger = createLogger()
 
 let spied: any
 
-const isBrowser = () => typeof window !== 'undefined'
+function isBrowser() {
+  return typeof window !== 'undefined'
+}
 export async function startOrbitDB({
   id,
   identity,

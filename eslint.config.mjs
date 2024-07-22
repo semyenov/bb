@@ -1,25 +1,8 @@
-import config from '@regioni/eslint-config'
+import getConfig from '@regioni/eslint-config'
 
-/**
- * @type {Linter.FlatConfig<Linter.RulesRecord>[]}
- * @default
- * @export
- * **/
+const config = await getConfig()
 
-export default [
-  ...config,
-  {
-    ignores: [
-      'node_modules',
-      'packages/*/node_modules',
-      'apps/*/node_modules',
-      '.yarn/*',
-      'dist',
-      'build',
-      'public',
-      'coverage',
-      'cypress',
-      'jest',
-    ],
-  },
-]
+// /** @type {import('eslint').Linter.FlatConfig} */
+// const schema = [...config]
+
+export default config

@@ -1,5 +1,5 @@
 import { sleep } from '@antfu/utils'
-import { createLogger } from '@regioni/lib/logger'
+import { createLogger } from '@regioni/lib-logger'
 import { Worker } from 'bullmq'
 
 const logger = createLogger()

@@ -75,7 +75,8 @@ async function signData(
   const user = await userStore.getUser(id)
   if (!user) {
     throw ErrorUserNotFound
-  } else if (!user.keys || !user.keys[0]) {
+  }
+  else if (!user.keys || !user.keys[0]) {
     throw ErrorUserKeyNotFound
   }
 
@@ -109,21 +110,27 @@ async function run() {
     .aliases(['add', 'new'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Create a new user')
-    .action((id: string) => createUser(userStore, id))
+    .action((id: string) => {
+      return createUser(userStore, id)
+    })
 
   userCommand
     .command('delete')
     .aliases(['remove', 'rm', 'del'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Delete a user')
-    .action((id: string) => deleteUser(userStore, id))
+    .action((id: string) => {
+      return deleteUser(userStore, id)
+    })
 
   userCommand
     .command('get')
     .aliases(['show'])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Get user information')
-    .action((id: string) => getUser(userStore, id))
+    .action((id: string) => {
+      return getUser(userStore, id)
+    })
 
   userCommand
     .command('sign')
@@ -131,19 +138,24 @@ async function run() {
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .addArgument(new Argument('data', 'data to sign'))
     .description('Sign data')
-    .action((id: string, data: string) => signData(userStore, id, data))
+    .action((id: string, data: string) => {
+      return signData(userStore, id, data)
+    })
 
   userCommand
     .command('verify')
     .aliases(['test', 'verify-data'])
     .addArgument(new Argument('data', 'JWT to verify'))
     .description('Verify data signature')
-    .action((data: string) => verifyData(userStore, data))
+    .action((data: string) => {
+      return verifyData(userStore, data)
+    })
 
   await program.parseAsync(process.argv)
 }
 
-run().catch((error) => {
-  logger.error('An error occurred:', error)
-  process.exit(1)
-})
+run()
+  .catch((error) => {
+    logger.error('An error occurred:', error)
+    process.exit(1)
+  })

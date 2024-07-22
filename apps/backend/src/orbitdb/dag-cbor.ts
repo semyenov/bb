@@ -62,4 +62,7 @@ async function createLinkedData() {
   return { personBlock, postBlock }
 }
 
-createLinkedData().catch((error) => logger.error('Error:', error))
+createLinkedData()
+  .catch((error) => {
+    return logger.error('Error:', error)
+  })

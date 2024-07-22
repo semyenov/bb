@@ -1,32 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@regioni/backend",
+  "type": "module",
   "version": "0.0.2",
   "packageManager": "yarn@4.1.1",
   "description": "Rollup build script",
-  "type": "module",
-  "keywords": [],
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
   "homepage": "https://gitea.local/regioni/backend#readme",
-  "bugs": "https://gitea.local/regioni/backend/issues",
   "repository": {
     "type": "git",
     "url": "git+https://gitea.local/regioni/backend.git"
   },
-  "author": "Alexander Semyenov <semyenov@hotmail.com>",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "bugs": "https://gitea.local/regioni/backend/issues",
+  "keywords": [],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.d.cts",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.d.cts"
     }
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
@@ -35,8 +33,10 @@
       ]
     }
   },
-  "sideEffects": false,
   "bin": "./dist/cli.mjs",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "pkgroll --minify",
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --experimental-modules --experimental-import-meta-resolve\" yarn node dist/esm/index.mjs",

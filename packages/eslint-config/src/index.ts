@@ -1,5 +1,8 @@
 import antfu from '@antfu/eslint-config'
 
+import typescriptRules from './configs/typescript'
+import unicornRules from './configs/unicorn'
+
 import type { Linter } from 'eslint'
 
 async function config(): Promise<Linter.FlatConfig[]> {
@@ -11,6 +14,20 @@ async function config(): Promise<Linter.FlatConfig[]> {
       'style/max-statements-per-line': ['off'],
       'style/array-bracket-newline': ['error', { multiline: true }],
       'eol-last': ['error', 'always'],
+
+      // Eslint rules
+      'no-else-return': 'warn',
+      'logical-assignment-operators': 'warn',
+      'no-implicit-coercion': 'warn',
+      'operator-assignment': 'warn',
+      'prefer-destructuring': 'warn',
+      'prefer-object-has-own': 'warn',
+
+      // Style rules
+      'style/no-confusing-arrow': 'error',
+      'style/newline-per-chained-call': 'error',
+      'style/wrap-regex': 'error',
+      'style/type-named-tuple-spacing': 'error',
 
       'import/order': [
         'error',
@@ -70,7 +87,10 @@ async function config(): Promise<Linter.FlatConfig[]> {
       'eqeqeq': ['error', 'smart'],
 
     },
-  })
+  }, [
+    typescriptRules,
+    unicornRules,
+  ])
 }
 
 export default config
