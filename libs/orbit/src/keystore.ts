@@ -1,11 +1,11 @@
 import { generateKeyPair, importKey } from '@libp2p/crypto/keys'
-import { createStorage, CreateStorageOptions } from 'unstorage'
+import { type CreateStorageOptions, createStorage } from 'unstorage'
 
 import { ErrorKeyNotFound } from './errors'
 
 import type { KeyStoreInstance } from '@orbitdb/core'
 
-const PASSWORD = 'password' // Константы обычно пишутся заглавными буквами
+const PASSWORD = 'password'
 
 export const KeyStore = async (
   options: CreateStorageOptions,
@@ -26,7 +26,9 @@ export const KeyStore = async (
     },
     async getKey(id) {
       const keyString = await storage.getItem(id)
-      if (!keyString) throw ErrorKeyNotFound
+      if (!keyString) {
+        throw ErrorKeyNotFound
+      }
 
       return importKey<'secp256k1'>(keyString, PASSWORD)
     },

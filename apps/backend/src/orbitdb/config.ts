@@ -1,4 +1,4 @@
-import { type GossipSub, GossipsubEvents, gossipsub } from '@chainsafe/libp2p-gossipsub'
+import { type GossipSub, gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
 import {
@@ -13,7 +13,7 @@ import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
 import { createLogger } from '@regioni/lib-logger'
 
-import type { PubSub, ServiceMap } from '@libp2p/interface'
+import type { ServiceMap } from '@libp2p/interface'
 import type { Libp2pOptions } from 'libp2p'
 
 export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>

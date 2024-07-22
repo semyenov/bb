@@ -42,7 +42,6 @@ export async function createAjv() {
 
   const schemas = await Promise.all(
     files.map(async (file) => {
-      // eslint-disable-next-line security/detect-non-literal-fs-filename
       const fileContent = await readFile(file, 'utf8')
       const schemaId = basename(file, '.json')
       const schema = JSON.parse(fileContent) as AnySchemaObject

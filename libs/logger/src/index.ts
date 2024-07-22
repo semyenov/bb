@@ -54,14 +54,10 @@ export function createLogger(options?: LoggerOptions) {
             },
           }),
           f.printf((log) => {
-            // eslint-disable-next-line sonarjs/no-nested-template-literals
             const bagde = `. ${log.level}${log.label && `:${log.label}`}`
-
             const name =
               log.service && log.version && `\\ ${log.service}@${log.version}`
-
             const time = log.timestamp && `> ${log.timestamp.split('T')[1]}`
-
             const message =
               typeof log.message === 'string' &&
               log.message.length > 0 &&

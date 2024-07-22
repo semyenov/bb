@@ -1,0 +1,17 @@
+{
+  "name": "@types/orbitdb__core",
+  "version": "0.0.2",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Alexander Semyenov <semyenov@hotmail.com>",
+    "url": "https://github.com/semyenov"
+  },
+  "types": "index.d.ts",
+  "devDependencies": {
+    "@libp2p/crypto": "^4.1.6",
+    "@libp2p/interface": "1.1.4",
+    "helia": "^4.2.4",
+    "libp2p": "1.3.0"
+  }
+}

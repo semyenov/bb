@@ -6,8 +6,6 @@
 declare module 'winston' {
   import * as NodeJSStream from 'node:stream'
 
-  import * as Transports from './lib/winston/transports/index'
-
   import type * as logform from 'logform'
   import type * as Transport from 'winston-transport'
 
