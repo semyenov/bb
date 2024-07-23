@@ -2,7 +2,7 @@ import tsParser from '@typescript-eslint/parser'
 
 import type { Linter } from 'eslint'
 
-const rules = {
+const typescript = {
   languageOptions: {
     parser: tsParser,
   },
@@ -31,4 +31,4 @@ const rules = {
   },
 } satisfies Linter.FlatConfig
 
-export default rules
+export default typescript
