@@ -53,6 +53,7 @@ async function createLinkedData() {
     codec: dagCbor,
     hasher: sha256,
   })
+
   logger.info('Decoded post', { decodedPost: decodedPost.value })
 
   for await (const [key, node] of decodedPost.links()) {

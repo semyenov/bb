@@ -9,9 +9,9 @@ import { DefaultLibp2pBrowserOptions, DefaultLibp2pOptions } from './config'
 
 import type { CreateOrbitDBOptions, OrbitDBInstance } from '@orbitdb/core'
 
-const logger = createLogger()
+// const logger = createLogger()
 
-let spied: any
+// let spied: any
 
 function isBrowser() {
   return typeof window !== 'undefined'
@@ -45,5 +45,5 @@ export async function stopOrbitDB(orbitdb: OrbitDBInstance): Promise<void> {
   await orbitdb.stop()
   await orbitdb.ipfs.stop()
 
-  logger.debug('orbitdb stopped', spied.calls, spied.returns)
+  // logger.debug('orbitdb stopped', spied.calls, spied.returns)
 }

@@ -1,32 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@apps/orbit",
+  "type": "module",
   "version": "0.0.2",
   "packageManager": "yarn@4.1.1",
   "description": "Rollup build script",
-  "type": "module",
-  "keywords": [],
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
   "homepage": "https://gitea.local/apps/orbit#readme",
-  "bugs": "https://gitea.local/apps/orbit/issues",
   "repository": {
     "type": "git",
     "url": "git+https://gitea.local/apps/orbit.git"
   },
-  "author": "Alexander Semyenov <semyenov@hotmail.com>",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "bugs": "https://gitea.local/apps/orbit/issues",
+  "keywords": [],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.d.cts",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.d.cts"
     }
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
       "*": [
@@ -35,7 +33,9 @@
       ]
     }
   },
-  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "pkgroll --minify",
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --experimental-modules --experimental-import-meta-resolve\" yarn node dist/esm/index.mjs",
@@ -60,7 +60,6 @@
     "@libp2p/peer-collections": "^5.2.6",
     "@msgpack/msgpack": "^3.0.0-beta2",
     "@orbitdb/core": "^2.2.0",
-    "@regioni/lib": "workspace:^",
     "@sinclair/typebox": "^0.32.34",
     "@stablelib/random": "^2.0.0",
     "@stablelib/x25519": "^2.0.0",

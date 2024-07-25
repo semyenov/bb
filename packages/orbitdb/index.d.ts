@@ -45,9 +45,10 @@ interface OrbitDBInstance {
   ) => Promise<DatabasesTypeMap<T>[D]>
   stop: () => Promise<void>
 }
-declare type OrbitDB = <T extends keyof DatabasesTypeMap>(
+
+declare function OrbitDB<T extends keyof DatabasesTypeMap>(
   options: OrbitDBOptions,
-) => Promise<OrbitDBInstance>
+): Promise<OrbitDBInstance>
 
 export type {
   OrbitDBInstance,
