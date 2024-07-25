@@ -1,10 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable ts/no-namespace */
-/* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable @typescript-eslint/no-unnecessary-boolean-literal-compare */
 
 import { decodeMessage, encodeMessage, message } from 'protons-runtime'
 
+// import type { RPCMessage as TRPCMessage, RPCRequest as TRPCRequest } from '../types'
 import type { Codec } from 'protons-runtime'
 import type { Uint8ArrayList } from 'uint8arraylist'
 
@@ -102,12 +101,12 @@ export namespace RPCError {
 
         if (opts.writeDefaults === true || obj.code !== 0) {
           w.uint32(8)
-          w.int32(obj.code)
+          w.int32(obj.code || 0)
         }
 
         if (opts.writeDefaults === true || obj.message !== '') {
           w.uint32(18)
-          w.string(obj.message)
+          w.string(obj.message || 'undefined')
         }
 
         if (obj.data != null) {
@@ -179,7 +178,7 @@ export namespace RPCResponse {
 
         if (opts.writeDefaults === true || obj.id !== 0) {
           w.uint32(8)
-          w.uint32(obj.id)
+          w.uint32(obj.id || 0)
         }
 
         if (obj.result != null) {

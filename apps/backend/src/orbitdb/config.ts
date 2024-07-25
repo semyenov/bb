@@ -1,4 +1,4 @@
-import { type GossipSub, gossipsub } from '@chainsafe/libp2p-gossipsub'
+import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
 import {
@@ -13,7 +13,13 @@ import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
 // import { createLogger } from '@regioni/lib-logger'
 
-import type { ServiceMap } from '@libp2p/interface'
+import { createRPC } from './rpc'
+
+import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
+import type {
+  CircuitRelayService,
+} from '@libp2p/circuit-relay-v2'
+import type { PubSub, ServiceMap } from '@libp2p/interface'
 import type { Libp2pOptions } from 'libp2p'
 
 export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>
@@ -24,7 +30,12 @@ export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>
 //   },
 // })
 
-export const DefaultLibp2pOptions: Options = {
+export const DefaultLibp2pOptions: Options<{
+  rpc: ReturnType<ReturnType<typeof createRPC>>
+  identify: Identify
+  circuitRelay: CircuitRelayService
+  pubsub: PubSub<GossipsubEvents>
+}> = {
   addresses: {
     listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
@@ -65,10 +76,14 @@ export const DefaultLibp2pOptions: Options = {
     pubsub: gossipsub({
       allowPublishToZeroTopicPeers: true,
     }),
+    rpc: createRPC(),
   },
-}
+} as const
 
-export const DefaultLibp2pBrowserOptions: Options = {
+export const DefaultLibp2pBrowserOptions: Options<{
+  identify: Identify
+  pubsub: PubSub<GossipsubEvents>
+}> = {
   addresses: {
     listen: ['/webrtc'],
   },
@@ -91,4 +106,4 @@ export const DefaultLibp2pBrowserOptions: Options = {
       allowPublishToZeroTopicPeers: true,
     }),
   },
-}
+} as const

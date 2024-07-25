@@ -1,9 +1,4 @@
-// import type { RPCError } from './message-handler'
-export interface RPCError {
-  code: number
-  message: string
-  data?: Uint8Array
-}
+import type { RPCError } from './types'
 
 export class RPCException extends Error implements RPCError {
   public code = 0
