@@ -21,14 +21,17 @@ libp2p.addEventListener('peer:connect', (peerId) => {
   console.log('peer:connect', peerId)
   console.log('peer:connect PeerId', peerId.detail)
 })
-
-libp2p.services.rpc.addMethod('echo', (args) => {
-  if (!args) {
-    return
-  }
-  console.log('server', uint8ArrayToString(args))
-
-  return args
+// libp2p.services.rpc.
+libp2p.services.rpc.addEventListener('msg', (data) => {
+  console.log('data', (data.detail))
 })
+// libp2p.services.rpc.addMethod('echo', (args) => {
+//   if (!args) {
+//     return
+//   }
+//   console.log('server', uint8ArrayToString(args))
 
-await libp2p.services.rpc.start()
+//   return args
+// })
+
+// await libp2p.services.rpc.start()

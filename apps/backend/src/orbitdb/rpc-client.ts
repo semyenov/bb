@@ -7,7 +7,6 @@ import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
 
 import { DefaultLibp2pOptions } from './config'
-import { stringToUint8Array, uint8ArrayToString } from './utils'
 
 const dbDir = process.argv[1] || './.orbitdb/db2'
 
@@ -17,17 +16,12 @@ const { libp2p } = await createHelia({
   blockBrokers: [bitswap()],
 })
 
-await libp2p.services.rpc.start()
-
 console.log('protocols:', libp2p.getProtocols())
 
 libp2p.addEventListener('peer:connect', async (peerId) => {
   console.log('peer:connect PeerId', peerId.detail)
-
   try {
-    const res = await libp2p.services.rpc.request(peerId.detail, 'echo', stringToUint8Array('hello'))
-
-    console.log('client', uint8ArrayToString(res!))
+    await libp2p.services.rpc.send(peerId.detail, 'hello')
   }
   catch (error) {
     console.error(error)

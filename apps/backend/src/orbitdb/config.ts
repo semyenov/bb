@@ -13,8 +13,9 @@ import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
 // import { createLogger } from '@regioni/lib-logger'
 
-import { createRPC } from './rpc'
+import { pulse } from './rpc2'
 
+import type { createRPC } from './rpc'
 import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
 import type {
   CircuitRelayService,
@@ -31,7 +32,7 @@ export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>
 // })
 
 export const DefaultLibp2pOptions: Options<{
-  rpc: ReturnType<ReturnType<typeof createRPC>>
+  rpc: ReturnType<ReturnType<typeof pulse>>
   identify: Identify
   circuitRelay: CircuitRelayService
   pubsub: PubSub<GossipsubEvents>
@@ -76,7 +77,7 @@ export const DefaultLibp2pOptions: Options<{
     pubsub: gossipsub({
       allowPublishToZeroTopicPeers: true,
     }),
-    rpc: createRPC(),
+    rpc: pulse(),
   },
 } as const
 

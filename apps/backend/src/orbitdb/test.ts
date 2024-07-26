@@ -56,8 +56,12 @@ db.events.on('drop', () => {
   return logger.info('drop')
 })
 
+db.sync.events.on('join', (arg) => {
+  console.log('sync join', arg)
+})
+
 // Add some data
-// await generate(10000)
+// await generate(100)
 
 // Get some data
 const value = await db.get('12')
@@ -65,33 +69,33 @@ const value = await db.get('12')
 logger.info('value', value)
 
 // Iterate over records
-for await (const record of db.iterator({ amount: 1 })) {
-  logger.info('record', record)
-}
+// for await (const record of db.iterator({ amount: 1 })) {
+//   logger.info('record', record)
+// }
 
 // Stop OrbitDB
 // await stopOrbitDB(orbitdb)
 
-// async function generate(size: number, chunkSize = 1000) {
-//   let time = 0
-//   for (let i = 0; i < size; i += chunkSize) {
-//     const length = Math.min(chunkSize, size - i)
-//     const chunk = Array.from({ length }, (_, j) => {
-//       return {
-//         _id: (i + (j + 1)).toString(),
-//         // firstName: faker.person.firstName(),
-//         // lastName: faker.person.lastName(),
-//         // email: faker.internet.email(),
-//         // company: faker.company.name(),
-//         // phone: faker.phone.number(),
-//         // value: faker.lorem.paragraphs({ min: 2, max: 5 }),
-//       }
-//     })
+async function generate(size: number, chunkSize = 1000) {
+  let time = 0
+  for (let i = 0; i < size; i += chunkSize) {
+    const length = Math.min(chunkSize, size - i)
+    const chunk = Array.from({ length }, (_, j) => {
+      return {
+        _id: (i + (j + 1)).toString(),
+        // firstName: faker.person.firstName(),
+        // lastName: faker.person.lastName(),
+        // email: faker.internet.email(),
+        // company: faker.company.name(),
+        // phone: faker.phone.number(),
+        // value: faker.lorem.paragraphs({ min: 2, max: 5 }),
+      }
+    })
 
-//     const startTime = performance.now()
-//     await Promise.all(chunk.map(db.put))
-//     time += performance.now() - startTime
-//   }
+    const startTime = performance.now()
+    await Promise.all(chunk.map(db.put))
+    time += performance.now() - startTime
+  }
 
-//   logger.info('time', `took ${(1000 / time / size).toFixed(2)}op/sec average`)
-// }
+  logger.info('time', `took ${(1000 / time / size).toFixed(2)}op/sec average`)
+}
