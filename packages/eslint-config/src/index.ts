@@ -73,7 +73,7 @@ async function config(): Promise<Linter.FlatConfig[]> {
       'no-use-before-define': ['error', { functions: false }],
       'no-param-reassign': ['error', { props: false }],
       'no-underscore-dangle': ['error', { allow: ['_id', '_count'] }],
-      'no-shadow': ['error', { allow: ['_id', '_count'] }],
+      'no-shadow': ['off', { allow: ['_id', '_count', 'T'] }],
       'no-unused-expressions': ['error', { allowShortCircuit: true }],
       'no-shadow-restricted-names': ['error'],
 

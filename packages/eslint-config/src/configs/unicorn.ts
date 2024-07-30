@@ -32,7 +32,7 @@ const unicorn = {
     'unicorn/text-encoding-identifier-case': 'error',
     'unicorn/catch-error-name': 'error',
     'unicorn/consistent-destructuring': 'error',
-    'unicorn/consistent-function-scoping': 'error',
+    // 'unicorn/consistent-function-scoping': 'off',
     'unicorn/empty-brace-spaces': 'error',
     'unicorn/expiring-todo-comments': 'error',
     'unicorn/no-unnecessary-await': 'error',

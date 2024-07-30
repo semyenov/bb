@@ -5570,6 +5570,7 @@ __metadata:
     "@trpc/server": "npm:^10.45.2"
     "@types/elliptic": "npm:^6.4.18"
     "@types/events": "npm:^3.0.3"
+    "@types/fs-extra": "npm:^11"
     "@types/orbitdb__core": "workspace:^"
     "@typeschema/typebox": "npm:^0.13.4"
     blockcodec-to-ipld-format: "npm:^2.0.0"
@@ -5590,6 +5591,7 @@ __metadata:
     events: "npm:^3.3.0"
     fast-glob: "npm:^3.3.2"
     fast-uri: "npm:^3.0.1"
+    fs-extra: "npm:^11.2.0"
     h3: "npm:^1.12.0"
     helia: "npm:^4.2.4"
     interface-blockstore: "npm:^5.2.10"
@@ -5612,12 +5614,14 @@ __metadata:
     printf-ts: "npm:^2.0.1"
     protons-runtime: "npm:5.4.0"
     remeda: "npm:^2.6.0"
+    rimraf: "npm:^6.0.1"
     timeout-abort-controller: "npm:^3.0.0"
     ts-pattern: "npm:^5.2.0"
     tsx: "npm:^4.16.2"
     uint8arraylist: "npm:^2.4.8"
     uint8arrays: "npm:^5.1.0"
     unstorage: "npm:^1.10.2"
+    vitest: "npm:^2.0.4"
   languageName: unknown
   linkType: soft
 

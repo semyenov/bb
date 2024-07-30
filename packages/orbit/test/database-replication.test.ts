@@ -1,0 +1,503 @@
+import { deepStrictEqual, strictEqual } from 'node:assert'
+
+import { copy } from 'fs-extra'
+import { rimraf } from 'rimraf'
+import { afterEach, beforeEach, describe, it } from 'vitest'
+
+import {
+  ComposedStorage,
+  Database,
+  IPFSBlockStorage,
+  Identities,
+  KeyStore,
+  MemoryStorage,
+} from '../src'
+
+import testKeysPath from './fixtures/test-keys-path'
+import connectPeers from './utils/connect-nodes'
+import createHelia from './utils/create-helia'
+import waitFor from './utils/wait-for'
+
+import type { EntryInstance } from '../src/oplog/index'
+
+const keysPath = './testkeys'
+
+describe('database - Replication', () => {
+  let ipfs1: any, ipfs2: any
+  let keystore: KeyStore
+  let identities: Identities
+  let testIdentity1: any, testIdentity2: any
+  let db1: Database, db2: Database
+
+  const databaseId = 'documents-AAA'
+
+  const accessController = {
+    canAppend: async (entry: EntryInstance) => {
+      const identity1 = await identities.getIdentity(entry.identity || '')
+      const identity2 = await identities.getIdentity(entry.identity || '')
+
+      return (
+        identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id
+      )
+    },
+  }
+
+  beforeEach(async () => {
+    [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
+    await connectPeers(ipfs1, ipfs2)
+
+    await copy(testKeysPath, keysPath)
+    keystore = await KeyStore.create({ path: keysPath })
+    identities = await Identities.create({ keystore })
+    testIdentity1 = await identities.createIdentity({ id: 'userA' })
+    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+  })
+
+  afterEach(async () => {
+    if (db1) {
+      await db1.drop()
+      await db1.close()
+
+      await rimraf('./orbitdb1')
+    }
+    if (db2) {
+      await db2.drop()
+      await db2.close()
+
+      await rimraf('./orbitdb2')
+    }
+
+    if (ipfs1) {
+      await ipfs1.stop()
+    }
+
+    if (ipfs2) {
+      await ipfs2.stop()
+    }
+
+    if (keystore) {
+      await keystore.close()
+    }
+
+    await rimraf(keysPath)
+    await rimraf('./ipfs1')
+    await rimraf('./ipfs2')
+  })
+
+  describe('replicate across peers', () => {
+    beforeEach(async () => {
+      db1 = await Database.create({
+        ipfs: ipfs1,
+        identity: testIdentity1,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb1',
+      })
+    })
+
+    it('replicates databases across two peers', async () => {
+      let replicated = false
+      let expectedEntryHash: null | string = null
+
+      const onConnected = (peerId: any, heads: EntryInstance[]) => {
+        replicated = expectedEntryHash !== null
+        && heads.map((e) => {
+          return e.hash
+        })
+          .includes(expectedEntryHash)
+      }
+
+      const onUpdate = (entry: EntryInstance) => {
+        replicated = expectedEntryHash !== null
+        && entry.hash === expectedEntryHash
+      }
+
+      db2 = await Database.create({
+        ipfs: ipfs2,
+        identity: testIdentity2,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb2',
+      })
+
+      db2.events.on('join', onConnected)
+      db2.events.on('update', onUpdate)
+
+      await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: 2, value: 'record 2 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: 3, value: 'record 3 on db 1' })
+      expectedEntryHash = await db1.addOperation({
+        op: 'PUT',
+        key: 4,
+        value: 'record 4 on db 1',
+      })
+
+      await waitFor(
+        () => {
+          return replicated
+        },
+        () => {
+          return true
+        },
+      )
+
+      const all1: EntryInstance[] = []
+      for await (const item of db1.log.iterator()) {
+        all1.unshift(item)
+      }
+
+      const all2: EntryInstance[] = []
+      for await (const item of db2.log.iterator()) {
+        all2.unshift(item)
+      }
+
+      deepStrictEqual(all1, all2)
+    })
+
+    it('replicates databases across two peers with delays', async () => {
+      let replicated: boolean | string | null = false
+      let expectedEntryHash: null | string = null
+
+      const onConnected = (peerId: string, heads: EntryInstance[]) => {
+        replicated = expectedEntryHash
+        && heads.map((e) => {
+          return e.hash
+        })
+          .includes(expectedEntryHash)
+      }
+
+      const onUpdate = (entry: EntryInstance) => {
+        replicated = expectedEntryHash && entry.hash === expectedEntryHash
+      }
+
+      db2 = await Database.create({
+        ipfs: ipfs2,
+        identity: testIdentity2,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb2',
+      })
+
+      db2.events.on('join', onConnected)
+      db2.events.on('update', onUpdate)
+
+      await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          return resolve()
+        }, 1000)
+      })
+
+      await db1.addOperation({ op: 'PUT', key: 2, value: 'record 2 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: 3, value: 'record 3 on db 1' })
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          return resolve()
+        }, 1000)
+      })
+
+      expectedEntryHash = await db1.addOperation({
+        op: 'PUT',
+        key: 4,
+        value: 'record 4 on db 1',
+      })
+
+      await waitFor(
+        () => {
+          return replicated
+        },
+        () => {
+          return true
+        },
+      )
+
+      const all1: EntryInstance[] = []
+      for await (const item of db1.log.iterator()) {
+        all1.unshift(item)
+      }
+
+      const all2: EntryInstance[] = []
+      for await (const item of db2.log.iterator()) {
+        all2.unshift(item)
+      }
+
+      deepStrictEqual(all1, all2)
+    })
+
+    it('adds an operation before db2 is instantiated', async () => {
+      let connected = false
+
+      const onConnected = (peerId: string, heads: EntryInstance[]) => {
+        connected = true
+      }
+
+      await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
+
+      db2 = await Database({
+        ipfs: ipfs2,
+        identity: testIdentity2,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb2',
+      })
+
+      db2.events.on('join', onConnected)
+
+      await waitFor(
+        () => {
+          return connected
+        },
+        () => {
+          return true
+        },
+      )
+
+      const all1: EntryInstance[] = []
+      for await (const item of db1.log.iterator()) {
+        all1.unshift(item)
+      }
+
+      const all2: EntryInstance[] = []
+      for await (const item of db2.log.iterator()) {
+        all2.unshift(item)
+      }
+
+      deepStrictEqual(all1, all2)
+    })
+  })
+
+  describe('options', () => {
+    it('uses given ComposedStorage with MemoryStorage/IPFSBlockStorage for entryStorage', async () => {
+      const storage1 = await ComposedStorage.create(
+        await MemoryStorage(),
+        await IPFSBlockStorage({ ipfs: ipfs1, pin: true }),
+      )
+      const storage2 = await ComposedStorage.create(
+        await MemoryStorage(),
+        await IPFSBlockStorage({ ipfs: ipfs2, pin: true }),
+      )
+      db1 = await Database.create({
+        ipfs: ipfs1,
+        identity: testIdentity1,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb1',
+        entryStorage: storage1,
+      })
+      db2 = await Database.create({
+        ipfs: ipfs2,
+        identity: testIdentity2,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb2',
+        entryStorage: storage2,
+      })
+
+      let connected1 = false
+      let connected2 = false
+
+      const onConnected1 = (peerId: string, heads: EntryInstance[]) => {
+        connected1 = true
+      }
+
+      const onConnected2 = (peerId: string, heads: EntryInstance[]) => {
+        connected2 = true
+      }
+
+      db1.events.on('join', onConnected1)
+      db2.events.on('join', onConnected2)
+
+      await db1.addOperation({ op: 'PUT', key: String(1), value: 'record 1 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: String(2), value: 'record 2 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: String(3), value: 'record 3 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: String(4), value: 'record 4 on db 1' })
+
+      await waitFor(
+        () => {
+          return connected1
+        },
+        () => {
+          return true
+        },
+      )
+      await waitFor(
+        () => {
+          return connected2
+        },
+        () => {
+          return true
+        },
+      )
+
+      const all1: EntryInstance[] = []
+      for await (const item of db1.log.iterator()) {
+        all1.unshift(item)
+      }
+
+      const all2: EntryInstance[] = []
+      for await (const item of db2.log.iterator()) {
+        all2.unshift(item)
+      }
+
+      deepStrictEqual(all1, all2)
+    })
+  })
+
+  describe('events', () => {
+    beforeEach(async () => {
+      db1 = await Database.create({
+        ipfs: ipfs1,
+        identity: testIdentity1,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb1',
+      })
+      db2 = await Database.create({
+        ipfs: ipfs2,
+        identity: testIdentity2,
+        address: databaseId,
+        accessController,
+        directory: './orbitdb2',
+      })
+    })
+
+    it('emits \'update\' once when one operation is added', async () => {
+      const expected = 1
+      let connected1 = false
+      let connected2 = false
+      let updateCount1 = 0
+      let updateCount2 = 0
+
+      const onConnected2 = (peerId: string, heads: EntryInstance[]) => {
+        connected2 = true
+      }
+
+      const onUpdate1 = async (entry) => {
+        ++updateCount1
+      }
+
+      const onUpdate2 = async (entry) => {
+        ++updateCount2
+      }
+
+      db1.events.on('join', (peerId: string, heads: EntryInstance[]) => {
+        connected1 = true
+      })
+      db2.events.on('join', onConnected2)
+      db1.events.on('update', onUpdate1)
+      db2.events.on('update', onUpdate2)
+
+      await waitFor(
+        () => {
+          return connected1
+        },
+        () => {
+          return true
+        },
+      )
+      await waitFor(
+        () => {
+          return connected2
+        },
+        () => {
+          return true
+        },
+      )
+
+      await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
+
+      await waitFor(
+        () => {
+          return updateCount1 >= expected
+        },
+        () => {
+          return true
+        },
+      )
+      await waitFor(
+        () => {
+          return updateCount2 >= expected
+        },
+        () => {
+          return true
+        },
+      )
+
+      strictEqual(updateCount1, expected)
+      strictEqual(updateCount2, expected)
+    })
+
+    it('emits \'update\' 4 times when 4 documents are added', async () => {
+      const expected = 4
+      let connected1 = false
+      let connected2 = false
+      let updateCount1 = 0
+      let updateCount2 = 0
+
+      const onConnected1 = async (peerId: string, heads: EntryInstance[]) => {
+        connected1 = true
+      }
+
+      const onConnected2 = async (peerId: string, heads: EntryInstance[]) => {
+        connected2 = true
+      }
+
+      const onUpdate1 = async (entry: EntryInstance) => {
+        ++updateCount1
+      }
+
+      const onUpdate2 = async (entry: EntryInstance) => {
+        ++updateCount2
+      }
+
+      db1.events.on('join', onConnected1)
+      db2.events.on('join', onConnected2)
+      db1.events.on('update', onUpdate1)
+      db2.events.on('update', onUpdate2)
+
+      await waitFor(
+        () => {
+          return connected1
+        },
+        () => {
+          return true
+        },
+      )
+      await waitFor(
+        () => {
+          return connected2
+        },
+        () => {
+          return true
+        },
+      )
+
+      await db1.addOperation({ op: 'PUT', key: String(1), value: '11' })
+      await db1.addOperation({ op: 'PUT', key: String(2), value: '22' })
+      await db1.addOperation({ op: 'PUT', key: String(3), value: '33' })
+      await db1.addOperation({ op: 'PUT', key: String(4), value: '44' })
+
+      await waitFor(
+        () => {
+          return updateCount1 >= expected
+        },
+        () => {
+          return true
+        },
+      )
+      await waitFor(
+        () => {
+          return updateCount2 >= expected
+        },
+        () => {
+          return true
+        },
+      )
+
+      strictEqual(updateCount1, expected)
+      strictEqual(updateCount2, expected)
+    })
+  })
+})
