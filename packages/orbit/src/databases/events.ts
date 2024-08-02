@@ -24,7 +24,7 @@ export interface EventsIteratorOptions {
   amount?: number
 }
 
-export interface EventsOptions<T = unknown> extends DatabaseOptions<T> {}
+export type EventsOptions<T = unknown> = DatabaseOptions<T>
 export interface EventsInstance<T = unknown> extends DatabaseInstance<T> {
   type: 'events'
 
@@ -40,6 +40,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
   get type(): 'events' {
     return DATABASE_EVENTS_TYPE
   }
+
   static get type(): 'events' {
     return DATABASE_EVENTS_TYPE
   }
@@ -52,6 +53,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
     options: EventsOptions<T>,
   ): Promise<EventsDatabase<T>> {
     const database = await Database.create<T>(options)
+
     return new EventsDatabase<T>(database)
   }
 
@@ -104,6 +106,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
 
   async get(hash: string): Promise<T | null> {
     const entry = await this.database.log.get(hash)
+
     return entry ? entry.payload.value : null
   }
 
@@ -117,7 +120,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
     const it = this.database.log.iterator({ gt, gte, lt, lte, amount })
     for await (const event of it) {
       const hash = event.hash!
-      const value = event.payload.value
+      const { value } = event.payload
       yield { hash, value }
     }
   }
@@ -127,6 +130,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
     for await (const entry of this.iterator()) {
       values.unshift(entry)
     }
+
     return values
   }
 

@@ -1,14 +1,14 @@
 import { deepStrictEqual } from 'node:assert'
 
+import { copy } from 'fs-extra'
+import { rimraf } from 'rimraf'
+import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
+
 import {
   Identities,
   KeyStore,
   KeyValue,
-} from '@orbitdb/core'
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { after, afterEach, before, describe, it } from 'vitest'
-
+} from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
@@ -24,10 +24,7 @@ import type {
 } from '@orbitdb/core'
 
 const keysPath = './testkeys'
-describe('keyValue Database Replication', function () {
-  // @ts-ignore
-  this.timeout(30000)
-
+describe('keyValue Database Replication', () => {
   let ipfs1: IPFS, ipfs2: IPFS
   let keystore: KeyStoreInstance
   let identities: IdentitiesInstance
@@ -44,18 +41,28 @@ describe('keyValue Database Replication', function () {
     },
   }
 
-  before(async () => {
+  beforeAll(async () => {
     [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
     await connectPeers(ipfs1, ipfs2)
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ keystore, ipfs: ipfs1 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
     testIdentity2 = await identities.createIdentity({ id: 'userB' })
   })
+  afterEach(async () => {
+    if (kv1) {
+      await kv1.drop()
+      await kv1.close()
+    }
+    if (kv2) {
+      await kv2.drop()
+      await kv2.close()
+    }
+  })
 
-  after(async () => {
+  afterAll(async () => {
     if (ipfs1) {
       await ipfs1.stop()
     }
@@ -73,17 +80,6 @@ describe('keyValue Database Replication', function () {
     await rimraf('./orbitdb2')
     await rimraf('./ipfs1')
     await rimraf('./ipfs2')
-  })
-
-  afterEach(async () => {
-    if (kv1) {
-      await kv1.drop()
-      await kv1.close()
-    }
-    if (kv2) {
-      await kv2.drop()
-      await kv2.close()
-    }
   })
 
   it('replicates a database', async () => {
@@ -107,14 +103,14 @@ describe('keyValue Database Replication', function () {
       console.error(err)
     }
 
-    kv1 = await KeyValue()({
+    kv1 = await KeyValue.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValue()({
+    kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -205,14 +201,14 @@ describe('keyValue Database Replication', function () {
       console.error(err)
     }
 
-    kv1 = await KeyValue()({
+    kv1 = await KeyValue.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValue()({
+    kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -244,14 +240,14 @@ describe('keyValue Database Replication', function () {
     await kv1.close()
     await kv2.close()
 
-    kv1 = await KeyValue()({
+    kv1 = await KeyValue.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValue()({
+    kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,

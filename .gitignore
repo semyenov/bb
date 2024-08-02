@@ -31,6 +31,6 @@ core
 *.log*
 
 .out
-
+.keystore
 .idea
 .orbitdb

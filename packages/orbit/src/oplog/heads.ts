@@ -13,7 +13,8 @@ export class Heads<T> {
   constructor({ storage, heads }: HeadsOptions<T> = {}) {
     this.storage = storage || new MemoryStorage<Uint8Array>()
     if (heads) {
-      this.put(heads).catch(console.error)
+      this.put(heads)
+        .catch(console.error)
     }
   }
 
@@ -31,17 +32,22 @@ export class Heads<T> {
 
   async add(head: EntryInstance<T>): Promise<EntryInstance<T>[] | undefined> {
     const currentHeads = await this.all()
-    if (currentHeads.some((e) => Entry.isEqual(e, head))) {
+    if (currentHeads.some((e) => {
+      return Entry.isEqual(e, head)
+    })) {
       return
     }
     const newHeads = Heads.findHeads([...currentHeads, head])
     await this.set(newHeads)
+
     return newHeads
   }
 
   async remove(hash: string): Promise<void> {
     const currentHeads = await this.all()
-    const newHeads = currentHeads.filter((e) => e.hash !== hash)
+    const newHeads = currentHeads.filter((e) => {
+      return e.hash !== hash
+    })
     await this.set(newHeads)
   }
 
@@ -58,6 +64,7 @@ export class Heads<T> {
     for await (const head of this.iterator()) {
       values.push(head)
     }
+
     return values
   }
 
@@ -89,8 +96,6 @@ export class Heads<T> {
   }
 }
 
-export const createHeads = async <T>(
-  options: HeadsOptions<T> = {},
-): Promise<Heads<T>> => {
+export async function createHeads<T>(options: HeadsOptions<T> = {}): Promise<Heads<T>> {
   return new Heads<T>(options)
 }

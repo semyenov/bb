@@ -11,10 +11,10 @@ import type {
 } from '../providers'
 
 export class PublicKeyIdentityProvider implements IdentityProviderInstance {
-  public type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
+  static type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
   private keystore: IdentityProviderOptions['keystore']
 
-  static type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
+  public type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
 
   constructor({ keystore }: IdentityProviderOptions) {
     if (!keystore) {

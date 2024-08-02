@@ -1,4 +1,4 @@
-import { deepStrictEqual, strictEqual } from 'node:assert'
+import { deepEqual, strictEqual } from 'node:assert'
 
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
@@ -151,7 +151,7 @@ describe('database - Replication', () => {
         all2.unshift(item)
       }
 
-      deepStrictEqual(all1, all2)
+      deepEqual(all1, all2)
     })
 
     it('replicates databases across two peers with delays', async () => {
@@ -223,7 +223,7 @@ describe('database - Replication', () => {
         all2.unshift(item)
       }
 
-      deepStrictEqual(all1, all2)
+      deepEqual(all1, all2)
     })
 
     it('adds an operation before db2 is instantiated', async () => {
@@ -264,7 +264,7 @@ describe('database - Replication', () => {
         all2.unshift(item)
       }
 
-      deepStrictEqual(all1, all2)
+      deepEqual(all1, all2)
     })
   })
 
@@ -341,7 +341,7 @@ describe('database - Replication', () => {
         all2.unshift(item)
       }
 
-      deepStrictEqual(all1, all2)
+      deepEqual(all1, all2)
     })
   })
 

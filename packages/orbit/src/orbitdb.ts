@@ -104,7 +104,7 @@ export class OrbitDB implements OrbitDBInstance {
     }
 
     const id = options.id || (await createId())
-    const ipfs = options.ipfs
+    const { ipfs } = options
     const directory = options.directory || './orbitdb'
 
     let keystore: KeyStoreInstance
@@ -113,7 +113,8 @@ export class OrbitDB implements OrbitDBInstance {
     if (options.identities) {
       identities = options.identities
       keystore = identities.keystore
-    } else {
+    }
+    else {
       keystore = await KeyStore.create({
         path: join(directory, './keystore'),
       })
@@ -163,7 +164,7 @@ export class OrbitDB implements OrbitDBInstance {
     let name: string
     let manifest: Manifest | null
     let accessController: AccessControllerInstance
-    let meta: any = options.meta
+    let { meta } = options
 
     if (this.databases[address_!]) {
       return this.databases[address_!] as DatabaseTypeMap<T>[D]
@@ -192,14 +193,15 @@ export class OrbitDB implements OrbitDBInstance {
       })
 
       name = manifest.name
-      meta = meta || manifest.meta
+      meta ||= manifest.meta
 
       type_ = type || manifest.type
-    } else {
+    }
+    else {
       type_ = type || DATABASE_DEFAULT_TYPE
 
-      const AccessController =
-        options.AccessController || DEFAULT_ACCESS_CONTROLLER
+      const AccessController
+        = options.AccessController || DEFAULT_ACCESS_CONTROLLER
 
       accessController = await AccessController({
         orbitdb: this,
@@ -217,7 +219,7 @@ export class OrbitDB implements OrbitDBInstance {
 
       manifest = m.manifest
       name = manifest.name
-      meta = meta || manifest.meta
+      meta ||= manifest.meta
 
       if (this.databases[address_!] as DatabaseTypeMap<T>[D]) {
         return this.databases[address_!] as DatabaseTypeMap<T>[typeof type]
@@ -251,8 +253,10 @@ export class OrbitDB implements OrbitDBInstance {
     return database
   }
 
-  private onDatabaseClosed = (address: string) => (): void => {
-    delete this.databases[address!]
+  private onDatabaseClosed = (address: string) => {
+    return (): void => {
+      delete this.databases[address!]
+    }
   }
 
   async stop(): Promise<void> {
@@ -266,9 +270,9 @@ export class OrbitDB implements OrbitDBInstance {
       await this.manifestStore.close()
     }
 
-    Object.keys(this.databases).forEach((key) => {
+    for (const key of Object.keys(this.databases)) {
       delete this.databases[key!]
-    })
+    }
   }
 }
 

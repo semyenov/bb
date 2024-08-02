@@ -3,6 +3,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 
 import { copy } from 'fs-extra'
+import { indexBy } from 'remeda'
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
@@ -55,7 +56,7 @@ describe('documents Database', () => {
     }
 
     await rimraf(keysPath)
-    await rimraf('./orbitdb')
+    await rimraf('./.orbitdb')
     await rimraf('./ipfs1')
   })
 
@@ -136,7 +137,7 @@ describe('documents Database', () => {
       await db.del(key)
 
       const doc = await db.get(key)
-      strictEqual(doc, undefined)
+      strictEqual(doc, null)
     })
 
     it('throws an error when deleting a non-existent document', async () => {
@@ -187,11 +188,12 @@ describe('documents Database', () => {
 
   describe('custom index doc', () => {
     beforeEach(async () => {
-      db = await Documents<{ doc: string, msg: string }>({ indexBy: 'doc' })({
+      db = await Documents.create<{ doc: string, msg: string }>({
         ipfs,
         identity: testIdentity1,
         address: databaseId,
         accessController,
+        indexBy: 'doc',
       }) as DocumentsInstance<{ doc: string, msg: string }>
     })
 
@@ -226,7 +228,7 @@ describe('documents Database', () => {
       await db.del(key)
 
       const doc = await db.get(key)
-      strictEqual(doc, undefined)
+      strictEqual(doc, null)
     })
     it('throws an error when putting a document with the wrong key', async () => {
       let err
@@ -356,6 +358,7 @@ describe('documents Database', () => {
       await db.del('doc6')
 
       const all: DocumentsDoc[] = []
+      console.log('db', await db.all())
       for await (const doc of db.iterator()) {
         all.unshift(doc)
       }

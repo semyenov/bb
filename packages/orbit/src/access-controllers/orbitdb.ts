@@ -37,11 +37,11 @@ interface OrbitDBAccessControllerOptions {
 }
 
 export class OrbitDBAccessController
-  implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>>
-{
+implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
   get type(): 'orbitdb' {
     return ACCESS_CONTROLLER_ORBITDB_TYPE
   }
+
   static get type(): 'orbitdb' {
     return ACCESS_CONTROLLER_ORBITDB_TYPE
   }
@@ -72,7 +72,8 @@ export class OrbitDBAccessController
   ): Promise<OrbitDBAccessControllerInstance<DatabaseEvents<string[]>>> {
     const { orbitdb, identities, name, write } = options
     const address = options.address || name || (await createId(64))
-    const database = await options.orbitdb.open<string[], 'keyvalue'>(
+
+    const database = await orbitdb.open<string[], 'keyvalue'>(
       'keyvalue',
       address,
       {
@@ -97,9 +98,9 @@ export class OrbitDBAccessController
     }
 
     const { id } = writerIdentity
-    const hasWriteAccess =
-      (await this.hasCapability('write', id)) ||
-      (await this.hasCapability('admin', id))
+    const hasWriteAccess
+      = (await this.hasCapability('write', id))
+      || (await this.hasCapability('admin', id))
     if (hasWriteAccess) {
       return this.identities.verifyIdentity(writerIdentity)
     }
@@ -109,6 +110,8 @@ export class OrbitDBAccessController
 
   async capabilities(): Promise<Record<string, Set<string>>> {
     const caps: Record<string, Set<string>> = {}
+    console.log('address', this.database.address)
+    console.log('keys', await this.database.all())
     for await (const { key, value } of this.database.iterator()) {
       caps[key!] = new Set(value)
     }
@@ -126,13 +129,15 @@ export class OrbitDBAccessController
           ...this.database.accessController.write,
         ]),
       },
-    }).forEach(toSet)
+    })
+      .forEach(toSet)
 
     return caps
   }
 
   async get(capability: string): Promise<Set<string>> {
     const caps = await this.capabilities()
+
     return caps[capability!] || new Set([])
   }
 
@@ -146,6 +151,7 @@ export class OrbitDBAccessController
 
   async hasCapability(capability: string, key: string): Promise<boolean> {
     const access = await this.get(capability)
+
     return access.has(key) || access.has('*')
   }
 
@@ -154,15 +160,19 @@ export class OrbitDBAccessController
       ...((await this.database.get(capability)) || []),
       key,
     ])
+    console.log('grant caps:', { caps, capability })
     await this.database.put(capability, Array.from(caps))
+
+    console.log('grant keys', await this.database.get('read'))
   }
 
   async revoke(capability: string, key: string): Promise<void> {
     const caps = new Set((await this.database.get(capability)) || [])
     caps.delete(key)
     if (caps.size > 0) {
-      await this.database.put(capability, Array.from(caps))
-    } else {
+      await this.database.put(capability, Array.from(caps.values()))
+    }
+    else {
       await this.database.del(capability)
     }
   }

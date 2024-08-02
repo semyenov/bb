@@ -31,8 +31,8 @@ export const Entry = {
     id: string,
     payload: T,
     clock?: ClockInstance,
-    next?: Array<string>,
-    refs: Array<string> = [],
+    next?: string[],
+    refs: string[] = [],
   ): Promise<EntryInstance<T>> {
     if (!identity) {
       throw new Error('Identity is required, cannot create entry')
@@ -44,7 +44,7 @@ export const Entry = {
       throw new Error('Entry requires a payload')
     }
     if (!next || !Array.isArray(next)) {
-      throw new Error("'next' argument is not an array")
+      throw new Error('\'next\' argument is not an array')
     }
 
     const entry: EntryInstance<T> = {
@@ -64,6 +64,7 @@ export const Entry = {
     entry.identity = identity.hash
     entry.sig = signature
     entry.bytes = bytes
+    // console.log('Entry.create: entry:', entry)
 
     return entry
   },
@@ -85,10 +86,10 @@ export const Entry = {
       throw new Error('Invalid Log entry')
     }
     if (!entry.key) {
-      throw new Error("Entry doesn't have a key")
+      throw new Error('Entry doesn\'t have a key')
     }
     if (!entry.sig) {
-      throw new Error("Entry doesn't have a signature")
+      throw new Error('Entry doesn\'t have a signature')
     }
 
     const value = {
@@ -111,13 +112,13 @@ export const Entry = {
 
   isEntry(obj: any): obj is EntryInstance {
     return (
-      obj &&
-      obj.id !== undefined &&
-      obj.next !== undefined &&
-      obj.payload !== undefined &&
-      obj.v !== undefined &&
-      obj.clock !== undefined &&
-      obj.refs !== undefined
+      obj
+      && obj.id !== undefined
+      && obj.next !== undefined
+      && obj.payload !== undefined
+      && obj.v !== undefined
+      && obj.clock !== undefined
+      && obj.refs !== undefined
     )
   },
 
@@ -141,6 +142,7 @@ export const Entry = {
       codec,
       hasher,
     })
+
     return bytes
   },
 }

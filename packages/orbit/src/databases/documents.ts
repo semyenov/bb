@@ -110,6 +110,7 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
 
   async put(doc: T): Promise<string> {
     const key = doc[this.indexBy as keyof T]
+    console.log('key', key)
     if (!key) {
       throw new Error(
         `The provided document doesn't contain field '${String(this.indexBy)}'`,
@@ -160,6 +161,7 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
     const keys: Record<string, boolean> = {}
     let count = 0
     for await (const entry of this.database.log.iterator()) {
+      // console.log('entry iterator', entry)
       const { op, key, value } = entry.payload
       if (op === 'PUT' && !keys[key!]) {
         keys[key!] = true

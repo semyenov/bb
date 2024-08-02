@@ -2,6 +2,7 @@ import assert from 'node:assert'
 
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
@@ -50,7 +51,7 @@ describe('identities', () => {
       identities = await Identities.create({ path: keysPath, ipfs })
       identity = await identities.createIdentity({ id })
       const key = await identities.keystore.getKey(id)
-      const externalId = uint8ArrayToString(key.public.marshal(), 'base16')
+      const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
       assert.strictEqual(identity.id, externalId)
     })
   })
@@ -118,7 +119,7 @@ describe('identities', () => {
       identity = await identities.createIdentity({ id })
       keystore = identities.keystore
       const key = await keystore.getKey(id)
-      const externalId = uint8ArrayToString(key.public.marshal(), 'base16')
+      const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
       assert.strictEqual(identity.id, externalId)
     })
 
@@ -129,19 +130,19 @@ describe('identities', () => {
 
     it('has the correct public key', async () => {
       const key = await keystore.getKey(id)
-      const externalId = uint8ArrayToString(key.public.marshal(), 'base16')
+      const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
       const signingKey = await keystore.getKey(externalId)
       assert.notStrictEqual(signingKey, undefined)
-      assert.strictEqual(identity.publicKey, keystore.getPublic(signingKey))
+      assert.strictEqual(identity.publicKey, keystore.getPublic(signingKey!))
     })
 
     it('has a signature for the id', async () => {
       const key = await keystore.getKey(id)
-      const externalId = uint8ArrayToString(key.public.marshal(), 'base16')
+      const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
       const signingKey = await keystore.getKey(externalId)
-      const idSignature = await signMessage(signingKey, externalId)
+      const idSignature = await signMessage(signingKey!, externalId)
       const publicKey = uint8ArrayToString(
-        signingKey.public.marshal(),
+        signingKey!.public.marshal(),
         'base16',
       )
       const verifies = await verifyMessage(idSignature, publicKey, externalId)
@@ -151,12 +152,12 @@ describe('identities', () => {
 
     it('has a signature for the publicKey', async () => {
       const key = await keystore.getKey(id)
-      const externalId = uint8ArrayToString(key.public.marshal(), 'base16')
+      const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
       const signingKey = await keystore.getKey(externalId)
-      const idSignature = await signMessage(signingKey, externalId)
+      const idSignature = await signMessage(signingKey!, externalId)
       const externalKey = await keystore.getKey(id)
       const publicKeyAndIdSignature = await signMessage(
-        externalKey,
+        externalKey!,
         identity.publicKey + idSignature,
       )
       assert.strictEqual(
@@ -331,7 +332,7 @@ describe('identities', () => {
 
     it('sign data', async () => {
       const signingKey = await keystore.getKey(identity.id)
-      const expectedSignature = await signMessage(signingKey, data)
+      const expectedSignature = await signMessage(signingKey!, data)
       const signature = await identities.sign(identity, data)
       assert.strictEqual(signature, expectedSignature)
     })
@@ -398,8 +399,9 @@ describe('identities', () => {
     })
 
     it('doesn\'t verify invalid signature', async () => {
+      const id = uint8ArrayToString(uint8ArrayFromString('invalid', 'utf8'), 'base16')
       const verified = await identities.verify(
-        'invalid',
+        id,
         identity.publicKey,
         data,
       )

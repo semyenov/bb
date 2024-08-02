@@ -2,7 +2,7 @@ import assert from 'node:assert'
 
 import { beforeAll, beforeEach, describe, it } from 'vitest'
 
-import { Identity, decodeIdentity, isEqual, isIdentity } from '../../src'
+import { Identity } from '../../src/identities'
 
 describe('identity', () => {
   const id = '0x01234567890abcdefghijklmnopqrstuvwxyz'
@@ -180,10 +180,10 @@ describe('identity', () => {
     62,
   ])
 
-  let identity: Awaited<ReturnType<typeof Identity>>
+  let identity: Identity
 
   beforeAll(async () => {
-    identity = await Identity({ id, publicKey, signatures, type })
+    identity = await Identity.create({ id, publicKey, signatures, type })
   })
 
   it('has the correct id', async () => {
@@ -206,7 +206,7 @@ describe('identity', () => {
     it('throws and error if id was not given in constructor', async () => {
       let err: string | undefined
       try {
-        identity = await Identity({} as any)
+        identity = await Identity.create({} as any)
       }
       catch (error) {
         err = (error as Error).toString()
@@ -220,20 +220,20 @@ describe('identity', () => {
   describe('isIdentity', () => {
     describe('valid Identity', () => {
       it('is a valid identity', async () => {
-        const currentIdentity = await Identity({ id, publicKey, signatures, type })
-        const result = isIdentity(currentIdentity)
+        const currentIdentity = await Identity.create({ id, publicKey, signatures, type })
+        const result = Identity.isIdentity(currentIdentity)
         assert.strictEqual(result, true)
       })
     })
 
     describe('invalid Identity', () => {
       beforeEach(async () => {
-        identity = await Identity({ id, publicKey, signatures, type })
+        identity = await Identity.create({ id, publicKey, signatures, type })
       })
 
       it('is not a valid identity if id is missing', async () => {
         const invalidIdentity = { ...identity, id: undefined } as any
-        const result = isIdentity(invalidIdentity)
+        const result = Identity.isIdentity(invalidIdentity)
         assert.strictEqual(result, false)
       })
 
@@ -244,25 +244,25 @@ describe('identity', () => {
   describe('isEqual', () => {
     describe('equal identities', () => {
       it('identities are equal', async () => {
-        const identity1 = await Identity({ id, publicKey, signatures, type })
-        const identity2 = await Identity({ id, publicKey, signatures, type })
-        const result = isEqual(identity1, identity2)
+        const identity1 = await Identity.create({ id, publicKey, signatures, type })
+        const identity2 = await Identity.create({ id, publicKey, signatures, type })
+        const result = Identity.isEqual(identity1, identity2)
         assert.strictEqual(result, true)
       })
     })
 
     describe('not equal identities', () => {
-      let identity1: Awaited<ReturnType<typeof Identity>>
-      let identity2: Awaited<ReturnType<typeof Identity>>
+      let identity1: Identity
+      let identity2: Identity
 
       beforeAll(async () => {
-        identity1 = await Identity({ id, publicKey, signatures, type })
-        identity2 = await Identity({ id, publicKey, signatures, type })
+        identity1 = await Identity.create({ id, publicKey, signatures, type })
+        identity2 = await Identity.create({ id, publicKey, signatures, type })
       })
 
       it('identities are not equal if id is different', async () => {
-        identity2 = await Identity({ id: 'X', publicKey, signatures, type })
-        const result = isEqual(identity1, identity2)
+        identity2 = await Identity.create({ id: 'X', publicKey, signatures, type })
+        const result = Identity.isEqual(identity1, identity2)
         assert.strictEqual(result, false)
       })
 
@@ -272,13 +272,13 @@ describe('identity', () => {
 
   describe('decode Identity', () => {
     beforeAll(async () => {
-      identity = await Identity({ id, publicKey, signatures, type })
+      identity = await Identity.create({ id, publicKey, signatures, type })
     })
 
     it('decodes an identity from bytes', async () => {
-      const result = await decodeIdentity(expectedBytes)
+      const result = await Identity.decode(expectedBytes)
 
-      assert.strictEqual(isIdentity(result), true)
+      assert.strictEqual(Identity.isIdentity(result), true)
       assert.strictEqual(result.id, id)
       assert.strictEqual(result.publicKey, publicKey)
       assert.strictEqual(result.type, type)

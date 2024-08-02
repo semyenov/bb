@@ -139,22 +139,19 @@ export class Database<
   }
 
   static async create<T>(options: DatabaseOptions<T>) {
-    const { ipfs } = options
     const meta = options.meta || {}
-    const { name } = options
-    const { address } = options
+    const { name, address, ipfs, onUpdate, directory } = options
     const identity = options.identity!
     const accessController = options.accessController!
-    const { onUpdate } = options
     const syncAutomatically = options.syncAutomatically ?? true
 
-    const path = join(options.directory || DATABASE_PATH, `./${address}/`)
+    const path = join(directory || DATABASE_PATH, `./${address}/`)
 
     const entryStorage
       = options.entryStorage
       || ComposedStorage.create({
         storage1: LRUStorage.create({ size: DATABASE_CACHE_SIZE }),
-        storage2: IPFSBlockStorage.create({ ipfs: options.ipfs, pin: true }),
+        storage2: IPFSBlockStorage.create({ ipfs, pin: true }),
       })
 
     const headsStorage

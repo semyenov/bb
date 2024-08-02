@@ -20,8 +20,8 @@ import createHelia from './utils/create-helia.js'
 
 const keysPath = './testkeys'
 
-describe('database', function () {
-  this.timeout(30000)
+describe('database', () => {
+  // this.timeout(30000)
 
   let ipfs
   let keystore
@@ -61,11 +61,11 @@ describe('database', function () {
   })
 
   afterEach(async () => {
-    await rimraf('./orbitdb')
+    await rimraf('./.orbitdb')
   })
 
   it('adds an operation', async () => {
-    db = await Database({
+    db = await Database.create({
       ipfs,
       identity: testIdentity,
       address: databaseId,
@@ -83,7 +83,7 @@ describe('database', function () {
 
   describe('options', () => {
     it('uses default directory for headsStorage', async () => {
-      db = await Database({
+      db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
@@ -115,7 +115,7 @@ describe('database', function () {
     })
 
     it('uses given directory for headsStorage', async () => {
-      db = await Database({
+      db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
@@ -150,7 +150,7 @@ describe('database', function () {
 
     it('uses given MemoryStorage for headsStorage', async () => {
       const headsStorage = await MemoryStorage()
-      db = await Database({
+      db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
@@ -171,7 +171,7 @@ describe('database', function () {
 
     it('uses given MemoryStorage for entryStorage', async () => {
       const entryStorage = await MemoryStorage()
-      db = await Database({
+      db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
@@ -193,7 +193,7 @@ describe('database', function () {
 
   describe('events', () => {
     beforeEach(async () => {
-      db = await Database({
+      db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,

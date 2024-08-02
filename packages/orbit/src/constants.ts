@@ -1,5 +1,5 @@
-export const DATABASE_PATH = './orbitdb/databases'
-export const KEYSTORE_PATH = './orbitdb/keystore'
+export const DATABASE_PATH = './.orbitdb/databases'
+export const KEYSTORE_PATH = './.orbitdb/keystore'
 
 export const SYNC_PROTOCOL = '/orbitdb/heads'
 export const SYNC_TIMEOUT = 30000
@@ -19,7 +19,7 @@ export const DATABASE_CACHE_SIZE = 1000
 
 export const DATABASE_DEFAULT_TYPE = DATABASE_EVENTS_TYPE
 
-export const STORAGE_LEVEL_PATH = './orbitdb/level'
+export const STORAGE_LEVEL_PATH = './.orbitdb/level'
 export const STORAGE_LEVEL_VALUE_ENCODING = 'view'
 
 export const STORAGE_LRU_SIZE = 1000000

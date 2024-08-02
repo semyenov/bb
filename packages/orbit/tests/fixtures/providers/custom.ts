@@ -25,7 +25,16 @@ async function verifyIdentity(_data) {
 // }
 
 class CustomIdentityProvider implements IdentityProviderInstance {
-  public type = 'custom'
+  static type = 'custom'
+
+  constructor() {
+    console.log('CustomIdentityProvider.constructor')
+  }
+
+  signIdentity() {
+    return 'false signature'
+  }
+
   getId = () => {
     return 'pubKey'
   }
@@ -37,6 +46,6 @@ class CustomIdentityProvider implements IdentityProviderInstance {
   static verifyIdentity = verifyIdentity
 }
 
-CustomIdentityProvider.type = type
+// CustomIdentityProvider.type = type
 
 export default CustomIdentityProvider

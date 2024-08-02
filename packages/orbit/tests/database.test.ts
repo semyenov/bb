@@ -1,9 +1,7 @@
-import { deepStrictEqual, strictEqual } from 'node:assert'
-import { existsSync } from 'node:fs'
-import Path from 'node:path'
+import { deepEqual, strictEqual } from 'node:assert'
+import { existsSync, readdir } from 'node:fs'
+import path from 'node:path'
 
-// eslint-disable-next-line ts/ban-ts-comment
-// @ts-nocheck
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
@@ -20,13 +18,7 @@ import {
 import testKeysPath from './fixtures/test-keys-path.js'
 import createHelia from './utils/create-helia'
 
-import type {
-// Database,
-// // IPFS,
-// Identities,
-// Identity,
-// KeyStore,
-} from '../src'
+import type { EntryInstance } from '../src/oplog'
 
 const keysPath = './testkeys'
 
@@ -42,8 +34,8 @@ describe('database', () => {
   const databaseId = 'database-AAA'
 
   const accessController = {
-    canAppend: async (entry: Entry.Instance) => {
-      const identity1 = await identities.getIdentity(entry.identity)
+    canAppend: async (entry: EntryInstance) => {
+      const identity1 = await identities.getIdentity(entry.identity!)
 
       return identity1.id === testIdentity.id
     },
@@ -59,7 +51,7 @@ describe('database', () => {
   })
 
   afterEach(async () => {
-    await rimraf('./orbitdb')
+    await rimraf('./.orbitdb')
   })
 
   afterAll(async () => {
@@ -81,13 +73,13 @@ describe('database', () => {
       identity: testIdentity,
       address: databaseId,
       accessController,
-      directory: './orbitdb',
+      directory: './.orbitdb',
     })
-    const expected = 'zdpuAwhx6xVpnMPUA7Q4JrvZsyoti5wZ18iDeFwBjPAwsRNof'
+    const expected = 'zdpuArXozE6QB2auXomSpRyBFzrB6rGrAjseobUmWVapKSA5m'
     const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
     const actual = await db.addOperation(op)
 
-    deepStrictEqual(actual, expected)
+    deepEqual(actual, expected)
 
     await db.close()
   })
@@ -103,8 +95,8 @@ describe('database', () => {
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
       const hash = await db.addOperation(op)
       // console.log('Database', db)
-      const headsPath = Path.join(
-        './orbitdb/',
+      const headsPath = path.join(
+        './.orbitdb/databases/',
         `${databaseId}/`,
         '/log/_heads/',
       )
@@ -115,7 +107,7 @@ describe('database', () => {
 
       const headsStorage = await LevelStorage.create({ path: headsPath })
 
-      deepStrictEqual(
+      deepEqual(
         (await Entry.decode(await headsStorage.get(hash))).payload,
         op,
       )
@@ -136,7 +128,7 @@ describe('database', () => {
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
       const hash = await db.addOperation(op)
 
-      const headsPath = Path.join(
+      const headsPath = path.join(
         './custom-directory/',
         `${databaseId}/`,
         '/log/_heads/',
@@ -148,7 +140,7 @@ describe('database', () => {
 
       const headsStorage = await LevelStorage.create({ path: headsPath })
 
-      deepStrictEqual(
+      deepEqual(
         (await Entry.decode(await headsStorage.get(hash))).payload,
         op,
       )
@@ -166,13 +158,13 @@ describe('database', () => {
         identity: testIdentity,
         address: databaseId,
         accessController,
-        directory: './orbitdb',
+        directory: './.orbitdb',
         headsStorage,
       })
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
       const hash = await db.addOperation(op)
 
-      deepStrictEqual(
+      deepEqual(
         (await Entry.decode(await headsStorage.get(hash))).payload,
         op,
       )
@@ -193,7 +185,7 @@ describe('database', () => {
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
       const hash = await db.addOperation(op)
 
-      deepStrictEqual(
+      deepEqual(
         (await Entry.decode(await entryStorage.get(hash))).payload,
         op,
       )
@@ -219,7 +211,7 @@ describe('database', () => {
         closed = true
       }
 
-      db.events.on('close', onClose)
+      db.events.addEventListener('close', onClose)
 
       await db.close()
 
@@ -232,7 +224,7 @@ describe('database', () => {
         dropped = true
       }
 
-      db.events.on('drop', onDrop)
+      db.events.addEventListener('drop', onDrop)
 
       await db.drop()
 
