@@ -27,6 +27,7 @@ export class LevelStorage<T = unknown> implements StorageInstance<T> {
   ): Promise<LevelStorage<T>> {
     const storage = new LevelStorage<T>(options.path, options.valueEncoding)
     await storage.level.open() // async
+
     return storage
   }
 
@@ -41,8 +42,10 @@ export class LevelStorage<T = unknown> implements StorageInstance<T> {
   async get(hash: string): Promise<T | null> {
     try {
       const value = await this.level.get(hash)
+
       return value || null
-    } catch {
+    }
+    catch {
       return null
     }
   }

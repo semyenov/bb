@@ -217,6 +217,7 @@ export class Database<
       const entry = await this.log.append(op, {
         referencesCount: DATABASE_REFERENCES_COUNT,
       })
+      // console.log('DATABASE addOperation: entry', entry)
       await this.sync.add(entry)
       if (this.onUpdate) {
         await this.onUpdate(this.log, entry)

@@ -59,6 +59,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
   get type(): 'keyvalue' {
     return DATABASE_KEYVALUE_TYPE
   }
+
   static get type(): 'keyvalue' {
     return DATABASE_KEYVALUE_TYPE
   }
@@ -71,6 +72,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
     options: KeyValueDatabaseOptions<T>,
   ): Promise<KeyValueDatabase<T>> {
     const database = await Database.create<T>(options)
+
     return new KeyValueDatabase<T>(database)
   }
 
@@ -138,10 +140,12 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
       const { op, key: k, value } = entry.payload
       if (op === 'PUT' && k === key) {
         return value as T
-      } else if (op === 'DEL' && k === key) {
+      }
+      else if (op === 'DEL' && k === key) {
         return null
       }
     }
+
     return null
   }
 
@@ -157,7 +161,8 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
         count++
         const hash = entry.hash!
         yield { key: key!, value: value || null, hash }
-      } else if (op === 'DEL' && !keys[key!]) {
+      }
+      else if (op === 'DEL' && !keys[key!]) {
         keys[key!] = true
       }
       if (amount !== undefined && count >= amount) {
@@ -171,6 +176,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
     for await (const entry of this.iterator()) {
       values.unshift(entry)
     }
+
     return values
   }
 

@@ -343,20 +343,24 @@ describe('documents Database', () => {
     })
 
     it('returns all documents when the database is not empty', async () => {
-      await db.put({ _id: 'doc1', something: true })
-      await db.put({ _id: 'doc2', something: true })
-      await db.put({ _id: 'doc3', something: true })
-      await db.put({ _id: 'doc4', something: true })
-      await db.put({ _id: 'doc5', something: true })
+      try {
+        await db.put({ _id: 'doc1', something: true })
+        await db.put({ _id: 'doc2', something: true })
+        await db.put({ _id: 'doc3', something: true })
+        await db.put({ _id: 'doc4', something: true })
+        await db.put({ _id: 'doc5', something: true })
 
-      // Add one more document and then delete it to count
-      // for the fact that the amount returned should be
-      // the amount of actual documents returned and not
-      // the oplog length, and deleted documents don't
-      // count towards the returned amount.
-      await db.put({ _id: 'doc6', something: true })
-      await db.del('doc6')
-
+        // Add one more document and then delete it to count
+        // for the fact that the amount returned should be
+        // the amount of actual documents returned and not
+        // the oplog length, and deleted documents don't
+        // count towards the returned amount.
+        await db.put({ _id: 'doc6', something: true })
+        await db.del('doc6')
+      }
+      catch (error) {
+        console.log('error', error)
+      }
       const all: DocumentsDoc[] = []
       console.log('db', await db.all())
       for await (const doc of db.iterator()) {

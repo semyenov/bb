@@ -127,13 +127,15 @@ export const Entry = {
   },
 
   async decode<T>(bytes: Uint8Array): Promise<EntryInstance<T>> {
-    const { value } = await Block.decode<EntryInstance<T>, 113, 18>({
+    const { value, cid } = await Block.decode<EntryInstance<T>, 113, 18>({
       bytes,
       codec,
       hasher,
     })
 
-    return value
+    const hash = cid.toString(hashStringEncoding)
+
+    return { ...value, hash, bytes }
   },
 
   async encode(entry: EntryInstance): Promise<Uint8Array> {

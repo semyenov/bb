@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from 'node:assert'
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import Path from 'node:path'
 
 import { copy } from 'fs-extra'
@@ -18,16 +18,19 @@ import {
 import testKeysPath from './fixtures/test-keys-path.js'
 import createHelia from './utils/create-helia.js'
 
+import type { IdentityInstance } from '../src/identities/identity'
+import type { HeliaInstance } from '../src/vendor'
+
 const keysPath = './testkeys'
 
 describe('database', () => {
   // this.timeout(30000)
 
-  let ipfs
-  let keystore
-  let identities
-  let testIdentity
-  let db
+  let ipfs: HeliaInstance
+  let keystore: KeyStore
+  let identities: Identities
+  let testIdentity: IdentityInstance
+  let db: Database
 
   const databaseId = 'database-AAA'
 
@@ -40,11 +43,15 @@ describe('database', () => {
   }
 
   beforeAll(async () => {
-    ipfs = await createHelia()
+    ipfs = await createHelia() as unknown as HeliaInstance
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
     identities = await Identities.create({ keystore, ipfs })
     testIdentity = await identities.createIdentity({ id: 'userA' })
+  })
+
+  afterEach(async () => {
+    await rimraf('./.orbitdb')
   })
 
   afterAll(async () => {
@@ -60,19 +67,15 @@ describe('database', () => {
     await rimraf('./ipfs1')
   })
 
-  afterEach(async () => {
-    await rimraf('./.orbitdb')
-  })
-
   it('adds an operation', async () => {
     db = await Database.create({
       ipfs,
       identity: testIdentity,
       address: databaseId,
       accessController,
-      directory: './orbitdb',
+      directory: './.orbitdb',
     })
-    const expected = 'zdpuAwhx6xVpnMPUA7Q4JrvZsyoti5wZ18iDeFwBjPAwsRNof'
+    const expected = 'zdpuArXozE6QB2auXomSpRyBFzrB6rGrAjseobUmWVapKSA5m'
     const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
     const actual = await db.addOperation(op)
 
@@ -93,16 +96,19 @@ describe('database', () => {
       const hash = await db.addOperation(op)
 
       const headsPath = Path.join(
-        './orbitdb/',
+        './.orbitdb/databases/',
         `${databaseId}/`,
         '/log/_heads/',
       )
+
+      console.log('headsPath', headsPath)
+      console.log('process.cwd', readdirSync('./.orbitdb'))
 
       strictEqual(await existsSync(headsPath), true)
 
       await db.close()
 
-      const headsStorage = await LevelStorage({ path: headsPath })
+      const headsStorage = await LevelStorage.create({ path: headsPath })
 
       deepStrictEqual(
         (await Entry.decode(await headsStorage.get(hash))).payload,
@@ -135,7 +141,7 @@ describe('database', () => {
 
       await db.close()
 
-      const headsStorage = await LevelStorage({ path: headsPath })
+      const headsStorage = await LevelStorage.create({ path: headsPath })
 
       deepStrictEqual(
         (await Entry.decode(await headsStorage.get(hash))).payload,
@@ -149,13 +155,13 @@ describe('database', () => {
     })
 
     it('uses given MemoryStorage for headsStorage', async () => {
-      const headsStorage = await MemoryStorage()
+      const headsStorage = await MemoryStorage.create()
       db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
         accessController,
-        directory: './orbitdb',
+        directory: './.orbitdb',
         headsStorage,
       })
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
@@ -170,13 +176,13 @@ describe('database', () => {
     })
 
     it('uses given MemoryStorage for entryStorage', async () => {
-      const entryStorage = await MemoryStorage()
+      const entryStorage = await MemoryStorage.create()
       db = await Database.create({
         ipfs,
         identity: testIdentity,
         address: databaseId,
         accessController,
-        directory: './orbitdb',
+        directory: './.orbitdb',
         entryStorage,
       })
       const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
@@ -198,7 +204,7 @@ describe('database', () => {
         identity: testIdentity,
         address: databaseId,
         accessController,
-        directory: './orbitdb',
+        directory: './.orbitdb',
       })
     })
 
@@ -208,7 +214,7 @@ describe('database', () => {
         closed = true
       }
 
-      db.events.on('close', onClose)
+      db.events.addEventListener('close', onClose)
 
       await db.close()
 
@@ -221,7 +227,7 @@ describe('database', () => {
         dropped = true
       }
 
-      db.events.on('drop', onDrop)
+      db.events.addEventListener('drop', onDrop)
 
       await db.drop()
 

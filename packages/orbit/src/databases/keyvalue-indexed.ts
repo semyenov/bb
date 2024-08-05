@@ -35,7 +35,7 @@ class Index<T> {
       valueEncoding: DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
     })
     const indexedEntries = await LevelStorage.create<boolean>({
-      path: join(directory || './orbitdb', `/_indexedEntries/`),
+      path: join(directory || './.orbitdb', `/_indexedEntries/`),
       valueEncoding: DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
     })
 
@@ -50,9 +50,12 @@ class Index<T> {
     const toBeIndexed = new Set()
     const latest = entry.hash
 
-    const isIndexed = async (hash: string) =>
-      (await this.indexedEntries.get(hash)) === true
-    const isNotIndexed = async (hash: string) => !(await isIndexed(hash))
+    const isIndexed = async (hash: string) => {
+      return (await this.indexedEntries.get(hash)) === true
+    }
+    const isNotIndexed = async (hash: string) => {
+      return !(await isIndexed(hash))
+    }
 
     const shoudStopTraverse = async (
       entry: EntryInstance<DatabaseOperation<T>>,
@@ -62,6 +65,7 @@ class Index<T> {
           toBeIndexed.add(hash)
         }
       }
+
       return (await isIndexed(latest!)) && toBeIndexed.size === 0
     }
 
@@ -73,7 +77,8 @@ class Index<T> {
           keys.add(key)
           await this.index.put(key!, entry)
           await this.indexedEntries.put(hash!, true)
-        } else if (op === 'DEL' && !keys.has(key)) {
+        }
+        else if (op === 'DEL' && !keys.has(key)) {
           keys.add(key)
           await this.index.del(key!)
           await this.indexedEntries.put(hash!, true)
@@ -100,7 +105,7 @@ class Index<T> {
   iterator(
     options: any,
   ): AsyncIterable<[string, EntryInstance<DatabaseOperation<T>>]> {
-    return this.index.iterator(options)
+    return this.index.iterator({ ...options, limit: options.amount || -1 })
   }
 }
 
@@ -114,14 +119,14 @@ export interface KeyValueIndexedInstance<T = unknown>
 }
 
 export class KeyValueIndexedDatabase<T = unknown>
-  implements KeyValueIndexedInstance<T>
-{
+implements KeyValueIndexedInstance<T> {
   private keyValueStore: KeyValueInstance<T>
   private index: Index<T>
 
   get type(): 'keyvalue-indexed' {
     return DATABASE_KEYVALUE_INDEXED_TYPE
   }
+
   static get type(): 'keyvalue-indexed' {
     return DATABASE_KEYVALUE_INDEXED_TYPE
   }
@@ -222,6 +227,7 @@ export class KeyValueIndexedDatabase<T = unknown>
     if (entry) {
       return entry.payload.value
     }
+
     return null
   }
 

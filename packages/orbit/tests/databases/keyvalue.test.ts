@@ -97,14 +97,14 @@ describe('keyValue Database', () => {
     })
 
     it('sets a key/value pair', async () => {
-      const expected = 'zdpuAwr2JfE9TNMoXwupvsssCzemc3g8MTKRfVTG7ZS5gH6md'
+      const expected = 'zdpuAqnAtcpNJEheFnHhuRMhLHF8BCGFYGfNdLjq6ZDGd7ChP'
 
       const actual = await db.set('key1', 'value1')
       strictEqual(actual, expected)
     })
 
     it('puts a key/value pair', async () => {
-      const expected = 'zdpuAwr2JfE9TNMoXwupvsssCzemc3g8MTKRfVTG7ZS5gH6md'
+      const expected = 'zdpuAqnAtcpNJEheFnHhuRMhLHF8BCGFYGfNdLjq6ZDGd7ChP'
 
       const actual = await db.put('key1', 'value1')
       strictEqual(actual, expected)
@@ -166,7 +166,7 @@ describe('keyValue Database', () => {
       await db.del(key)
 
       const actual = await db.get(key)
-      strictEqual(actual, undefined)
+      strictEqual(actual, null)
     })
 
     it('deletes a non-existent key/value pair', async () => {
@@ -174,43 +174,43 @@ describe('keyValue Database', () => {
       await db.del(key)
 
       const actual = await db.get(key)
-      strictEqual(actual, undefined)
+      strictEqual(actual, null)
     })
 
     it('returns all key/value pairs', async () => {
       const keyvalue = [
         {
-          hash: 'zdpuAnpWUWQFo7E7Q4fredrBdHWHTtSzMmo8CG7HRkWCu8Pbq',
+          hash: 'zdpuB2SnkwZu99bTxtZp8yWzmAjRiUaC1pVvdPwr352pKx3UP',
           key: 'key1',
           value: 'init',
         },
         {
-          hash: 'zdpuAwTM75uy1xbBJzHRHUeYTJR67rhHND1w6EpHVH6ThHdos',
+          hash: 'zdpuAoM4tRDVbmsN7vh8Vfx3Xtz6xGyUiW6Egpy7pk3yronBH',
           key: 'key2',
           value: true,
         },
         {
-          hash: 'zdpuAvYtscmvsQT7sgsJVsK7Gf7S3HweRJzs2D5TWBqz8wPGq',
+          hash: 'zdpuAoF3ydfUnFcW7o6EphroNY6mHtvwNQPBVDpVugNi759Gu',
           key: 'key3',
           value: 'hello',
         },
         {
-          hash: 'zdpuAqAGnfa8eryZZm4z4UHcGQKZe4ACwoe1bwfq1AnJRwcPC',
+          hash: 'zdpuAoMEbfUQR5Rd9mMsHn2mBQQfDoZE4u5PhVhyZ8rCVZGE1',
           key: 'key4',
           value: 'friend',
         },
         {
-          hash: 'zdpuAxHZs93Ys31jktM28GCwzrGP2vwuotr7MrSzLacGAS3dS',
+          hash: 'zdpuAxYZNdhV12XiTCmTyGBMWnzExXLoKFDgzBLDXbZ7mz3qw',
           key: 'key5',
           value: '12345',
         },
         {
-          hash: 'zdpuAuGJ6UoncMuTjkknG4ySjxvAgkdMiRNecR6nDbLoPFDXX',
+          hash: 'zdpuAw9rAozJFZoPpPuyhebosgVbWmicm4tRm3HFTExH8bTP8',
           key: 'key6',
           value: 'empty',
         },
         {
-          hash: 'zdpuAyi1oGLiYbH2UmRvXdGGC7z1vQYGE8oCvrfUvR5bGx6PN',
+          hash: 'zdpuAr5HcJrrqQrqnqkfdKR1XcN42EaLiiS9SWKYvmc1s1zAV',
           key: 'key7',
           value: 'friend33',
         },

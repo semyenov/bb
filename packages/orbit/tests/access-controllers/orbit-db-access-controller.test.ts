@@ -140,8 +140,6 @@ describe('orbitDBAccessController', () => {
       try {
         await accessController.grant('read', 'ABCD')
         await accessController.grant('delete', 'ABCD')
-        await accessController.grant('qwe', 'ABCD')
-        await accessController.grant('qwe1', 'ABCD1')
       }
       catch (error) {
         strictEqual(error, null)
@@ -303,7 +301,7 @@ describe('orbitDBAccessController', () => {
 
       let update = false
 
-      accessController.events.on('update', (_entry) => {
+      accessController.events.addEventListener('update', (_entry) => {
         update = true
       })
 

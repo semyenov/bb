@@ -8,6 +8,8 @@ export default defineWorkspace([
 
       name: 'orbit',
       environment: 'node',
+      testTimeout: 5000,
+
     },
   },
 ])

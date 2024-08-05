@@ -187,7 +187,7 @@ export class Log<T> implements LogInstance<T> {
         return entry
       })
       const refs_ = await this.getReferences(
-        next_,
+        headsEntries,
         options.referencesCount + headsEntries.length,
       )
       const entry = await Entry.create<T>(
@@ -196,7 +196,7 @@ export class Log<T> implements LogInstance<T> {
         data,
         (await this.clock()).tick(),
         next_.map((n) => {
-          return n.id
+          return n.hash!
         }),
         refs_,
       )
@@ -207,14 +207,8 @@ export class Log<T> implements LogInstance<T> {
           `Could not append entry: Key "${this.identity.hash}" is not allowed to write to the log`,
         )
       }
-
       await this.heads_.set([entry])
       await this.storage.put(entry.hash!, entry.bytes!)
-      // const entries = []
-      // for await (const entry of this.storage.iterator()) {
-      //   entries.push(entry)
-      // }
-      // console.log('logs: entries ', entries)
       await this.indexStorage.put(entry.hash!, true)
 
       return entry
@@ -301,8 +295,9 @@ export class Log<T> implements LogInstance<T> {
     while (stack.length > 0) {
       stack = stack.sort(this.sortFn)
       const entry = stack.pop() as EntryInstance<T>
-
+      // console.log('log traverse: entry', entry)
       if (entry && !traversed[entry.hash!]) {
+        // console.log('log traverse: entry not traversed', entry)
         yield entry
         const done = await shouldStopFn(entry, useRefs)
         if (done) {
@@ -316,15 +311,21 @@ export class Log<T> implements LogInstance<T> {
           ...(useRefs ? entry.refs : []),
         ].filter(notIndexed)
         const nexts = (
-          await Promise.all(toFetch.map(this.fetchEntry.bind(this))) // check
+          await Promise.all(toFetch.map(async (hash) => {
+            if (!traversed[hash] && !fetched[hash]) {
+              fetched[hash] = true
+
+              return await this.get(hash)
+            }
+          })) // check
         ).filter((e): e is EntryInstance<T> => {
-          return e !== null
+          return e !== null && e !== undefined
         })
         toFetch = nexts
           .reduce(
             (acc, cur) => {
               return Array.from(
-                new Set([...acc, ...cur.next!, ...(useRefs ? cur.refs! : [])]),
+                new Set([...acc, ...cur.next!, ...(useRefs ? cur.refs! : []).values()]),
               )
             },
             [] as string[],
@@ -366,13 +367,6 @@ export class Log<T> implements LogInstance<T> {
     let index = 0
     const useBuffer = (end || false) && amount !== -1 && !lt && !lte
     const buffer = useBuffer ? new LRU(amount + 2) : null
-
-    // const files = []
-    // for await (const data of this.storage.iterator()) {
-    //   files.push(data)
-    // }
-
-    // console.log('log iterator', files)
 
     const it = this.traverse(start, shouldStopTraversal)
 
@@ -527,13 +521,17 @@ export class Log<T> implements LogInstance<T> {
       shouldStopTraversal,
       false,
     )) {
+      // console.log('log getReferences: hash', hash)
       if (!hash) {
         continue
       }
 
       refs.push(hash)
     }
+    // console.log('log getReferences: refs', refs)
+    // не возвращается рефс
     refs = refs.slice(heads.length + 1, amount)
+    // console.log('log getReferences: refs', refs, amount)
 
     return refs
   }

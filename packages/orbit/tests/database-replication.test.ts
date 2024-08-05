@@ -20,12 +20,13 @@ import waitFor from './utils/wait-for'
 
 import type { EntryInstance } from '../src/oplog/index'
 
-const keysPath = './testkeys'
+const keysPath = './.out/testkeys'
 
 describe('database - Replication', () => {
   let ipfs1: any, ipfs2: any
   let keystore: KeyStore
   let identities: Identities
+  let identities2: Identities
   let testIdentity1: any, testIdentity2: any
   let db1: Database, db2: Database
 
@@ -48,9 +49,10 @@ describe('database - Replication', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore })
+    identities = await Identities.create({ keystore, ipfs: ipfs1 })
+    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
-    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+    testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
 
   afterEach(async () => {
@@ -58,13 +60,13 @@ describe('database - Replication', () => {
       await db1.drop()
       await db1.close()
 
-      await rimraf('./orbitdb1')
+      await rimraf('./.out/orbitdb1')
     }
     if (db2) {
       await db2.drop()
       await db2.close()
 
-      await rimraf('./orbitdb2')
+      await rimraf('./.out/orbitdb2')
     }
 
     if (ipfs1) {
@@ -91,15 +93,17 @@ describe('database - Replication', () => {
         identity: testIdentity1,
         address: databaseId,
         accessController,
-        directory: './orbitdb1',
+        directory: './.out/orbitdb1',
       })
     })
 
     it('replicates databases across two peers', async () => {
       let replicated = false
       let expectedEntryHash: null | string = null
-
-      const onConnected = (peerId: any, heads: EntryInstance[]) => {
+      const onConnected = (customEvent: CustomEvent) => {
+        console.log('customEvent', customEvent)
+        const { peerId, heads } = customEvent.detail
+        console.log('peerId', peerId)
         replicated = expectedEntryHash !== null
         && heads.map((e) => {
           return e.hash
@@ -108,6 +112,7 @@ describe('database - Replication', () => {
       }
 
       const onUpdate = (entry: EntryInstance) => {
+        console.log('onUpdate: entry', entry)
         replicated = expectedEntryHash !== null
         && entry.hash === expectedEntryHash
       }
@@ -117,11 +122,11 @@ describe('database - Replication', () => {
         identity: testIdentity2,
         address: databaseId,
         accessController,
-        directory: './orbitdb2',
+        directory: './.out/orbitdb2',
       })
 
-      db2.events.on('join', onConnected)
-      db2.events.on('update', onUpdate)
+      db2.sync.events.addEventListener('join', onConnected)
+      db2.events.addEventListener('update', onUpdate)
 
       await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
       await db1.addOperation({ op: 'PUT', key: 2, value: 'record 2 on db 1' })
@@ -141,6 +146,7 @@ describe('database - Replication', () => {
         },
       )
 
+      console.log('added record 1 on db 1')
       const all1: EntryInstance[] = []
       for await (const item of db1.log.iterator()) {
         all1.unshift(item)
@@ -159,6 +165,7 @@ describe('database - Replication', () => {
       let expectedEntryHash: null | string = null
 
       const onConnected = (peerId: string, heads: EntryInstance[]) => {
+        console.log('peerId', peerId)
         replicated = expectedEntryHash
         && heads.map((e) => {
           return e.hash
@@ -175,11 +182,11 @@ describe('database - Replication', () => {
         identity: testIdentity2,
         address: databaseId,
         accessController,
-        directory: './orbitdb2',
+        directory: './.out/orbitdb2',
       })
 
-      db2.events.on('join', onConnected)
-      db2.events.on('update', onUpdate)
+      db2.events.addEventListener('join', onConnected)
+      db2.events.addEventListener('update', onUpdate)
 
       await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
 
@@ -240,10 +247,10 @@ describe('database - Replication', () => {
         identity: testIdentity2,
         address: databaseId,
         accessController,
-        directory: './orbitdb2',
+        directory: './.out/orbitdb2',
       })
 
-      db2.events.on('join', onConnected)
+      db2.events.addEventListener('join', onConnected)
 
       await waitFor(
         () => {
@@ -283,7 +290,7 @@ describe('database - Replication', () => {
         identity: testIdentity1,
         address: databaseId,
         accessController,
-        directory: './orbitdb1',
+        directory: './.out/orbitdb1',
         entryStorage: storage1,
       })
       db2 = await Database.create({
@@ -291,7 +298,7 @@ describe('database - Replication', () => {
         identity: testIdentity2,
         address: databaseId,
         accessController,
-        directory: './orbitdb2',
+        directory: './.out/orbitdb2',
         entryStorage: storage2,
       })
 
@@ -306,8 +313,8 @@ describe('database - Replication', () => {
         connected2 = true
       }
 
-      db1.events.on('join', onConnected1)
-      db2.events.on('join', onConnected2)
+      db1.events.addEventListener('join', onConnected1)
+      db2.events.addEventListener('join', onConnected2)
 
       await db1.addOperation({ op: 'PUT', key: String(1), value: 'record 1 on db 1' })
       await db1.addOperation({ op: 'PUT', key: String(2), value: 'record 2 on db 1' })
@@ -352,14 +359,14 @@ describe('database - Replication', () => {
         identity: testIdentity1,
         address: databaseId,
         accessController,
-        directory: './orbitdb1',
+        directory: './.out/orbitdb1',
       })
       db2 = await Database.create({
         ipfs: ipfs2,
         identity: testIdentity2,
         address: databaseId,
         accessController,
-        directory: './orbitdb2',
+        directory: './.out/orbitdb2',
       })
     })
 
@@ -382,12 +389,12 @@ describe('database - Replication', () => {
         ++updateCount2
       }
 
-      db1.events.on('join', (peerId: string, heads: EntryInstance[]) => {
+      db1.events.addEventListener('join', (peerId: string, heads: EntryInstance[]) => {
         connected1 = true
       })
-      db2.events.on('join', onConnected2)
-      db1.events.on('update', onUpdate1)
-      db2.events.on('update', onUpdate2)
+      db2.events.addEventListener('join', onConnected2)
+      db1.events.addEventListener('update', onUpdate1)
+      db2.events.addEventListener('update', onUpdate2)
 
       await waitFor(
         () => {
@@ -452,10 +459,10 @@ describe('database - Replication', () => {
         ++updateCount2
       }
 
-      db1.events.on('join', onConnected1)
-      db2.events.on('join', onConnected2)
-      db1.events.on('update', onUpdate1)
-      db2.events.on('update', onUpdate2)
+      db1.events.addEventListener('join', onConnected1)
+      db2.events.addEventListener('join', onConnected2)
+      db1.events.addEventListener('update', onUpdate1)
+      db2.events.addEventListener('update', onUpdate2)
 
       await waitFor(
         () => {
