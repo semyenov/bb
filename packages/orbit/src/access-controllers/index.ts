@@ -51,9 +51,7 @@ const accessControllers: Record<
   ) => Promise<AccessControllerTypeMap[keyof AccessControllerTypeMap]>
 > = {}
 
-export const getAccessController = <D extends keyof AccessControllerTypeMap>(
-  type: D,
-) => {
+export function getAccessController<D extends keyof AccessControllerTypeMap>(type: D) {
   if (!accessControllers[type!]) {
     throw new Error(`AccessController type '${type}' is not supported`)
   }
@@ -61,13 +59,11 @@ export const getAccessController = <D extends keyof AccessControllerTypeMap>(
   return accessControllers[type!]
 }
 
-export const useAccessController = <
+export function useAccessController<
   D extends keyof AccessControllerTypeMap = 'orbitdb',
->(
-  accessController: AccessControllerType<D>,
-) => {
+>(accessController: AccessControllerType<D>) {
   if (!accessController.type) {
-    throw new Error("AccessController does not contain required field 'type'.")
+    throw new Error('AccessController does not contain required field \'type\'.')
   }
 
   accessControllers[accessController.type] = accessController.create

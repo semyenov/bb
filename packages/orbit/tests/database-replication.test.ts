@@ -34,8 +34,15 @@ describe('database - Replication', () => {
 
   const accessController = {
     canAppend: async (entry: EntryInstance) => {
-      const identity1 = await identities.getIdentity(entry.identity || '')
-      const identity2 = await identities.getIdentity(entry.identity || '')
+      console.log('custom accessController.canAppend before', entry)
+      const identity1 = entry.identity && await identities.getIdentity(entry.identity)
+      const identity2 = entry.identity && await identities2.getIdentity(entry.identity)
+
+      // console.log('custom accessController.canAppend after', identity1, identity2)
+      if (!identity1 || !identity2) {
+        return false
+      }
+      console.log('custom accessController.canAppend after', identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id)
 
       return (
         identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id
@@ -69,6 +76,8 @@ describe('database - Replication', () => {
       await rimraf('./.out/orbitdb2')
     }
 
+    await rimraf('./.out')
+
     if (ipfs1) {
       await ipfs1.stop()
     }
@@ -92,6 +101,7 @@ describe('database - Replication', () => {
         ipfs: ipfs1,
         identity: testIdentity1,
         address: databaseId,
+        name: 'test',
         accessController,
         directory: './.out/orbitdb1',
       })
@@ -101,9 +111,8 @@ describe('database - Replication', () => {
       let replicated = false
       let expectedEntryHash: null | string = null
       const onConnected = (customEvent: CustomEvent) => {
-        console.log('customEvent', customEvent)
         const { peerId, heads } = customEvent.detail
-        console.log('peerId', peerId)
+        console.log('onConnected', peerId)
         replicated = expectedEntryHash !== null
         && heads.map((e) => {
           return e.hash
@@ -111,7 +120,8 @@ describe('database - Replication', () => {
           .includes(expectedEntryHash)
       }
 
-      const onUpdate = (entry: EntryInstance) => {
+      const onUpdate = (customEvent: CustomEvent) => {
+        const { entry } = customEvent.detail
         console.log('onUpdate: entry', entry)
         replicated = expectedEntryHash !== null
         && entry.hash === expectedEntryHash
@@ -121,6 +131,7 @@ describe('database - Replication', () => {
         ipfs: ipfs2,
         identity: testIdentity2,
         address: databaseId,
+        name: 'test2',
         accessController,
         directory: './.out/orbitdb2',
       })
@@ -128,12 +139,13 @@ describe('database - Replication', () => {
       db2.sync.events.addEventListener('join', onConnected)
       db2.events.addEventListener('update', onUpdate)
 
-      await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: 2, value: 'record 2 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: 3, value: 'record 3 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: '1', value: 'record 1 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: '2', value: 'record 2 on db 1' })
+      await db1.addOperation({ op: 'PUT', key: '3', value: 'record 3 on db 1' })
+
       expectedEntryHash = await db1.addOperation({
         op: 'PUT',
-        key: 4,
+        key: '4',
         value: 'record 4 on db 1',
       })
 

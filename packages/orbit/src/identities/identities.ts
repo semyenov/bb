@@ -176,7 +176,7 @@ export class Identities implements IdentitiesInstance {
   async getIdentity(hash: string): Promise<IdentityInstance | null> {
     const bytes = await this.storage.get(hash)
     if (bytes) {
-      return await Identity.decode(bytes, signFactory(this.keystore, hash))
+      return await Identity.decode(bytes)
     }
 
     return null

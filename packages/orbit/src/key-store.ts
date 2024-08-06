@@ -88,7 +88,6 @@ export class KeyStore implements KeyStoreInstance {
     }
 
     const keys = await crypto.keys.generateKeyPair('secp256k1')
-    console.log('keys', keys)
     await this.storage.put(`private_${id}`, keys.marshal())
 
     return keys

@@ -160,10 +160,10 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
       ...((await this.database.get(capability)) || []),
       key,
     ])
-    console.log('grant caps:', { caps, capability })
+    // console.log('grant caps:', { caps, capability })
     await this.database.put(capability, Array.from(caps))
 
-    console.log('grant keys', await this.database.get('read'))
+    // console.log('grant keys', await this.database.get('read'))
   }
 
   async revoke(capability: string, key: string): Promise<void> {

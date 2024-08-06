@@ -51,7 +51,7 @@ export interface LogInstance<T> {
   has: (hash: string) => Promise<boolean>
   append: (payload: T, options?: LogAppendOptions) => Promise<EntryInstance<T>>
   join: (log: LogInstance<T>) => Promise<void>
-  joinEntry: (entry: EntryInstance<T>) => Promise<boolean>
+  joinEntry: (entry: EntryInstance<T>, dbname?: string) => Promise<boolean>
   traverse: (
     rootEntries?: EntryInstance<T>[] | null,
     shouldStopFn?: (
@@ -122,6 +122,8 @@ export class Log<T> implements LogInstance<T> {
   }
 
   public static defaultAccessController(): AccessControllerInstance {
+    console.log('log init defaultAccessController')
+
     return {
       write: [],
       type: 'allow-all',
@@ -171,10 +173,10 @@ export class Log<T> implements LogInstance<T> {
     return null
   }
 
-  async has(hash: string): Promise<boolean> {
+  async has(hash: string, dbname?: string): Promise<boolean> {
     const entry = await this.indexStorage.get(hash)
 
-    return entry !== undefined
+    return Boolean(entry)
   }
 
   async append(
@@ -231,9 +233,10 @@ export class Log<T> implements LogInstance<T> {
     }
   }
 
-  async joinEntry(entry: EntryInstance<T>): Promise<boolean> {
+  async joinEntry(entry: EntryInstance<T>, dbname?: string): Promise<boolean> {
     return this.joinQueue.add(async () => {
-      const isAlreadyInTheLog = await this.has(entry.hash!)
+      const isAlreadyInTheLog = await this.has(entry.hash!, dbname)
+      console.log('log joinEntry: isAlreadyInTheLog', isAlreadyInTheLog, dbname)
       if (isAlreadyInTheLog) {
         return false
       }
@@ -452,6 +455,7 @@ export class Log<T> implements LogInstance<T> {
       )
     }
     const canAppend = await this.access!.canAppend(entry)
+    console.log('log verifyEntry: canAppend', canAppend)
     if (!canAppend) {
       throw new Error(
         `Could not append entry: Key "${entry.identity}" is not allowed to write to the log`,

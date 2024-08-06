@@ -16,8 +16,7 @@ export interface IPFSBlockStorageOptions {
 }
 
 export class IPFSBlockStorage<T extends Uint8Array>
-  implements StorageInstance<T>
-{
+implements StorageInstance<T> {
   private ipfs: HeliaInstance
   private readonly pin: boolean
   private readonly timeout: number
@@ -55,6 +54,7 @@ export class IPFSBlockStorage<T extends Uint8Array>
     const cid = CID.parse(hash, base58btc)
     const { signal } = new TimeoutController(this.timeout)
     const block = await this.ipfs.blockstore.get(cid, { signal })
+
     return (block || null) as T | null
   }
 

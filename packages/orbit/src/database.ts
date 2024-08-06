@@ -197,7 +197,13 @@ export class Database<
     const task = async () => {
       const entry = await Entry.decode<DatabaseOperation<T>>(bytes)
       if (entry) {
-        const updated = await this.log.joinEntry(entry)
+        const updated = await this.log.joinEntry(entry, this.name)
+        if (this.name === 'test2') {
+          console.log('DATABASE applyOperation: entry', updated)
+          this.events.addEventListener('update', (event) => {
+            console.log('DATABASE applyOperation:addEventListener  update event')
+          })
+        }
         if (updated) {
           if (this.onUpdate) {
             await this.onUpdate(this.log, entry)
@@ -225,6 +231,9 @@ export class Database<
       this.events.dispatchEvent(
         new CustomEvent('update', { detail: { entry } }),
       )
+      // this.events.addEventListener('update', (event) => {
+      //   console.log('DATABASE addOperation:addEventListener  update event')
+      // })
 
       return entry.hash!
     }

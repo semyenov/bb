@@ -188,12 +188,11 @@ implements SyncInstance<T, E> {
   private handleUpdateMessage: EventHandler<CustomEvent<Message>> = async (
     message,
   ) => {
-    const { topic, data } = message.detail
+    const { topic, data, from } = message.detail as SignedMessage
 
     const task = async () => {
       try {
-        const detail = message.detail as SignedMessage
-        if (detail.from && data && this.onSynced) {
+        if (from && data && this.onSynced) {
           await this.onSynced(data)
         }
       }

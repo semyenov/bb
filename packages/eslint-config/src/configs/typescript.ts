@@ -19,7 +19,7 @@ const typescript = {
     'ts/consistent-generic-constructors': 'error',
     'ts/consistent-indexed-object-style': 'error',
     'ts/consistent-type-assertions': 'error',
-    'ts/consistent-type-definitions': 'error',
+    'ts/consistent-type-definitions': 'off',
     'ts/no-confusing-non-null-assertion': 'error',
     'no-empty-function': 'off',
     'ts/no-empty-function': 'error',
