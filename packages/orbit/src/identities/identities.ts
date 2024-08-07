@@ -127,6 +127,7 @@ export class Identities implements IdentitiesInstance {
       type: identityProvider.type,
       provider: identityProvider,
       sign: signFactory(this.keystore, id),
+      verify: verifyFactory(),
     })
 
     await this.storage.put(identity.hash, identity.bytes)
@@ -139,7 +140,7 @@ export class Identities implements IdentitiesInstance {
       return false
     }
 
-    const { id, publicKey, signatures } = identity
+    const { id, publicKey, signatures, provider } = identity
     const idSignatureVerified = await verifyMessage(
       signatures.id,
       publicKey,
@@ -156,7 +157,7 @@ export class Identities implements IdentitiesInstance {
       && (await Identity.create({
         ...cachedIdentity,
         sign: signFactory(this.keystore, id),
-        provider: identity.provider,
+        provider,
       }))
 
     if (verifiedIdentity) {
@@ -208,5 +209,15 @@ function signFactory(keystore: KeyStoreInstance, id: string) {
     }
 
     return signMessage(privateKey, data)
+  }
+}
+
+function verifyFactory() {
+  return async (
+    signature: string,
+    publicKey: string,
+    data: string,
+  ): Promise<boolean> => {
+    return await verifyMessage(signature, publicKey, data)
   }
 }

@@ -197,7 +197,7 @@ implements SyncInstance<T, E> {
         }
       }
       catch (error) {
-        console.error('error', error)
+        console.error('error 123', error)
         this.events.dispatchEvent(new ErrorEvent('error', { error }))
       }
     }

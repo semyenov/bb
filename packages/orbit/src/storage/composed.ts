@@ -32,6 +32,7 @@ export class ComposedStorage<T> implements StorageInstance<T> {
         await this.storage1.put(hash, value)
       }
     }
+
     return value
   }
 
@@ -41,7 +42,7 @@ export class ComposedStorage<T> implements StorageInstance<T> {
   }
 
   async *iterator(options?: any): AsyncIterableIterator<[string, T]> {
-    const keys: Map<string, boolean> = new Map()
+    const keys = new Map<string, boolean>()
 
     for (const storage of [this.storage1, this.storage2]) {
       for await (const [key, value] of storage.iterator(options)) {

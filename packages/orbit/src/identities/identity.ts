@@ -17,7 +17,7 @@ export interface IdentityOptions {
   signatures: IdentitySignatures
   provider?: IdentityProviderInstance
   sign?: (data: any) => Promise<string>
-  verify?: (data: string, signature: string) => Promise<boolean>
+  verify?: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 }
 
 export interface IdentityInstance extends IdentityOptions {
@@ -36,7 +36,7 @@ export class Identity implements IdentityInstance {
   signatures: IdentitySignatures
   provider?: IdentityProviderInstance
   sign?: (data: any) => Promise<string>
-  verify?: (data: any, signature: string) => Promise<boolean>
+  verify?: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
   hash: string
   bytes: Uint8Array
 

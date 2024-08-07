@@ -13,8 +13,10 @@ export class ConflictResolution {
   }
 
   static LastWriteWins<T>(a: EntryInstance<T>, b: EntryInstance<T>): number {
-    const sortByEntryClocks = (a: EntryInstance<T>, b: EntryInstance<T>) =>
-      ConflictResolution.SortByClocks(a, b, ConflictResolution.sortById)
+    const sortByEntryClocks = (a: EntryInstance<T>, b: EntryInstance<T>) => {
+      return ConflictResolution.SortByClocks(a, b, ConflictResolution.sortById)
+    }
+
     return sortByEntryClocks(a, b)
   }
 
@@ -24,6 +26,7 @@ export class ConflictResolution {
     resolveConflict: (a: EntryInstance<T>, b: EntryInstance<T>) => number,
   ): number {
     const diff = Clock.compare(a.clock, b.clock)
+
     return diff === 0 ? resolveConflict(a, b) : diff
   }
 
@@ -34,9 +37,9 @@ export class ConflictResolution {
   ): number {
     return a.clock.id === b.clock.id
       ? resolveConflict(a, b)
-      : a.clock.id < b.clock.id
-        ? -1
-        : 1
+      : (a.clock.id < b.clock.id
+          ? -1
+          : 1)
   }
 
   static NoZeroes<T>(
@@ -49,6 +52,7 @@ export class ConflictResolution {
       if (result === 0) {
         throw new Error(msg)
       }
+
       return result
     }
   }

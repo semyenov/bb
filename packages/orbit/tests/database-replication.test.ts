@@ -34,7 +34,7 @@ describe('database - Replication', () => {
 
   const accessController = {
     canAppend: async (entry: EntryInstance) => {
-      console.log('custom accessController.canAppend before', entry)
+      // console.log('custom accessController.canAppend before', entry)
       const identity1 = entry.identity && await identities.getIdentity(entry.identity)
       const identity2 = entry.identity && await identities2.getIdentity(entry.identity)
 
@@ -42,7 +42,7 @@ describe('database - Replication', () => {
       if (!identity1 || !identity2) {
         return false
       }
-      console.log('custom accessController.canAppend after', identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id)
+      // console.log('custom accessController.canAppend after', identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id)
 
       return (
         identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id
@@ -176,7 +176,8 @@ describe('database - Replication', () => {
       let replicated: boolean | string | null = false
       let expectedEntryHash: null | string = null
 
-      const onConnected = (peerId: string, heads: EntryInstance[]) => {
+      const onConnected = (event: CustomEvent) => {
+        const { peerId, heads } = event.detail
         console.log('peerId', peerId)
         replicated = expectedEntryHash
         && heads.map((e) => {
@@ -185,7 +186,8 @@ describe('database - Replication', () => {
           .includes(expectedEntryHash)
       }
 
-      const onUpdate = (entry: EntryInstance) => {
+      const onUpdate = (event: CustomEvent) => {
+        const { entry } = event.detail
         replicated = expectedEntryHash && entry.hash === expectedEntryHash
       }
 
@@ -197,7 +199,7 @@ describe('database - Replication', () => {
         directory: './.out/orbitdb2',
       })
 
-      db2.events.addEventListener('join', onConnected)
+      db2.sync.events.addEventListener('join', onConnected)
       db2.events.addEventListener('update', onUpdate)
 
       await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
@@ -248,13 +250,13 @@ describe('database - Replication', () => {
     it('adds an operation before db2 is instantiated', async () => {
       let connected = false
 
-      const onConnected = (peerId: string, heads: EntryInstance[]) => {
+      const onConnected = () => {
         connected = true
       }
 
       await db1.addOperation({ op: 'PUT', key: 1, value: 'record 1 on db 1' })
 
-      db2 = await Database({
+      db2 = await Database.create({
         ipfs: ipfs2,
         identity: testIdentity2,
         address: databaseId,
@@ -262,7 +264,7 @@ describe('database - Replication', () => {
         directory: './.out/orbitdb2',
       })
 
-      db2.events.addEventListener('join', onConnected)
+      db2.sync.events.addEventListener('join', onConnected)
 
       await waitFor(
         () => {
@@ -289,14 +291,15 @@ describe('database - Replication', () => {
 
   describe('options', () => {
     it('uses given ComposedStorage with MemoryStorage/IPFSBlockStorage for entryStorage', async () => {
-      const storage1 = await ComposedStorage.create(
-        await MemoryStorage(),
-        await IPFSBlockStorage({ ipfs: ipfs1, pin: true }),
+      const storage1 = await ComposedStorage.create({
+        storage1: await MemoryStorage.create(),
+        storage2: await IPFSBlockStorage.create({ ipfs: ipfs1, pin: true }),
+      },
       )
-      const storage2 = await ComposedStorage.create(
-        await MemoryStorage(),
-        await IPFSBlockStorage({ ipfs: ipfs2, pin: true }),
-      )
+      const storage2 = await ComposedStorage.create({
+        storage1: await MemoryStorage.create(),
+        storage2: await IPFSBlockStorage.create({ ipfs: ipfs2, pin: true }),
+      })
       db1 = await Database.create({
         ipfs: ipfs1,
         identity: testIdentity1,
@@ -317,16 +320,16 @@ describe('database - Replication', () => {
       let connected1 = false
       let connected2 = false
 
-      const onConnected1 = (peerId: string, heads: EntryInstance[]) => {
+      const onConnected1 = () => {
         connected1 = true
       }
 
-      const onConnected2 = (peerId: string, heads: EntryInstance[]) => {
+      const onConnected2 = () => {
         connected2 = true
       }
 
-      db1.events.addEventListener('join', onConnected1)
-      db2.events.addEventListener('join', onConnected2)
+      db1.sync.events.addEventListener('join', onConnected1)
+      db2.sync.events.addEventListener('join', onConnected2)
 
       await db1.addOperation({ op: 'PUT', key: String(1), value: 'record 1 on db 1' })
       await db1.addOperation({ op: 'PUT', key: String(2), value: 'record 2 on db 1' })
@@ -389,22 +392,22 @@ describe('database - Replication', () => {
       let updateCount1 = 0
       let updateCount2 = 0
 
-      const onConnected2 = (peerId: string, heads: EntryInstance[]) => {
+      const onConnected2 = () => {
         connected2 = true
       }
 
-      const onUpdate1 = async (entry) => {
+      const onUpdate1 = async () => {
         ++updateCount1
       }
 
-      const onUpdate2 = async (entry) => {
+      const onUpdate2 = async () => {
         ++updateCount2
       }
 
-      db1.events.addEventListener('join', (peerId: string, heads: EntryInstance[]) => {
+      db1.sync.events.addEventListener('join', () => {
         connected1 = true
       })
-      db2.events.addEventListener('join', onConnected2)
+      db2.sync.events.addEventListener('join', onConnected2)
       db1.events.addEventListener('update', onUpdate1)
       db2.events.addEventListener('update', onUpdate2)
 
@@ -455,24 +458,24 @@ describe('database - Replication', () => {
       let updateCount1 = 0
       let updateCount2 = 0
 
-      const onConnected1 = async (peerId: string, heads: EntryInstance[]) => {
+      const onConnected1 = async () => {
         connected1 = true
       }
 
-      const onConnected2 = async (peerId: string, heads: EntryInstance[]) => {
+      const onConnected2 = async () => {
         connected2 = true
       }
 
-      const onUpdate1 = async (entry: EntryInstance) => {
+      const onUpdate1 = async () => {
         ++updateCount1
       }
 
-      const onUpdate2 = async (entry: EntryInstance) => {
+      const onUpdate2 = async () => {
         ++updateCount2
       }
 
-      db1.events.addEventListener('join', onConnected1)
-      db2.events.addEventListener('join', onConnected2)
+      db1.sync.events.addEventListener('join', onConnected1)
+      db2.sync.events.addEventListener('join', onConnected2)
       db1.events.addEventListener('update', onUpdate1)
       db2.events.addEventListener('update', onUpdate2)
 

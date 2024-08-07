@@ -1,39 +1,44 @@
-import { deepStrictEqual } from 'node:assert'
+import { deepStrictEqual, strictEqual } from 'node:assert'
+
+import { copy } from 'fs-extra'
+import { rimraf } from 'rimraf'
+import { toString as uint8ArrayToString } from 'uint8arrays'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
 import {
   Documents,
   Identities,
   KeyStore,
-} from '@orbitdb/core'
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { after, afterEach, before, beforeEach, describe, it } from 'vitest'
-
+} from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
 import waitFor from '../../utils/wait-for.js'
 
 import type {
-  DocumentsDoc,
-  DocumentsInstance,
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-} from '@orbitdb/core'
+  Database,
+} from '../../../src'
+import type { Identity } from '../../../src/identities/identity'
+import type { HeliaInstance } from '../../../src/vendor'
+
+// import type {
+//   DocumentsDoc,
+//   DocumentsInstance,
+//   IPFS,
+//   IdentitiesInstance,
+//   IdentityInstance,
+//   KeyStoreInstance,
+// } from '@orbitdb/core'
 
 const keysPath = './testkeys'
 
-describe('documents Database Replication', function () {
-  // @ts-ignore
-  this.timeout(30000)
-
-  let ipfs1: IPFS, ipfs2: IPFS
-  let keystore: KeyStoreInstance
-  let identities: IdentitiesInstance
-  let testIdentity1: IdentityInstance, testIdentity2: IdentityInstance
-  let db1: DocumentsInstance, db2: DocumentsInstance
+describe('documents Database Replication', () => {
+  let ipfs1: HeliaInstance, ipfs2: HeliaInstance
+  let keystore: KeyStore
+  let identities: Identities
+  let identities2: Identities
+  let testIdentity1: Identity, testIdentity2: Identity
+  let db1: DocumentsDatabase, db2: DocumentsDatabase
 
   const databaseId = 'documents-AAA'
 
@@ -47,18 +52,48 @@ describe('documents Database Replication', function () {
     },
   }
 
-  before(async () => {
+  beforeAll(async () => {
     [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
     await connectPeers(ipfs1, ipfs2)
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ keystore, ipfs: ipfs1 })
+    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
-    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+    testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
 
-  after(async () => {
+  beforeEach(async () => {
+    db1 = await Documents.create({
+      ipfs: ipfs1,
+      identity: testIdentity1,
+      address: databaseId,
+      accessController,
+      name: 'testdb1',
+      directory: './orbitdb1',
+    })
+    db2 = await Documents.create({
+      ipfs: ipfs2,
+      identity: testIdentity2,
+      address: databaseId,
+      name: 'testdb2',
+      accessController,
+      directory: './orbitdb2',
+    })
+  })
+  afterEach(async () => {
+    if (db1) {
+      await db1.drop()
+      await db1.close()
+    }
+    if (db2) {
+      await db2.drop()
+      await db2.close()
+    }
+  })
+
+  afterAll(async () => {
     if (ipfs1) {
       await ipfs1.stop()
     }
@@ -78,42 +113,23 @@ describe('documents Database Replication', function () {
     await rimraf('./ipfs2')
   })
 
-  beforeEach(async () => {
-    db1 = await Documents()({
-      ipfs: ipfs1,
-      identity: testIdentity1,
-      address: databaseId,
-      accessController,
-      directory: './orbitdb1',
-    })
-    db2 = await Documents()({
-      ipfs: ipfs2,
-      identity: testIdentity2,
-      address: databaseId,
-      accessController,
-      directory: './orbitdb2',
-    })
-  })
-
-  afterEach(async () => {
-    if (db1) {
-      await db1.drop()
-      await db1.close()
-    }
-    if (db2) {
-      await db2.drop()
-      await db2.close()
-    }
+  it('basic Verification', async () => {
+    const msg = new Uint8Array([1, 2, 3, 4, 5])
+    const sig = await testIdentity1.sign(msg)
+    const verified = await testIdentity2.verify(sig, testIdentity1.publicKey, msg)
+    strictEqual(verified, true)
   })
 
   it('replicates documents across two peers', async () => {
     let connected1 = false
     let connected2 = false
 
-    db1.events.on('join', async (_peerId, _heads) => {
+    db1.sync.events.addEventListener('join', async (_peerId, _heads) => {
+      console.log('db1 joined')
       connected1 = true
     })
-    db2.events.on('join', async (_peerId, _heads) => {
+    db2.sync.events.addEventListener('join', async (_peerId, _heads) => {
+      console.log('db1 joined')
       connected2 = true
     })
 
@@ -142,7 +158,8 @@ describe('documents Database Replication', function () {
     for await (const item of db2.iterator()) {
       all2.unshift(item)
     }
-
+    console.log('all1:', all1)
+    console.log('all2:', all2)
     deepStrictEqual(all1, all2)
   })
 })

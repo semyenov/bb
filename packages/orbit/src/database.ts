@@ -198,7 +198,7 @@ export class Database<
       const entry = await Entry.decode<DatabaseOperation<T>>(bytes)
       if (entry) {
         const updated = await this.log.joinEntry(entry, this.name)
-        if (this.name === 'test2') {
+        if (this.name === 'testdb2') {
           console.log('DATABASE applyOperation: entry', updated)
           this.events.addEventListener('update', (event) => {
             console.log('DATABASE applyOperation:addEventListener  update event')

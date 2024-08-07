@@ -75,7 +75,7 @@ describe('database', () => {
       accessController,
       directory: './.orbitdb',
     })
-    const expected = 'zdpuArXozE6QB2auXomSpRyBFzrB6rGrAjseobUmWVapKSA5m'
+    const expected = 'zdpuAwhx6xVpnMPUA7Q4JrvZsyoti5wZ18iDeFwBjPAwsRNof'
     const op = { op: 'PUT', key: 1, value: 'record 1 on db 1' }
     const actual = await db.addOperation(op)
 

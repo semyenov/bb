@@ -173,7 +173,7 @@ export class Log<T> implements LogInstance<T> {
     return null
   }
 
-  async has(hash: string, dbname?: string): Promise<boolean> {
+  async has(hash: string): Promise<boolean> {
     const entry = await this.indexStorage.get(hash)
 
     return Boolean(entry)
@@ -233,14 +233,12 @@ export class Log<T> implements LogInstance<T> {
     }
   }
 
-  async joinEntry(entry: EntryInstance<T>, dbname?: string): Promise<boolean> {
+  async joinEntry(entry: EntryInstance<T>): Promise<boolean> {
     return this.joinQueue.add(async () => {
-      const isAlreadyInTheLog = await this.has(entry.hash!, dbname)
-      console.log('log joinEntry: isAlreadyInTheLog', isAlreadyInTheLog, dbname)
+      const isAlreadyInTheLog = await this.has(entry.hash!)
       if (isAlreadyInTheLog) {
         return false
       }
-
       await this.verifyEntry(entry)
 
       const headsHashes = (await this.heads())
@@ -402,6 +400,9 @@ export class Log<T> implements LogInstance<T> {
   }
 
   async clear(): Promise<void> {
+    // if(this.indexStorage) {
+    //   console.log
+    // }
     await this.indexStorage.clear()
     await this.headsStorage.clear()
     await this.storage.clear()
@@ -455,16 +456,17 @@ export class Log<T> implements LogInstance<T> {
       )
     }
     const canAppend = await this.access!.canAppend(entry)
-    console.log('log verifyEntry: canAppend', canAppend)
     if (!canAppend) {
       throw new Error(
         `Could not append entry: Key "${entry.identity}" is not allowed to write to the log`,
       )
     }
+
     const isValid = await Entry.verify(this.identity, entry)
     if (!isValid) {
       throw new Error(`Could not validate signature for entry "${entry.hash}"`)
     }
+    // console.log(`log verifyEntry: isValid ${entry.hash}`, isValid)
   }
 
   private async traverseAndVerify(

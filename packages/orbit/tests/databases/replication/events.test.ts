@@ -1,14 +1,14 @@
 import { deepStrictEqual } from 'node:assert'
 
+import { copy } from 'fs-extra'
+import { rimraf } from 'rimraf'
+import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
+
 import {
   Events,
   Identities,
   KeyStore,
-} from '@orbitdb/core'
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { after, afterEach, before, describe, it } from 'vitest'
-
+} from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
@@ -26,13 +26,11 @@ import type {
 
 const keysPath = './testkeys'
 
-describe('events Database Replication', function () {
-  // @ts-ignore
-  this.timeout(30000)
-
+describe('events Database Replication', () => {
   let ipfs1: IPFS, ipfs2: IPFS
   let keystore: KeyStoreInstance
   let identities: IdentitiesInstance
+  let identities2: IdentitiesInstance
   let testIdentity1: IdentityInstance, testIdentity2: IdentityInstance
   let db1: EventsInstance, db2: EventsInstance
 
@@ -57,18 +55,31 @@ describe('events Database Replication', function () {
     'friend33',
   ]
 
-  before(async () => {
+  beforeAll(async () => {
     [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
     await connectPeers(ipfs1, ipfs2)
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ keystore, ipfs: ipfs1 })
+    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
-    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+    testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
 
-  after(async () => {
+  afterEach(async () => {
+    if (db1) {
+      await db1.drop()
+      await db1.close()
+      db1 = null as unknown as EventsInstance
+    }
+    if (db2) {
+      await db2.drop()
+      await db2.close()
+      db2 = null as unknown as EventsInstance
+    }
+  })
+  afterAll(async () => {
     if (ipfs1) {
       await ipfs1.stop()
     }
@@ -88,19 +99,6 @@ describe('events Database Replication', function () {
     await rimraf('./ipfs2')
   })
 
-  afterEach(async () => {
-    if (db1) {
-      await db1.drop()
-      await db1.close()
-      db1 = null as unknown as EventsInstance
-    }
-    if (db2) {
-      await db2.drop()
-      await db2.close()
-      db2 = null as unknown as EventsInstance
-    }
-  })
-
   it('replicates a database', async () => {
     let replicated = false
     let expectedEntryHash: string | null = null
@@ -109,14 +107,14 @@ describe('events Database Replication', function () {
       console.error(err)
     }
 
-    db1 = await Events()({
+    db1 = await Events.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    db2 = await Events()({
+    db2 = await Events.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -124,18 +122,20 @@ describe('events Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    db2.events.on('join', (peerId, heads) => {
+    db2.sync.events.addEventListener('join', (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null && heads.map((e) => {
         return e.hash
       })
         .includes(expectedEntryHash)
     })
-    db2.events.on('update', (entry) => {
+    db2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null && entry.hash === expectedEntryHash
     })
 
-    db2.events.on('error', onError)
-    db1.events.on('error', onError)
+    db2.events.addEventListener('error', onError)
+    db1.events.addEventListener('error', onError)
 
     await db1.add(expected[0])
     await db1.add(expected[1])
@@ -170,14 +170,14 @@ describe('events Database Replication', function () {
     let replicated = false
     let expectedEntryHash: string | null = null
 
-    db1 = await Events()({
+    db1 = await Events.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    db2 = await Events()({
+    db2 = await Events.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -185,20 +185,22 @@ describe('events Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    db2.events.on('join', (peerId, heads) => {
+    db2.sync.events.addEventListener('join', (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null && heads.map((e) => {
         return e.hash
       })
         .includes(expectedEntryHash)
     })
-    db2.events.on('update', (entry) => {
+    db2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null && entry.hash === expectedEntryHash
     })
 
-    db2.events.on('error', (err) => {
+    db2.events.addEventListener('error', (err) => {
       console.error(err)
     })
-    db1.events.on('error', (err) => {
+    db1.events.addEventListener('error', (err) => {
       console.error(err)
     })
 
@@ -223,7 +225,7 @@ describe('events Database Replication', function () {
 
     await db2.close()
 
-    db2 = await Events()({
+    db2 = await Events.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,

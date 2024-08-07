@@ -49,24 +49,22 @@ export const Entry = {
 
     const entry: EntryInstance<T> = {
       id,
-      v: 2,
       payload,
-      clock: clock || new Clock(identity.publicKey),
       next,
       refs,
+      clock: clock || new Clock(identity.publicKey),
+      v: 2,
     }
 
     const { bytes, cid } = await Block.encode({ value: entry, codec, hasher })
+
     const signature = await identity.sign!(bytes)
 
-    entry.hash = cid.toString(hashStringEncoding)
     entry.key = identity.publicKey
     entry.identity = identity.hash
     entry.sig = signature
-    entry.bytes = bytes
-    // console.log('Entry.create: entry:', entry)
 
-    return entry
+    return await this.encode2(entry)
   },
 
   async verify<T>(
@@ -100,12 +98,15 @@ export const Entry = {
       clock: entry.clock,
       v: entry.v,
     }
+    // console.log('Entry.verify: value pubkey:', identities.pubkey)
 
-    const { bytes } = await Block.encode<EntryInstance<T>, 113, 18>({
+    const { bytes, cid } = await Block.encode<EntryInstance<T>, 113, 18>({
       value,
       codec,
       hasher,
     })
+
+    // console.log('Entry.verify: cid:', cid.toString(hashStringEncoding))
 
     return identities.verify!(entry.sig, entry.key, bytes)
   },
@@ -136,6 +137,19 @@ export const Entry = {
     const hash = cid.toString(hashStringEncoding)
 
     return { ...value, hash, bytes }
+  },
+
+  async encode2<T>(entry: EntryInstance<T>) {
+    const { bytes, cid } = await Block.encode({
+      value: entry,
+      codec,
+      hasher,
+    })
+
+    entry.hash = cid.toString(hashStringEncoding)
+    entry.bytes = bytes
+
+    return entry
   },
 
   async encode(entry: EntryInstance): Promise<Uint8Array> {

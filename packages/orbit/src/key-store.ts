@@ -1,6 +1,9 @@
 import * as crypto from '@libp2p/crypto'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import {
+  compare as uint8ArrayCompare,
+  fromString as uint8ArrayFromString,
+  toString as uint8ArrayToString,
+} from 'uint8arrays'
 
 import { KEYSTORE_PATH } from './constants.js'
 import { ComposedStorage, LRUStorage, LevelStorage } from './storage/index.js'
@@ -123,19 +126,24 @@ export class KeyStore implements KeyStoreInstance {
   }
 }
 
+function ensureUint8Array(data: Uint8Array | string) {
+  return (typeof data === 'string'
+    ? uint8ArrayFromString(data, 'utf8')
+    : new Uint8Array(data))
+}
+
 async function verify(
   publicKey: string,
   signature: string,
   data: Uint8Array | string,
 ) {
   const pubKey = unmarshalPubKey(uint8ArrayFromString(publicKey, 'base16'))
-
   if (!pubKey) {
     throw new Error('Public key could not be decoded')
   }
 
   return pubKey.verify(
-    uint8ArrayFromString(data.toString(), 'utf8'),
+    ensureUint8Array(data),
     uint8ArrayFromString(signature, 'base16'),
   )
 }
@@ -171,9 +179,7 @@ export async function signMessage(
   }
 
   const signature = await key.sign(
-    typeof data === 'string'
-      ? uint8ArrayFromString(data)
-      : new Uint8Array(data),
+    ensureUint8Array(data),
   )
 
   return uint8ArrayToString(signature, 'base16')
@@ -198,5 +204,11 @@ export async function verifyMessage(
     return verified
   }
 
-  return cached.publicKey === publicKey && cached.data === data
+  const compare = (cached: string | Uint8Array, data: string | Uint8Array) => {
+    const match = data instanceof Uint8Array && cached instanceof Uint8Array ? uint8ArrayCompare(cached, data) === 0 : cached.toString() === data.toString()
+
+    return match
+  }
+
+  return cached.publicKey === publicKey && compare(cached.data, data)
 }

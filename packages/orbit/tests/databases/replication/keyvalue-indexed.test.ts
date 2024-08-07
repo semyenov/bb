@@ -1,38 +1,34 @@
 import { deepStrictEqual } from 'node:assert'
 
+import { copy } from 'fs-extra'
+import { rimraf } from 'rimraf'
+import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
+
 import {
   Identities,
   KeyStore,
   KeyValueIndexed,
-} from '@orbitdb/core'
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { after, afterEach, before, describe, it } from 'vitest'
-
+} from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
 import waitFor from '../../utils/wait-for.js'
 
 import type {
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-  KeyValueDoc,
-  KeyValueIndexedInstance,
-} from '@orbitdb/core'
+  Database,
+} from '../../../src'
+import type { KeyValueIndexedDatabase } from '../../../src/databases/keyvalue-indexed'
+import type { IdentityInstance } from '../../../src/identities/identity'
+import type { HeliaInstance } from '../../../src/vendor'
 
 const keysPath = './testkeys'
-describe('keyValueIndexed Database Replication', function () {
-  // @ts-ignore
-  this.timeout(30000)
-
-  let ipfs1: IPFS, ipfs2: IPFS
-  let keystore: KeyStoreInstance
-  let identities: IdentitiesInstance
+describe('keyValueIndexed Database Replication', () => {
+  let ipfs1: HeliaInstance, ipfs2: HeliaInstance
+  let keystore: KeyStore
+  let identities: Identities
+  let identities2: Identities
   let testIdentity1: IdentityInstance, testIdentity2: IdentityInstance
-  let kv1: KeyValueIndexedInstance, kv2: KeyValueIndexedInstance
+  let kv1: KeyValueIndexedDatabase, kv2: KeyValueIndexedDatabase
 
   const databaseId = 'kv-AAA'
 
@@ -45,7 +41,7 @@ describe('keyValueIndexed Database Replication', function () {
     },
   }
 
-  before(async () => {
+  beforeAll(async () => {
     [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
     await connectPeers(ipfs1, ipfs2)
 
@@ -57,12 +53,23 @@ describe('keyValueIndexed Database Replication', function () {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ keystore, ipfs: ipfs1 })
+    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
-    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+    testIdentity2 = await identities2.createIdentity({ id: 'userB' })
+  })
+  afterEach(async () => {
+    if (kv1) {
+      await kv1.drop()
+      await kv1.close()
+    }
+    if (kv2) {
+      await kv2.drop()
+      await kv2.close()
+    }
   })
 
-  after(async () => {
+  afterAll(async () => {
     if (ipfs1) {
       await ipfs1.stop()
     }
@@ -82,17 +89,6 @@ describe('keyValueIndexed Database Replication', function () {
     await rimraf('./ipfs2')
   })
 
-  afterEach(async () => {
-    if (kv1) {
-      await kv1.drop()
-      await kv1.close()
-    }
-    if (kv2) {
-      await kv2.drop()
-      await kv2.close()
-    }
-  })
-
   it('replicates a database', async () => {
     let replicated = false
     let expectedEntryHash: string | null = null
@@ -101,14 +97,14 @@ describe('keyValueIndexed Database Replication', function () {
       console.error(err)
     }
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -116,29 +112,31 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    kv2.events.on('join', (_peerId, heads) => {
+    kv2.sync.events.addEventListener('join', (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null
       && heads.map((e) => {
         return e.hash
       })
         .includes(expectedEntryHash)
     })
-    kv2.events.on('update', (entry) => {
+    kv2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null
       && entry.hash === expectedEntryHash
     })
 
-    kv2.events.on('error', onError)
-    kv1.events.on('error', onError)
+    kv2.events.addEventListener('error', onError)
+    kv1.events.addEventListener('error', onError)
 
-    await kv1.set('init', true)
-    await kv1.set('hello', 'friend')
+    await kv1.put('init', true)
+    await kv1.put('hello', 'friend')
     await kv1.del('hello')
-    await kv1.set('hello', 'friend2')
+    await kv1.put('hello', 'friend2')
     await kv1.del('hello')
-    await kv1.set('empty', '')
+    await kv1.put('empty', '')
     await kv1.del('empty')
-    expectedEntryHash = await kv1.set('hello', 'friend3')
+    expectedEntryHash = await kv1.put('hello', 'friend3')
 
     await waitFor(() => {
       return replicated
@@ -191,14 +189,14 @@ describe('keyValueIndexed Database Replication', function () {
     let replicated = false
     let expectedEntryHash: string | null = null
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -206,33 +204,35 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    kv2.events.on('join', (peerId, heads) => {
+    kv2.sync.events.addEventListener('join', (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null
       && heads.map((e) => {
         return e.hash
       })
         .includes(expectedEntryHash)
     })
-    kv2.events.on('update', (entry) => {
+    kv2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null
       && entry.hash === expectedEntryHash
     })
 
-    kv2.events.on('error', (err) => {
+    kv2.events.addEventListener('error', (err) => {
       console.error(err)
     })
-    kv1.events.on('error', (err) => {
+    kv1.events.addEventListener('error', (err) => {
       console.error(err)
     })
 
-    await kv1.set('init', true)
-    await kv1.set('hello', 'friend')
+    await kv1.put('init', true)
+    await kv1.put('hello', 'friend')
     await kv1.del('hello')
-    await kv1.set('hello', 'friend2')
+    await kv1.put('hello', 'friend2')
     await kv1.del('hello')
-    await kv1.set('empty', '')
+    await kv1.put('empty', '')
     await kv1.del('empty')
-    expectedEntryHash = await kv1.set('hello', 'friend3')
+    expectedEntryHash = await kv1.put('hello', 'friend3')
 
     await waitFor(() => {
       return replicated
@@ -243,14 +243,14 @@ describe('keyValueIndexed Database Replication', function () {
     await kv1.close()
     await kv2.close()
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -312,14 +312,14 @@ describe('keyValueIndexed Database Replication', function () {
       deepStrictEqual(err)
     }
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
       accessController,
       directory: './orbitdb1',
     })
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -327,21 +327,22 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    kv2.events.on('update', (entry) => {
+    kv2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated1 = expectedEntryHash1 !== null && entry.hash === expectedEntryHash1
     })
 
-    kv2.events.on('error', onError)
-    kv1.events.on('error', onError)
+    kv2.events.addEventListener('error', onError)
+    kv1.events.addEventListener('error', onError)
 
-    await kv1.set('init', true)
-    await kv1.set('hello', 'friend')
+    await kv1.put('init', true)
+    await kv1.put('hello', 'friend')
     await kv1.del('hello')
-    await kv1.set('hello', 'friend2')
+    await kv1.put('hello', 'friend2')
     await kv1.del('hello')
-    await kv1.set('empty', '')
+    await kv1.put('empty', '')
     await kv1.del('empty')
-    expectedEntryHash1 = await kv1.set('hello', 'friend3')
+    expectedEntryHash1 = await kv1.put('hello', 'friend3')
 
     await waitFor(() => {
       return replicated1
@@ -357,7 +358,7 @@ describe('keyValueIndexed Database Replication', function () {
 
     await kv2.close()
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
@@ -365,20 +366,21 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb1',
     })
 
-    const onUpdate3 = async (entry) => {
+    const onUpdate3 = async (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated3 = expectedEntryHash3 && entry.hash === expectedEntryHash3
     }
 
-    kv1.events.on('update', onUpdate3)
-    kv1.events.on('error', onError)
+    kv1.events.addEventListener('update', onUpdate3)
+    kv1.events.addEventListener('error', onError)
 
-    await kv1.set('one', 1)
-    await kv1.set('two', 2)
-    await kv1.set('three', 3)
+    await kv1.put('one', 1)
+    await kv1.put('two', 2)
+    await kv1.put('three', 3)
     await kv1.del('three')
-    expectedEntryHash2 = await kv1.set('four', 4)
+    expectedEntryHash2 = await kv1.put('four', 4)
 
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -386,10 +388,11 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb2',
     })
 
-    kv2.events.on('update', (entry) => {
+    kv2.events.addEventListener('update', (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated2 = expectedEntryHash2 && entry.hash === expectedEntryHash2
     })
-    kv2.events.on('error', onError)
+    kv2.events.addEventListener('error', onError)
 
     await waitFor(() => {
       return replicated2 && replicated3
@@ -443,7 +446,7 @@ describe('keyValueIndexed Database Replication', function () {
   it('indexes deletes correctly', async () => {
     let replicated = false
 
-    kv1 = await KeyValueIndexed()({
+    kv1 = await KeyValueIndexed.create({
       ipfs: ipfs1,
       identity: testIdentity1,
       address: databaseId,
@@ -451,18 +454,18 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb11',
     })
 
-    kv1.events.on('error', (err) => {
+    kv1.events.addEventListener('error', (err) => {
       console.error(err)
       deepStrictEqual(err)
     })
 
-    await kv1.set('init', true)
-    await kv1.set('hello', 'friend')
+    await kv1.put('init', true)
+    await kv1.put('hello', 'friend')
     await kv1.del('delete')
-    await kv1.set('delete', 'this value')
+    await kv1.put('delete', 'this value')
     await kv1.del('delete')
 
-    kv2 = await KeyValueIndexed()({
+    kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
@@ -470,10 +473,10 @@ describe('keyValueIndexed Database Replication', function () {
       directory: './orbitdb22',
     })
 
-    kv2.events.on('update', (_entry) => {
+    kv2.events.addEventListener('update', (_entry) => {
       replicated = true
     })
-    kv2.events.on('error', (err) => {
+    kv2.events.addEventListener('error', (err) => {
       console.error(err)
       deepStrictEqual(err)
     })
