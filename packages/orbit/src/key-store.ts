@@ -29,7 +29,7 @@ export interface KeyStoreInstance {
 
 const VERIFIED_CACHE_STORAGE = LRUStorage.create<{
   publicKey: string
-  data: string
+  data: string | Uint8Array
 }>({ size: 1000 })
 
 const unmarshal
@@ -188,7 +188,7 @@ export async function signMessage(
 export async function verifyMessage(
   signature: string,
   publicKey: string,
-  data: string,
+  data: string | Uint8Array,
 ): Promise<boolean> {
   const verifiedCache = await VERIFIED_CACHE_STORAGE
   const cached = await verifiedCache.get(signature)

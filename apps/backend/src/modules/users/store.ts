@@ -20,8 +20,6 @@ import {
 import type { User } from './schema'
 import type { KeyStoreInstance } from '@orbitdb/core'
 
-export interface UserStoreOptions {}
-
 export interface UserStoreInstance {
   keystore: KeyStoreInstance
   storage: ReturnType<typeof createStorage>
@@ -65,7 +63,8 @@ export async function UsersStore(
     const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
-    } else if (!user.keys[0]) {
+    }
+    else if (!user.keys[0]) {
       throw ErrorUserKeyNotFound
     }
 
@@ -104,7 +103,8 @@ export async function UsersStore(
     const existingUser = await storage.getItem(id)
     if (!existingUser) {
       throw ErrorUserNotFound
-    } else if (!existingUser.keys[0]) {
+    }
+    else if (!existingUser.keys[0]) {
       throw ErrorUserKeyNotFound
     }
 
@@ -125,7 +125,8 @@ export async function UsersStore(
     const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
-    } else if (!user.keys[0]) {
+    }
+    else if (!user.keys[0]) {
       throw ErrorUserKeyNotFound
     }
 

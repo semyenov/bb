@@ -216,7 +216,7 @@ function verifyFactory() {
   return async (
     signature: string,
     publicKey: string,
-    data: string,
+    data: string | Uint8Array,
   ): Promise<boolean> => {
     return await verifyMessage(signature, publicKey, data)
   }
