@@ -14,22 +14,18 @@ import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
 import waitFor from '../../utils/wait-for.js'
 
-import type {
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-  KeyValueDoc,
-  KeyValueInstance,
-} from '@orbitdb/core'
+import type { KeyValueDatabase } from '../../../src/databases/keyvalue'
+import type { IdentityInstance } from '../../../src/identities/identity'
+import type { HeliaInstance } from '../../../src/vendor'
 
 const keysPath = './testkeys'
 describe('keyValue Database Replication', () => {
-  let ipfs1: IPFS, ipfs2: IPFS
-  let keystore: KeyStoreInstance
-  let identities: IdentitiesInstance
+  let ipfs1: HeliaInstance, ipfs2: HeliaInstance
+  let keystore: KeyStore
+  let identities: Identities
+  let identities2: Identities
   let testIdentity1: IdentityInstance, testIdentity2: IdentityInstance
-  let kv1: KeyValueInstance, kv2: KeyValueInstance
+  let kv1: KeyValueDatabase, kv2: KeyValueDatabase
 
   const databaseId = 'kv-AAA'
 
@@ -48,8 +44,9 @@ describe('keyValue Database Replication', () => {
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
     identities = await Identities.create({ keystore, ipfs: ipfs1 })
+    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
-    testIdentity2 = await identities.createIdentity({ id: 'userB' })
+    testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
   afterEach(async () => {
     if (kv1) {
@@ -76,8 +73,7 @@ describe('keyValue Database Replication', () => {
     }
 
     await rimraf(keysPath)
-    await rimraf('./orbitdb1')
-    await rimraf('./orbitdb2')
+    await rimraf('./.out')
     await rimraf('./ipfs1')
     await rimraf('./ipfs2')
   })
@@ -86,7 +82,8 @@ describe('keyValue Database Replication', () => {
     let replicated = false
     let expectedEntryHash: string | null = null
 
-    const onConnected = (peerId, heads) => {
+    const onConnected = (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null
       && heads.map((e) => {
         return e.hash
@@ -94,7 +91,8 @@ describe('keyValue Database Replication', () => {
         .includes(expectedEntryHash)
     }
 
-    const onUpdate = (entry) => {
+    const onUpdate = (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null
       && entry.hash === expectedEntryHash
     }
@@ -108,21 +106,21 @@ describe('keyValue Database Replication', () => {
       identity: testIdentity1,
       address: databaseId,
       accessController,
-      directory: './orbitdb1',
+      directory: './.out/orbitdb1',
     })
     kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
       accessController,
-      directory: './orbitdb2',
+      directory: './.out/orbitdb2',
     })
 
-    kv2.events.on('join', onConnected)
-    kv2.events.on('update', onUpdate)
+    kv2.sync.events.addEventListener('join', onConnected)
+    kv2.events.addEventListener('update', onUpdate)
 
-    kv2.events.on('error', onError)
-    kv1.events.on('error', onError)
+    kv2.events.addEventListener('error', onError)
+    kv1.events.addEventListener('error', onError)
 
     await kv1.set('init', true)
     await kv1.set('hello', 'friend')
@@ -149,7 +147,7 @@ describe('keyValue Database Replication', () => {
     deepStrictEqual(value1, 'friend3')
 
     const value9 = await kv1.get('empty')
-    deepStrictEqual(value9)
+    deepStrictEqual(value9, null)
 
     const all2: KeyValueDoc[] = []
     for await (const keyValue of kv2.iterator()) {
@@ -184,7 +182,8 @@ describe('keyValue Database Replication', () => {
     let replicated = false
     let expectedEntryHash: string | null = null
 
-    const onConnected = (peerId, heads) => {
+    const onConnected = (event: CustomEvent) => {
+      const { heads } = event.detail
       replicated = expectedEntryHash !== null
       && heads.map((e) => {
         return e.hash
@@ -192,7 +191,8 @@ describe('keyValue Database Replication', () => {
         .includes(expectedEntryHash)
     }
 
-    const onUpdate = (entry) => {
+    const onUpdate = (event: CustomEvent) => {
+      const { entry } = event.detail
       replicated = expectedEntryHash !== null
       && entry.hash === expectedEntryHash
     }
@@ -206,21 +206,21 @@ describe('keyValue Database Replication', () => {
       identity: testIdentity1,
       address: databaseId,
       accessController,
-      directory: './orbitdb1',
+      directory: './.out/orbitdb1',
     })
     kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
       accessController,
-      directory: './orbitdb2',
+      directory: './.out/orbitdb2',
     })
 
-    kv2.events.on('join', onConnected)
-    kv1.events.on('join', onConnected)
-    kv2.events.on('update', onUpdate)
-    kv2.events.on('error', onError)
-    kv1.events.on('error', onError)
+    kv2.events.addEventListener('join', onConnected)
+    kv1.events.addEventListener('join', onConnected)
+    kv2.events.addEventListener('update', onUpdate)
+    kv2.events.addEventListener('error', onError)
+    kv1.events.addEventListener('error', onError)
 
     await kv1.set('init', true)
     await kv1.set('hello', 'friend')
@@ -245,14 +245,14 @@ describe('keyValue Database Replication', () => {
       identity: testIdentity1,
       address: databaseId,
       accessController,
-      directory: './orbitdb1',
+      directory: './.out/orbitdb1',
     })
     kv2 = await KeyValue.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
       accessController,
-      directory: './orbitdb2',
+      directory: './.out/orbitdb2',
     })
 
     const value0 = await kv2.get('init')
@@ -265,7 +265,7 @@ describe('keyValue Database Replication', () => {
     deepStrictEqual(value1, 'friend3')
 
     const value9 = await kv1.get('empty')
-    deepStrictEqual(value9)
+    deepStrictEqual(value9, null)
 
     const all2: KeyValueDoc[] = []
     for await (const keyValue of kv2.iterator()) {

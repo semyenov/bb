@@ -15,24 +15,18 @@ import {
 import testKeysPath from '../fixtures/test-keys-path.js'
 import createHelia from '../utils/create-helia.js'
 
-import type {
-  AccessControllerInstance,
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-  KeyValueDoc,
-  KeyValueIndexedInstance,
-} from '@orbitdb/core'
+import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed.js'
+import type { IdentityInstance } from '../../src/identities/identity.js'
+import type { HeliaInstance } from '../../src/vendor.js'
 
 const keysPath = './testkeys'
 describe('keyValueIndexed Database', () => {
-  let ipfs: IPFS
-  let keystore: KeyStoreInstance
+  let ipfs: HeliaInstance
+  let keystore: KeyStore
   let accessController: AccessControllerInstance
-  let identities: IdentitiesInstance
+  let identities: Identities
   let testIdentity1: IdentityInstance
-  let db: KeyValueIndexedInstance
+  let db: KeyValueIndexedDatabase
 
   const databaseId = 'keyvalue-AAA'
 
@@ -59,7 +53,7 @@ describe('keyValueIndexed Database', () => {
     }
 
     await rimraf(keysPath)
-    await rimraf('./orbitdb')
+    await rimraf('./.orbitdb')
     await rimraf('./ipfs1')
   })
 
@@ -86,7 +80,7 @@ describe('keyValueIndexed Database', () => {
     })
 
     it('creates a directory for the persisted index', async () => {
-      const expectedPath = path.join('./orbitdb', `./${db.address}`, '/_index')
+      const expectedPath = path.join('./.orbitdb', `./${db.address}`, '/_index')
       const directoryExists = fs.existsSync(expectedPath)
       strictEqual(directoryExists, true)
     })

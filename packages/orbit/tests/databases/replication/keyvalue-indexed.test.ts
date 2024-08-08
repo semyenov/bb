@@ -102,14 +102,14 @@ describe('keyValueIndexed Database Replication', () => {
       identity: testIdentity1,
       address: databaseId,
       accessController,
-      directory: './orbitdb1',
+      directory: './.out/orbitdb1',
     })
     kv2 = await KeyValueIndexed.create({
       ipfs: ipfs2,
       identity: testIdentity2,
       address: databaseId,
       accessController,
-      directory: './orbitdb2',
+      directory: './.out/orbitdb2',
     })
 
     kv2.sync.events.addEventListener('join', (event: CustomEvent) => {
@@ -154,7 +154,7 @@ describe('keyValueIndexed Database Replication', () => {
     deepStrictEqual(value1, 'friend3')
 
     const value9 = await kv1.get('empty')
-    deepStrictEqual(value9)
+    deepStrictEqual(value9, null)
 
     const all2: KeyValueDoc[] = []
     for await (const keyValue of kv2.iterator()) {
@@ -268,7 +268,7 @@ describe('keyValueIndexed Database Replication', () => {
     deepStrictEqual(value1, 'friend3')
 
     const value9 = await kv1.get('empty')
-    deepStrictEqual(value9)
+    deepStrictEqual(value9, null)
 
     const all2: KeyValueDoc[] = []
     for await (const keyValue of kv2.iterator()) {
@@ -307,9 +307,9 @@ describe('keyValueIndexed Database Replication', () => {
     let expectedEntryHash2: string | null = null
     let expectedEntryHash3: string | null = null
 
-    const onError = (err) => {
+    const onError = (err: any) => {
       console.error(err)
-      deepStrictEqual(err)
+      deepStrictEqual(err, null)
     }
 
     kv1 = await KeyValueIndexed.create({
@@ -352,9 +352,9 @@ describe('keyValueIndexed Database Replication', () => {
 
     await kv1.close()
 
-    await kv2.set('A', 'AAA')
-    await kv2.set('B', 'BBB')
-    expectedEntryHash3 = await kv2.set('C', 'CCC')
+    await kv2.put('A', 'AAA')
+    await kv2.put('B', 'BBB')
+    expectedEntryHash3 = await kv2.put('C', 'CCC')
 
     await kv2.close()
 
@@ -451,7 +451,7 @@ describe('keyValueIndexed Database Replication', () => {
       identity: testIdentity1,
       address: databaseId,
       accessController,
-      directory: './orbitdb11',
+      directory: './.out/orbitdb11',
     })
 
     kv1.events.addEventListener('error', (err) => {
@@ -517,7 +517,6 @@ describe('keyValueIndexed Database Replication', () => {
       ],
     )
 
-    await rimraf('./orbitdb11')
-    await rimraf('./orbitdb22')
+    await rimraf('./.out')
   })
 })

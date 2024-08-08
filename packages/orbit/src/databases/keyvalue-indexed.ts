@@ -155,7 +155,7 @@ implements KeyValueIndexedInstance<T> {
     } = options
 
     const indexDirectory = join(
-      directory || './orbitdb',
+      directory || './.orbitdb',
       `./${address}/_index/`,
     )
 
