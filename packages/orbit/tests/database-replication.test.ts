@@ -34,15 +34,12 @@ describe('database - Replication', () => {
 
   const accessController = {
     canAppend: async (entry: EntryInstance) => {
-      // console.log('custom accessController.canAppend before', entry)
       const identity1 = entry.identity && await identities.getIdentity(entry.identity)
       const identity2 = entry.identity && await identities2.getIdentity(entry.identity)
 
-      // console.log('custom accessController.canAppend after', identity1, identity2)
       if (!identity1 || !identity2) {
         return false
       }
-      // console.log('custom accessController.canAppend after', identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id)
 
       return (
         identity1?.id === testIdentity1.id || identity2?.id === testIdentity2.id

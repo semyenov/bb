@@ -26,7 +26,6 @@ export class ComposedStorage<T> implements StorageInstance<T> {
   async get(hash: string): Promise<T | null> {
     let value = await this.storage1.get(hash)
     if (!value) {
-      console.log('storage1 is empty, getting from storage2', hash)
       value = await this.storage2.get(hash)
       if (value) {
         await this.storage1.put(hash, value)

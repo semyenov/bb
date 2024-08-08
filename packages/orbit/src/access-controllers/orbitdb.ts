@@ -110,8 +110,6 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
 
   async capabilities(): Promise<Record<string, Set<string>>> {
     const caps: Record<string, Set<string>> = {}
-    console.log('address', this.database.address)
-    console.log('keys', await this.database.all())
     for await (const { key, value } of this.database.iterator()) {
       caps[key!] = new Set(value)
     }
@@ -160,10 +158,7 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
       ...((await this.database.get(capability)) || []),
       key,
     ])
-    // console.log('grant caps:', { caps, capability })
     await this.database.put(capability, Array.from(caps))
-
-    // console.log('grant keys', await this.database.get('read'))
   }
 
   async revoke(capability: string, key: string): Promise<void> {

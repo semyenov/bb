@@ -98,15 +98,12 @@ export const Entry = {
       clock: entry.clock,
       v: entry.v,
     }
-    // console.log('Entry.verify: value pubkey:', identities.pubkey)
 
-    const { bytes, cid } = await Block.encode<EntryInstance<T>, 113, 18>({
+    const { bytes } = await Block.encode<EntryInstance<T>, 113, 18>({
       value,
       codec,
       hasher,
     })
-
-    // console.log('Entry.verify: cid:', cid.toString(hashStringEncoding))
 
     return identities.verify!(entry.sig, entry.key, bytes)
   },

@@ -51,7 +51,6 @@ export class IdentityProviderRegistry {
   static useIdentityProvider(
     identityProvider: IdentityProviderStatic<string, any>,
   ): void {
-    console.log('identityProvider', identityProvider)
     if (!identityProvider.type || typeof identityProvider.type !== 'string') {
       throw new Error('Given IdentityProvider doesn\'t have a field \'type\'.')
     }

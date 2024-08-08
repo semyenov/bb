@@ -122,8 +122,6 @@ export class Log<T> implements LogInstance<T> {
   }
 
   public static defaultAccessController(): AccessControllerInstance {
-    console.log('log init defaultAccessController')
-
     return {
       write: [],
       type: 'allow-all',
@@ -296,9 +294,7 @@ export class Log<T> implements LogInstance<T> {
     while (stack.length > 0) {
       stack = stack.sort(this.sortFn)
       const entry = stack.pop() as EntryInstance<T>
-      // console.log('log traverse: entry', entry)
       if (entry && !traversed[entry.hash!]) {
-        // console.log('log traverse: entry not traversed', entry)
         yield entry
         const done = await shouldStopFn(entry, useRefs)
         if (done) {
@@ -318,7 +314,7 @@ export class Log<T> implements LogInstance<T> {
 
               return await this.get(hash)
             }
-          })) // check
+          }))
         ).filter((e): e is EntryInstance<T> => {
           return e !== null && e !== undefined
         })
@@ -400,9 +396,6 @@ export class Log<T> implements LogInstance<T> {
   }
 
   async clear(): Promise<void> {
-    // if(this.indexStorage) {
-    //   console.log
-    // }
     await this.indexStorage.clear()
     await this.headsStorage.clear()
     await this.storage.clear()
@@ -466,7 +459,6 @@ export class Log<T> implements LogInstance<T> {
     if (!isValid) {
       throw new Error(`Could not validate signature for entry "${entry.hash}"`)
     }
-    // console.log(`log verifyEntry: isValid ${entry.hash}`, isValid)
   }
 
   private async traverseAndVerify(
@@ -527,17 +519,13 @@ export class Log<T> implements LogInstance<T> {
       shouldStopTraversal,
       false,
     )) {
-      // console.log('log getReferences: hash', hash)
       if (!hash) {
         continue
       }
 
       refs.push(hash)
     }
-    // console.log('log getReferences: refs', refs)
-    // не возвращается рефс
     refs = refs.slice(heads.length + 1, amount)
-    // console.log('log getReferences: refs', refs, amount)
 
     return refs
   }
