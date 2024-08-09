@@ -19,6 +19,7 @@ import {
 
 import type { User } from './schema'
 import type { KeyStoreInstance } from '@orbitdb/core'
+import type { Storage } from 'unstorage'
 
 export interface UserStoreInstance {
   keystore: KeyStoreInstance
@@ -43,25 +44,35 @@ const logger = createLogger({
   },
 })
 
-export async function UsersStore(
-  options?: FSStorageOptions,
-): Promise<UserStoreInstance> {
-  const storage = createStorage<User>({
-    driver: fsDriver({
-      base: `${options?.base}/users` || './.out/users',
-      ...options,
-    }),
-  })
+export class UsersStore implements UserStoreInstance {
+  private constructor(
+    public readonly keystore: KeyStoreInstance,
+    public readonly storage: Storage<User>,
+  ) {
+    this.storage = storage
+    this.keystore = keystore
+  }
 
-  const keystore = await KeyStore({
-    driver: fsDriver({
-      base: `${options?.base}/keys` || './.out/keys',
-      ...options,
-    }),
-  })
+  static async create(options?: FSStorageOptions): Promise<UsersStore> {
+    const storage = createStorage<User>({
+      driver: fsDriver({
+        base: `${options?.base}/users` || './.out/users',
+        ...options,
+      }),
+    })
 
-  const getUser = async (id: string) => {
-    const user = await storage.getItem(id)
+    const keystore = await KeyStore({
+      driver: fsDriver({
+        base: `${options?.base}/keys` || './.out/keys',
+        ...options,
+      }),
+    })
+
+    return new UsersStore(keystore, storage)
+  }
+
+  async getUser(id: string): Promise<User> {
+    const user = await this.storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
     }
@@ -69,22 +80,15 @@ export async function UsersStore(
       throw ErrorUserKeyNotFound
     }
 
-    // const kid = user.keys[0] || 'unknown'
-    // const key = await keystore.getKey(kid)
-    // const jwk = await secp256k1ToJWK(key)
-
     return user
   }
 
-  const createUser = async (
-    id: string,
-    payload: Omit<User, 'keys' | 'jwk'>,
-  ) => {
-    if (await storage.hasItem(id)) {
+  async createUser(id: string, payload: Omit<User, 'keys' | 'jwk'>): Promise<User> {
+    if (await this.storage.hasItem(id)) {
       throw ErrorUserExists
     }
 
-    const key = await keystore.createKey(id)
+    const key = await this.keystore.createKey(id)
     const kid = (await key.id()) || 'unknown'
     const jwk = await secp256k1ToJWK(key)
     const user = Object.assign(Object.create(null), payload, {
@@ -92,16 +96,16 @@ export async function UsersStore(
       keys: [kid],
     })
 
-    await keystore.addKey(kid, key)
-    await storage.setItem(id, user)
+    await this.keystore.addKey(kid, key)
+    await this.storage.setItem(id, user)
 
     logger.info('User created', { user })
 
     return user
   }
 
-  const updateUser = async (id: string, payload: User) => {
-    const existingUser = await storage.getItem(id)
+  async updateUser(id: string, payload: User): Promise<User> {
+    const existingUser = await this.storage.getItem(id)
     if (!existingUser) {
       throw ErrorUserNotFound
     }
@@ -110,20 +114,20 @@ export async function UsersStore(
     }
 
     const kid = existingUser.keys[0] || 'unknown'
-    const key = await keystore.getKey(kid)
+    const key = await this.keystore.getKey(kid)
     const jwk = await secp256k1ToJWK(key)
     const user = Object.assign(Object.create(null), existingUser, payload, {
       jwk,
       keys: [kid],
     })
 
-    await storage.setItem(id, user)
+    await this.storage.setItem(id, user)
 
     return user
   }
 
-  const removeUser = async (id: string) => {
-    const user = await storage.getItem(id)
+  async removeUser(id: string): Promise<void> {
+    const user = await this.storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
     }
@@ -132,18 +136,18 @@ export async function UsersStore(
     }
 
     for (const kid of user.keys) {
-      await keystore.removeKey(kid)
+      await this.keystore.removeKey(kid)
       logger.debug('Key deleted', { userId: user.id, kid })
     }
 
-    await storage.removeItem(id)
+    await this.storage.removeItem(id)
     logger.debug('User deleted', { user })
   }
 
-  const getJWKSet = async () => {
+  async getJWKSet(): Promise<(protectedHeader?: JWSHeaderParameters, token?: FlattenedJWSInput) => Promise<KeyLike>> {
     const keys: JWK[] = []
-    for (const id of await storage.getKeys()) {
-      const user = await storage.getItem(id)
+    for (const id of await this.storage.getKeys()) {
+      const user = await this.storage.getItem(id)
       if (!user || !user.jwk) {
         continue
       }
@@ -152,16 +156,5 @@ export async function UsersStore(
     }
 
     return createLocalJWKSet({ keys })
-  }
-
-  return {
-    keystore,
-    storage,
-
-    getUser,
-    createUser,
-    updateUser,
-    removeUser,
-    getJWKSet,
   }
 }

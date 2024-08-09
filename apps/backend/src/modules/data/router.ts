@@ -9,11 +9,15 @@ import { GetItemInputSchema, PostItemInputSchema } from './schema'
 const logger = consola.withTag('server')
 
 export const dataRouter = rootRouter({
-  getAll: publicProcedure.query(({ ctx: { redis } }) => redis.data.getAll()),
+  getAll: publicProcedure.query(({ ctx: { redis } }) => {
+    return redis.data.getAll()
+  }),
 
   getItem: publicProcedure
     .input(wrap(GetItemInputSchema))
-    .query(({ input: { id }, ctx: { redis } }) => redis.data.findOne(id)),
+    .query(({ input: { id }, ctx: { redis } }) => {
+      return redis.data.findOne(id)
+    }),
 
   postItem: publicProcedure
     .input(wrap(PostItemInputSchema))

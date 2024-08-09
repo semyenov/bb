@@ -14,7 +14,9 @@ export async function createRedisStore(
   await connection.connect()
 
   function createCRUD<T = unknown>(prefix = '') {
-    const formatPattern = (...args: string[]) => [prefix, ...args].join(':')
+    const formatPattern = (...args: string[]) => {
+      return [prefix, ...args].join(':')
+    }
 
     const keyExists = async (id: string) => {
       const pattern = formatPattern(id)
@@ -25,6 +27,7 @@ export async function createRedisStore(
 
     const getKeys = async () => {
       const pattern = formatPattern('*')
+
       return await connection.keys(pattern)
     }
 
@@ -57,7 +60,9 @@ export async function createRedisStore(
       return item as T
     }
     const findMany = async (...ids: string[]) => {
-      const pattern = ids.map((id) => formatPattern(id))
+      const pattern = ids.map((id) => {
+        return formatPattern(id)
+      })
       const items = await connection.json.mGet(pattern, '$')
 
       return items as T[]
@@ -70,7 +75,9 @@ export async function createRedisStore(
       return true
     }
     const deleteMany = async (...ids: string[]) => {
-      const pattern = ids.map((id) => formatPattern(id))
+      const pattern = ids.map((id) => {
+        return formatPattern(id)
+      })
       await connection.del(pattern)
 
       return true
@@ -95,6 +102,8 @@ export async function createRedisStore(
   return {
     data: createCRUD('data'),
     schemas: createCRUD('schemas'),
-    disconnect: () => connection.disconnect(),
+    disconnect: () => {
+      return connection.disconnect()
+    },
   }
 }
