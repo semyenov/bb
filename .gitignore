@@ -9,6 +9,7 @@ keys/*.jwk
 .config
 .env
 
+.keys
 # Node
 node_modules
 dist
