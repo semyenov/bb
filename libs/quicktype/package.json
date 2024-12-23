@@ -35,7 +35,7 @@
     "quicktype-core": "^23.0.170"
   },
   "devDependencies": {
-    "pkgroll": "^2.1.1",
-    "typescript": "^5.5.3"
+    "pkgroll": "^2.5.1",
+    "typescript": "^5.7.2"
   }
 }

@@ -1,3 +1,4 @@
+import type { OrbitDBHeliaInstance } from '../vendor.js'
 import {
   KeyStore,
   type KeyStoreInstance,
@@ -10,12 +11,11 @@ import {
   LRUStorage,
   type StorageInstance,
 } from '../storage'
+
 import { join } from '../utils'
-
 import { Identity, type IdentityInstance } from './identity.js'
-import { type IdentityProviderInstance, IdentityProviders } from './providers'
 
-import type { HeliaInstance } from '../vendor.js'
+import { type IdentityProviderInstance, IdentityProviders } from './providers'
 
 interface IdentitiesCreateIdentityOptions {
   id?: string
@@ -24,7 +24,7 @@ interface IdentitiesCreateIdentityOptions {
 
 export interface IdentitiesOptions {
   path?: string
-  ipfs?: HeliaInstance
+  ipfs?: OrbitDBHeliaInstance
   keystore?: KeyStoreInstance
   storage?: StorageInstance<Uint8Array>
 }
@@ -75,12 +75,12 @@ export class Identities implements IdentitiesInstance {
     const storage: StorageInstance<Uint8Array> = options.storage
       ? options.storage
       : ComposedStorage.create({
-        storage1: await LRUStorage.create<Uint8Array>({ size: 1000 }),
-        storage2: await IPFSBlockStorage.create({
-          ipfs: options.ipfs!,
-          pin: true,
-        }),
-      })
+          storage1: await LRUStorage.create<Uint8Array>({ size: 1000 }),
+          storage2: await IPFSBlockStorage.create({
+            ipfs: options.ipfs!,
+            pin: true,
+          }),
+        })
 
     const verifiedIdentitiesCache = await LRUStorage.create<
       Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>

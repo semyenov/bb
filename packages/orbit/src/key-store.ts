@@ -1,3 +1,6 @@
+import type { StorageInstance } from './storage'
+import type { PrivateKey } from './vendor'
+
 import * as crypto from '@libp2p/crypto'
 import {
   compare as uint8ArrayCompare,
@@ -5,11 +8,8 @@ import {
   toString as uint8ArrayToString,
 } from 'uint8arrays'
 
-import { KEYSTORE_PATH } from './constants.js'
-import { ComposedStorage, LRUStorage, LevelStorage } from './storage/index.js'
-
-import type { StorageInstance } from './storage'
-import type { PrivateKey } from './vendor'
+import { KEYSTORE_PATH } from './constants'
+import { ComposedStorage, LevelStorage, LRUStorage } from './storage'
 
 export interface KeyStoreOptions {
   storage?: StorageInstance<Uint8Array>
@@ -17,12 +17,12 @@ export interface KeyStoreOptions {
 }
 
 export interface KeyStoreInstance {
-  createKey: (id: string) => Promise<PrivateKey<'secp256k1'>>
+  createKey: (id: string) => Promise<PrivateKey>
   hasKey: (id: string) => Promise<boolean>
-  addKey: (id: string, key: PrivateKey<'secp256k1'>) => Promise<void>
+  addKey: (id: string, key: PrivateKey) => Promise<void>
   removeKey: (id: string) => Promise<void>
-  getKey: (id: string) => Promise<PrivateKey<'secp256k1'> | null>
-  getPublic: (key: PrivateKey<'secp256k1'>) => string
+  getKey: (id: string) => Promise<PrivateKey | null>
+  getPublic: (key: PrivateKey) => string
   clear: () => Promise<void>
   close: () => Promise<void>
 }
@@ -33,9 +33,9 @@ const VERIFIED_CACHE_STORAGE = LRUStorage.create<{
 }>({ size: 1000 })
 
 const unmarshal
-  = crypto.keys.supportedKeys.secp256k1.unmarshalSecp256k1PrivateKey
+  = crypto.keys.privateKeyFromRaw
 const unmarshalPubKey
-  = crypto.keys.supportedKeys.secp256k1.unmarshalSecp256k1PublicKey
+  = crypto.keys.publicKeyFromRaw
 
 export class KeyStore implements KeyStoreInstance {
   private storage: StorageInstance<Uint8Array>
@@ -81,22 +81,22 @@ export class KeyStore implements KeyStoreInstance {
     return hasKey
   }
 
-  async addKey(id: string, key: PrivateKey<'secp256k1'>): Promise<void> {
-    await this.storage.put(`private_${id}`, key.marshal())
+  async addKey(id: string, key: PrivateKey): Promise<void> {
+    await this.storage.put(`private_${id}`, key.raw)
   }
 
-  async createKey(id: string): Promise<PrivateKey<'secp256k1'>> {
+  async createKey(id: string): Promise<PrivateKey> {
     if (!id) {
       throw new Error('id needed to create a key')
     }
 
     const keys = await crypto.keys.generateKeyPair('secp256k1')
-    await this.storage.put(`private_${id}`, keys.marshal())
+    await this.storage.put(`private_${id}`, keys.raw)
 
     return keys
   }
 
-  async getKey(id: string): Promise<PrivateKey<'secp256k1'> | null> {
+  async getKey(id: string): Promise<PrivateKey | null> {
     if (!id) {
       throw new Error('id needed to get a key')
     }
@@ -109,12 +109,12 @@ export class KeyStore implements KeyStoreInstance {
     return unmarshal(storedKey)
   }
 
-  getPublic(keys: PrivateKey<'secp256k1'>): string {
+  getPublic(keys: PrivateKey): string {
     if (!keys) {
       throw new Error('keys needed to get a public key')
     }
 
-    return uint8ArrayToString(keys.public.marshal(), 'base16')
+    return uint8ArrayToString(keys.publicKey.raw, 'base16')
   }
 
   async removeKey(id: string): Promise<void> {
@@ -167,7 +167,7 @@ async function verifySignature(
 }
 
 export async function signMessage(
-  key: PrivateKey<'secp256k1'>,
+  key: PrivateKey,
   data: string | Uint8Array,
 ): Promise<string> {
   if (!key) {

@@ -39,12 +39,12 @@
   "dependencies": {
     "@regioni/lib-jose": "workspace:^",
     "@regioni/lib-logger": "workspace:^",
-    "@types/ws": "^8.5.11",
-    "consola": "^3.2.3",
+    "@types/ws": "^8.5.13",
+    "consola": "^3.3.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "pkgroll": "^2.1.1",
-    "typescript": "^5.5.3"
+    "pkgroll": "^2.5.1",
+    "typescript": "^5.7.2"
   }
 }

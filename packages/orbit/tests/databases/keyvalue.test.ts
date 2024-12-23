@@ -1,9 +1,10 @@
-import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
+import type { AccessControllerInstance, IdentitiesInstance, IdentityInstance, KeyStoreInstance, KeyValueInstance, OrbitDBHeliaInstance } from '../../src'
 
+import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
+
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
-
 import {
   Identities,
   KeyStore,
@@ -15,12 +16,12 @@ import createHelia from '../utils/create-helia.js'
 const keysPath = './testkeys'
 
 describe('keyValue Database', () => {
-  let ipfs: IPFS
+  let ipfs: OrbitDBHeliaInstance
   let keystore: KeyStoreInstance
   let accessController: AccessControllerInstance
   let identities: IdentitiesInstance
   let testIdentity1: IdentityInstance
-  let db: KeyValueInstance
+  let db: KeyValueInstance<any>
 
   const databaseId = 'keyvalue-AAA'
 
@@ -70,7 +71,7 @@ describe('keyValue Database', () => {
     })
 
     it('returns 0 items when it\'s a fresh database', async () => {
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const item of db.iterator()) {
         all.unshift(item)
       }
@@ -220,7 +221,7 @@ describe('keyValue Database', () => {
         await db.put(key, value)
       }
 
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const pair of db.iterator()) {
         all.unshift(pair)
       }
@@ -252,7 +253,7 @@ describe('keyValue Database', () => {
     })
 
     it('returns no key/value pairs when the database is empty', async () => {
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const { key, value, hash } of db.iterator()) {
         all.unshift({ key, value, hash })
       }
@@ -274,7 +275,7 @@ describe('keyValue Database', () => {
       await db.put('key6', 6)
       await db.del('key6')
 
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const { key, value, hash } of db.iterator()) {
         all.unshift({ key, value, hash })
       }
@@ -283,7 +284,7 @@ describe('keyValue Database', () => {
 
     it('returns only the amount of key/value pairs given as a parameter', async () => {
       const amount = 3
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const { key, value, hash } of db.iterator({ amount })) {
         console.log({ key, value, hash })
         all.unshift({ key, value, hash })
@@ -293,7 +294,7 @@ describe('keyValue Database', () => {
 
     it('returns only two key/value pairs if amount given as a parameter is 2', async () => {
       const amount = 2
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const { key, value, hash } of db.iterator({ amount })) {
         all.unshift({ key, value, hash })
       }
@@ -302,7 +303,7 @@ describe('keyValue Database', () => {
 
     it('returns only one key/value pairs if amount given as a parameter is 1', async () => {
       const amount = 1
-      const all: KeyValueDoc[] = []
+      const all: any[] = []
       for await (const { key, value, hash } of db.iterator({ amount })) {
         all.unshift({ key, value, hash })
       }

@@ -1,8 +1,8 @@
+import type { StorageInstance } from './types'
+
 import { Level, type IteratorOptions as LevelIteratorOptions } from 'level'
 
 import { STORAGE_LEVEL_PATH, STORAGE_LEVEL_VALUE_ENCODING } from '../constants'
-
-import type { StorageInstance } from './types'
 
 export interface LevelStorageOptions {
   path?: string

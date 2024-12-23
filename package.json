@@ -2,7 +2,7 @@
   "name": "@regioni/root",
   "private": true,
   "npmClient": "yarn",
-  "packageManager": "yarn@4.3.1",
+  "packageManager": "yarn@4.5.3",
   "exports": {
     "import": {
       "types": "./dist/index.d.mts",
@@ -23,25 +23,26 @@
   },
   "dependencies": {
     "@regioni/foo": "workspace:*",
-    "vitest": "^2.0.4"
+    "@regioni/orbit": "workspace:*",
+    "vitest": "^2.1.8"
   },
   "devDependencies": {
-    "@lerna-lite/cli": "^3.7.1",
-    "@lerna-lite/exec": "^3.7.1",
-    "@lerna-lite/list": "^3.7.1",
-    "@lerna-lite/publish": "^3.7.1",
-    "@lerna-lite/run": "^3.7.1",
-    "@lerna-lite/version": "^3.7.1",
-    "@lerna-lite/watch": "^3.7.1",
+    "@lerna-lite/cli": "^3.10.1",
+    "@lerna-lite/exec": "^3.10.1",
+    "@lerna-lite/list": "^3.10.1",
+    "@lerna-lite/publish": "^3.10.1",
+    "@lerna-lite/run": "^3.10.1",
+    "@lerna-lite/version": "^3.10.1",
+    "@lerna-lite/watch": "^3.10.1",
     "@regioni/eslint-config": "workspace:*",
-    "@types/node": "^20.14.11",
+    "@types/node": "^22.10.2",
     "@types/semver": "^7.5.8",
-    "@vitest/coverage-v8": "^2.0.4",
-    "eslint": "9.7.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "9.17.0",
     "eslint-config-hardcore": "^47.0.1",
     "semver": "^7.6.3",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.3"
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "workspaces": [
     "packages/*",

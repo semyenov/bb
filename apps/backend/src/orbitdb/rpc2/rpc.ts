@@ -41,14 +41,25 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
   readonly [Symbol.toStringTag] = '@libp2p/pulse'
 
   async start(): Promise<void> {
-    await this.components.registrar.handle(this.protocol, (data: IncomingStreamData) => {
-      void this.handleConnection(data)
-        .catch((error) => {
-          this.log.error('error handling perf protocol message', error)
-        })
-    }, {
-      runOnTransientConnection: this.runOnTransientConnection,
-    })
+    await this.components.registrar
+      .handle(
+        this.protocol,
+        (data: IncomingStreamData) => {
+          void this
+            .handleConnection(data)
+            .catch(
+              (error) => {
+                this.log.error('error handling perf protocol message', error)
+
+                return Promise.resolve()
+              }
+            )
+        }, 
+        {
+          runOnTransientConnection: this.runOnTransientConnection,
+        }
+      )
+
     this.started = true
   }
 
@@ -62,7 +73,8 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
   }
 
   private async getOutboundStream(peer: PeerId) {
-    const connection = this.components.connectionManager.getConnections()
+    const connection = this.components.connectionManager
+      .getConnections()
       .find((c) => {
         return c.remotePeer.equals(peer)
       })
@@ -75,35 +87,47 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
     if (outboundStream) {
       return outboundStream
     }
+
     const signal = AbortSignal.timeout(this.timeout)
     const stream = await connection.newStream(this.protocol, {
       signal,
     })
 
-    return this.handleConnection({ connection, stream })
+    return this.handleConnection({ 
+      connection,
+      stream 
+    })
   }
 
-  private async handleConnection(data: IncomingStreamData) {
-    const { stream, connection } = data
-    let outboundStream = this.outboundStreams.get(connection.remotePeer.toString())
+  private async handleConnection({ stream, connection }: IncomingStreamData) {
+    let outboundStream = this.outboundStreams
+      .get(connection.remotePeer.toString())
     if (outboundStream) {
       return outboundStream
     }
+
     outboundStream = pushable()
 
-    this.outboundStreams.set(connection.remotePeer.toString(), outboundStream)
+    this.outboundStreams.set(
+      connection.remotePeer.toString(), 
+      outboundStream
+    )
 
-    pipe(stream, (source) => {
-      return lp.decode(source)
-    }, async (source) => {
-      for await (const message of source) {
-        super.dispatchEvent(new CustomEvent<Message>('msg', { detail: decode(message.subarray()) }))
+    pipe(
+      stream, 
+      lp.decode, 
+      async (source) => {
+        for await (const message of source) {
+          super.dispatchEvent(new CustomEvent<Message>('msg', { detail: decode(message.subarray()) }))
+        }
       }
-    })
+    )
 
-    pipe(outboundStream, (source) => {
-      return lp.encode(source)
-    }, stream.sink)
+    pipe(
+      outboundStream, 
+      lp.encode, 
+      stream.sink
+    )
       .finally(() => {
         this.log('closing stream')
         this.outboundStreams.delete(connection.remotePeer.toString())

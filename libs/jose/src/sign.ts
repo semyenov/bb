@@ -1,44 +1,42 @@
-import { Buffer } from 'node:buffer'
+import type { PrivateKey } from '@regioni/orbit'
 
-import { createLogger } from '@regioni/lib-logger'
-import Elliptic from 'elliptic'
-import {
-  type JWK,
-  type JWTHeaderParameters,
-  type JWTPayload,
-  type JWTVerifyGetKey,
-  SignJWT,
-  type VerifyOptions,
-  importJWK,
-  jwtVerify,
+import type { BN } from 'bn.js'
+import type {
+  JWK_EC_Private,
+  JWK_EC_Public,
+  JWTHeaderParameters,
+  JWTPayload,
+  JWTVerifyGetKey,
+  VerifyOptions,
 } from 'jose'
 
-import type { PrivateKeys as PrivateKey } from '@orbitdb/core'
-import type { KeyPair } from '@regioni/lib-jose'
-import type { BN } from 'bn.js'
+import { Buffer } from 'node:buffer'
+import { ec as EC } from 'elliptic'
+import {
+  importJWK,
+  jwtVerify,
+  SignJWT,
+} from 'jose'
 
-const logger = createLogger({
-  defaultMeta: {
-    service: 'jose',
-    label: 'sign',
-  },
-})
-
-const ec = new Elliptic.ec('secp256k1')
-const headerParams: JWTHeaderParameters = {
+const ec = new EC('secp256k1')
+const headerParams = {
   kty: 'EC',
   alg: 'ES256K',
   crv: 'secp256k1',
   b64: true,
-}
+} satisfies JWTHeaderParameters
 
-export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<KeyPair> {
+export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<{
+  privateKey: JWK_EC_Private
+  publicKey: JWK_EC_Public
+}> {
   if (!keyPair) {
     throw new Error('No key pair provided')
   }
 
-  const kid = (await keyPair.id()) || 'unknown'
-  const keys = ec.keyFromPrivate(keyPair.marshal())
+  const kid = (keyPair.publicKey.toCID()
+    .toString()) || 'unknown'
+  const keys = ec.keyFromPrivate(keyPair.raw)
 
   const [x, y, d] = await Promise.all([
     encodeBase64Url(keys.getPublic()
@@ -54,7 +52,7 @@ export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<KeyPair> {
   }
 }
 
-export async function sign(jwk: JWK, payload: JWTPayload) {
+export async function sign(jwk: JWK_EC_Private, payload: JWTPayload) {
   const signKey = await importJWK(jwk)
   if (!signKey) {
     throw new Error('Invalid JWK')

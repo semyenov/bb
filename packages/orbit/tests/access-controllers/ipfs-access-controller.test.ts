@@ -6,8 +6,8 @@ import { rimraf } from 'rimraf'
 import { afterAll, beforeAll, describe, it } from 'vitest'
 
 import {
-  IPFSAccessController,
   Identities,
+  IPFSAccessController,
   KeyStore,
 } from '../../src'
 import connectPeers from '../utils/connect-nodes'

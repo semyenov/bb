@@ -1,3 +1,9 @@
+import type { Sink, Source } from 'it-stream-types'
+import type { Uint8ArrayList } from 'uint8arraylist'
+import type { EntryInstance } from './oplog/entry'
+import type { LogInstance } from './oplog/log'
+import type { OrbitDBHeliaInstance, PeerId } from './vendor'
+
 import {
   type EventHandler,
   type Message,
@@ -7,18 +13,12 @@ import {
   TypedEventEmitter,
 } from '@libp2p/interface'
 import { PeerSet } from '@libp2p/peer-collections'
+
 import { pipe } from 'it-pipe'
 import PQueue from 'p-queue'
 import { TimeoutController } from 'timeout-abort-controller'
-
 import { SYNC_PROTOCOL, SYNC_TIMEOUT } from './constants'
 import { join } from './utils'
-
-import type { EntryInstance } from './oplog/entry.js'
-import type { LogInstance } from './oplog/log'
-import type { HeliaInstance, PeerId } from './vendor'
-import type { Sink, Source } from 'it-stream-types'
-import type { Uint8ArrayList } from 'uint8arraylist'
 
 interface SyncEvents<T> {
   join: CustomEvent<{ peerId: PeerId, heads: EntryInstance<T>[] }>
@@ -27,7 +27,7 @@ interface SyncEvents<T> {
 }
 
 interface SyncOptions<T> {
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   log: LogInstance<T>
   events?: TypedEventEmitter<SyncEvents<T>>
   start?: boolean
@@ -47,7 +47,7 @@ interface SyncInstance<T, E extends SyncEvents<T>> {
 
 class Sync<T, E extends SyncEvents<T> = SyncEvents<T>>
 implements SyncInstance<T, E> {
-  private ipfs: HeliaInstance
+  private ipfs: OrbitDBHeliaInstance
   private log: LogInstance<T>
   private onSynced?: (bytes: Uint8Array) => Promise<void>
   private timeout: number
@@ -256,4 +256,4 @@ implements SyncInstance<T, E> {
   }
 }
 
-export { Sync, SyncEvents, SyncOptions, SyncInstance }
+export { Sync, SyncEvents, SyncInstance, SyncOptions }

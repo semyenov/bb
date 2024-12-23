@@ -1,27 +1,23 @@
+import type { OrbitDBInstance, OrbitDBOptions } from '@regioni/orbit'
+
 import { bitswap } from '@helia/block-brokers'
-import { createOrbitDB } from '@orbitdb/core'
-import { createLogger } from '@regioni/lib-logger'
+import { OrbitDB } from '@regioni/orbit'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
 
 import { DefaultLibp2pBrowserOptions, DefaultLibp2pOptions } from './config'
 
-import type { CreateOrbitDBOptions, OrbitDBInstance } from '@orbitdb/core'
-
-// const logger = createLogger()
-
-// let spied: any
-
 function isBrowser() {
   return typeof window !== 'undefined'
 }
+
 export async function startOrbitDB({
   id,
   identity,
   identities,
   directory = '.',
-}: Omit<CreateOrbitDBOptions, 'ipfs'>) {
+}: Omit<OrbitDBOptions, 'ipfs'>) {
   const options = isBrowser()
     ? DefaultLibp2pBrowserOptions
     : DefaultLibp2pOptions
@@ -32,7 +28,7 @@ export async function startOrbitDB({
     blockBrokers: [bitswap()],
   })
 
-  return createOrbitDB({
+  return OrbitDB.create({
     id,
     identity,
     identities,
@@ -44,6 +40,4 @@ export async function startOrbitDB({
 export async function stopOrbitDB(orbitdb: OrbitDBInstance): Promise<void> {
   await orbitdb.stop()
   await orbitdb.ipfs.stop()
-
-  // logger.debug('orbitdb stopped', spied.calls, spied.returns)
 }

@@ -1,9 +1,6 @@
-// @ts-ignore: lru is not typed
-import LRU from 'lru'
-
-import { STORAGE_LRU_SIZE } from '../constants'
-
 import type { StorageInstance } from './types'
+import LRU from 'lru'
+import { STORAGE_LRU_SIZE } from '../constants'
 
 export interface LRUStorageOptions {
   size?: number

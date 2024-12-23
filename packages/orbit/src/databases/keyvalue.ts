@@ -1,10 +1,4 @@
-import { DATABASE_KEYVALUE_TYPE } from '../constants'
-import {
-  Database,
-  type DatabaseInstance,
-  type DatabaseOptions,
-} from '../database'
-
+import type { PeerSet } from '@libp2p/peer-collections'
 import type { DatabaseOperation, DatabaseType } from '.'
 import type { AccessControllerInstance } from '../access-controllers'
 import type { IdentityInstance } from '../identities'
@@ -12,12 +6,18 @@ import type { EntryInstance } from '../oplog'
 import type { LogInstance } from '../oplog/log'
 import type { StorageInstance } from '../storage'
 import type { SyncEvents, SyncInstance } from '../sync'
-import type { HeliaInstance } from '../vendor'
-import type { PeerSet } from '@libp2p/peer-collections'
+import type { OrbitDBHeliaInstance } from '../vendor'
+
+import { DATABASE_KEYVALUE_TYPE } from '../constants'
+import {
+  Database,
+  type DatabaseInstance,
+  type DatabaseOptions,
+} from '../database'
 
 export interface KeyValueDatabaseOptions<T = unknown>
   extends DatabaseOptions<T> {
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   identity?: IdentityInstance
   address?: string
   name?: string

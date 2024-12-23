@@ -1,17 +1,17 @@
+import type { DatabaseTypeMap } from './databases/index.js'
+import type { OrbitDBHeliaInstance } from './vendor.js'
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
-import * as Block from 'multiformats/block'
-import { sha256 } from 'multiformats/hashes/sha2'
 
+import * as Block from 'multiformats/block'
+
+import { sha256 } from 'multiformats/hashes/sha2'
 import {
   ComposedStorage,
   IPFSBlockStorage,
   LRUStorage,
   type StorageInstance,
 } from './storage/index.js'
-
-import type { DatabaseTypeMap } from './databases/index.js'
-import type { HeliaInstance } from './vendor.js'
 
 export interface Manifest {
   name: string
@@ -21,13 +21,13 @@ export interface Manifest {
 }
 
 export interface ManifestStoreOptions {
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   storage?: StorageInstance<Uint8Array>
 }
 
 export interface ManifestStoreInstance {
   get: (address: string) => Promise<Manifest | null>
-  create: (manifest: Manifest) => Promise<{ hash: string; manifest: Manifest }>
+  create: (manifest: Manifest) => Promise<{ hash: string, manifest: Manifest }>
   close: () => Promise<void>
 }
 
@@ -43,9 +43,9 @@ export class ManifestStore implements ManifestStoreInstance {
   }
 
   static create({ ipfs, storage }: ManifestStoreOptions): ManifestStore {
-    const storage_ =
-      storage ||
-      ComposedStorage.create<Uint8Array>({
+    const storage_
+      = storage
+      || ComposedStorage.create<Uint8Array>({
         storage1: LRUStorage.create({ size: 1000 }),
         storage2: IPFSBlockStorage.create({ ipfs, pin: true }),
       })
@@ -64,6 +64,7 @@ export class ManifestStore implements ManifestStoreInstance {
       codec,
       hasher,
     })
+
     return value
   }
 
@@ -72,7 +73,7 @@ export class ManifestStore implements ManifestStoreInstance {
     type,
     accessController,
     meta,
-  }: Manifest): Promise<{ hash: string; manifest: Manifest }> {
+  }: Manifest): Promise<{ hash: string, manifest: Manifest }> {
     if (!name) {
       throw new Error('name is required')
     }

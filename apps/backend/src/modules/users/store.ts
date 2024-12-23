@@ -1,6 +1,6 @@
-import { secp256k1ToJWK } from '@regioni/lib-jose'
-import { createLogger } from '@regioni/lib-logger'
-import { KeyStore } from '@regioni/lib-orbit'
+import { secp256k1ToJWK } from '@libs/jose'
+import { createLogger } from '@libs/logger'
+import { KeyStore } from '@libs/orbit'
 import {
   type FlattenedJWSInput,
   type JWK,
@@ -87,10 +87,15 @@ export async function UsersStore(
     const key = await keystore.createKey(id)
     const kid = (await key.id()) || 'unknown'
     const jwk = await secp256k1ToJWK(key)
-    const user = Object.assign(Object.create(null), payload, {
-      jwk,
-      keys: [kid],
-    })
+    
+    const user = Object.assign(
+      Object.create(null), 
+      payload, 
+      {
+        jwk,
+        keys: [kid],
+      }
+    )
 
     await keystore.addKey(kid, key)
     await storage.setItem(id, user)

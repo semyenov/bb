@@ -1,64 +1,54 @@
 import { bitswap } from '@helia/block-brokers'
 import {
+  createOrbitDB,
   Identities,
   KeyStore,
-  OrbitDBAccessController,
   PublicKeyIdentityProvider,
-  createOrbitDB,
-} from '@orbitdb/core'
-import { createLogger } from '@regioni/lib-logger'
+} from '@regioni/orbit'
+import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
-
 import { DefaultLibp2pOptions } from './config'
 
 const id = 'userA'
 const keysPath = './.out/keys'
+const levelPath = './.out/level'
 const options = DefaultLibp2pOptions
 
-const logger = createLogger({
-  defaultMeta: {
-    service: 'orbitdb',
-    label: 'keystore',
-  },
-})
+async function main() {
+  const ipfs = await createHelia({
+    libp2p: await createLibp2p({ ...options }),
+    blockstore: new LevelBlockstore(levelPath),
+    blockBrokers: [bitswap()],
+  })
 
-const ipfs = await createHelia({
-  libp2p: await createLibp2p({ ...options }),
-  // blockstore: new LevelBlockstore(levelPath),
-  blockBrokers: [bitswap()],
-})
+  await ipfs.start()
 
-await ipfs.start()
+  const keystore = await KeyStore.create({ path: keysPath })
+  const identities = await Identities.create({ keystore, ipfs })
 
-const keystore = await KeyStore({ path: keysPath })
-const identities = await Identities({ keystore, ipfs })
+  const provider = new PublicKeyIdentityProvider({ keystore })
 
-const provider = PublicKeyIdentityProvider({ keystore })
+  const identity = await identities.createIdentity({ id, provider })
 
-const identity = await identities.createIdentity({ id, provider })
+  console.log('privateKey', await keystore.getKey(identity.id))
 
-logger.info('privateKey', await keystore.getKey(identity.id))
+  const orbit = await createOrbitDB({
+    id: 'orbitdb-AAA',
+    ipfs,
+    identities,
+    identity,
+    directory: './.out/orbitdb',
+  })
 
-const orbit = await createOrbitDB({
-  id: 'orbitdb-AAA',
-  ipfs,
-  identities,
-  identity,
-  directory: './.out/orbitdb',
-})
+  const db = await orbit.open('events', 'test')
+  for (let i = 0; i < 10; i++) {
+    await db.add({ message: `Hello, world! ${i}` })
 
-const db = await orbit.open('test', {
-  type: 'events',
-  AccessController: OrbitDBAccessController({
-    write: [identity.id],
-  }),
-})
+    console.log('db', db.address)
+  }
 
-for (let i = 0; i < 10; i++) {
-  await db.add({ message: `Hello, world! ${i}` })
-
-  logger.info('db', db.address)
+  await ipfs.stop()
 }
 
-await ipfs.stop()
+main()

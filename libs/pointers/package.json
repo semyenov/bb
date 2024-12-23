@@ -31,11 +31,11 @@
     "typecheck": "yarn tsc --noEmit"
   },
   "dependencies": {
-    "remeda": "^2.5.0"
+    "remeda": "^2.19.0"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
-    "pkgroll": "^2.1.1",
-    "typescript": "^5.5.3"
+    "@types/node": "^22.10.2",
+    "pkgroll": "^2.5.1",
+    "typescript": "^5.7.2"
   }
 }

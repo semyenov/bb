@@ -1,25 +1,21 @@
+import type { Identity } from '../../../src/identities/identity'
+import type { OrbitDBHeliaInstance } from '../../../src/vendor'
 import { deepStrictEqual, strictEqual } from 'node:assert'
-
 import { copy } from 'fs-extra'
+
 import { rimraf } from 'rimraf'
 import { toString as uint8ArrayToString } from 'uint8arrays'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
-
 import {
   Documents,
   Identities,
   KeyStore,
 } from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
+
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
 import waitFor from '../../utils/wait-for.js'
-
-import type {
-  Database,
-} from '../../../src'
-import type { Identity } from '../../../src/identities/identity'
-import type { HeliaInstance } from '../../../src/vendor'
 
 // import type {
 //   DocumentsDoc,
@@ -33,7 +29,7 @@ import type { HeliaInstance } from '../../../src/vendor'
 const keysPath = './testkeys'
 
 describe('documents Database Replication', () => {
-  let ipfs1: HeliaInstance, ipfs2: HeliaInstance
+  let ipfs1: OrbitDBHeliaInstance, ipfs2: OrbitDBHeliaInstance
   let keystore: KeyStore
   let identities: Identities
   let identities2: Identities
@@ -43,7 +39,7 @@ describe('documents Database Replication', () => {
   const databaseId = 'documents-AAA'
 
   const accessController = {
-    canAppend: async (entry) => {
+    canAppend: async (entry: any) => {
       const identity1 = await identities.getIdentity(entry.identity)
       const identity2 = await identities.getIdentity(entry.identity)
 

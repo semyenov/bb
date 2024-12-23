@@ -1,9 +1,9 @@
-import antfu from '@antfu/eslint-config'
-
-import typescriptRules from './configs/typescript'
-import unicornRules from './configs/unicorn'
-
 import type { Linter } from 'eslint'
+
+import antfu from '@antfu/eslint-config'
+import typescriptRules from './configs/typescript'
+
+import unicornRules from './configs/unicorn'
 
 async function config(): Promise<Linter.FlatConfig[]> {
   return await antfu({
@@ -29,44 +29,6 @@ async function config(): Promise<Linter.FlatConfig[]> {
       'style/wrap-regex': 'error',
       'style/type-named-tuple-spacing': 'error',
 
-      'import/order': [
-        'error',
-        {
-          'newlines-between': 'always',
-          'distinctGroup': true,
-
-          'groups': [
-            'builtin',
-            'external',
-            'object',
-            'parent',
-            'internal',
-            'sibling',
-            'index',
-            'type',
-          ],
-
-          'pathGroups': [
-            {
-              pattern: '@/**',
-              group: 'internal',
-              position: 'after',
-            },
-            {
-              pattern: '~/**',
-              group: 'internal',
-              position: 'after',
-            },
-          ],
-
-          'alphabetize': {
-            order: 'asc',
-            orderImportKind: 'asc',
-            caseInsensitive: false,
-          },
-        },
-      ],
-
       // General
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': ['warn', { args: 'none' }],
@@ -85,6 +47,45 @@ async function config(): Promise<Linter.FlatConfig[]> {
       'brace-style': ['error', 'stroustrup'],
       'arrow-body-style': ['error', 'always'],
       'eqeqeq': ['error', 'smart'],
+
+      // // Import rules
+      // 'import/order': [
+      //   'error',
+      //   {
+      //     'newlines-between': 'always',
+      //     'distinctGroup': true,
+
+      //     'groups': [
+      //       'builtin',
+      //       'external',
+      //       'object',
+      //       'parent',
+      //       'internal',
+      //       'sibling',
+      //       'index',
+      //       'type',
+      //     ],
+
+      //     'pathGroups': [
+      //       {
+      //         pattern: '@/**',
+      //         group: 'internal',
+      //         position: 'after',
+      //       },
+      //       {
+      //         pattern: '~/**',
+      //         group: 'internal',
+      //         position: 'after',
+      //       },
+      //     ],
+
+      //     'alphabetize': {
+      //       order: 'asc',
+      //       orderImportKind: 'asc',
+      //       caseInsensitive: false,
+      //     },
+      //   },
+      // ],
 
     },
   }, [

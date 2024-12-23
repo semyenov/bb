@@ -31,10 +31,10 @@
     "typecheck": "yarn tsc --noEmit"
   },
   "dependencies": {
-    "redis": "^4.6.15"
+    "redis": "^4.7.0"
   },
   "devDependencies": {
-    "pkgroll": "^2.1.1",
-    "typescript": "^5.5.3"
+    "pkgroll": "^2.5.1",
+    "typescript": "^5.7.2"
   }
 }

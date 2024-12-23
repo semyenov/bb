@@ -1,22 +1,12 @@
-import { createLogger } from '@regioni/lib-logger'
+import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, OrbitDBInstance } from '@regioni/orbit'
 
-import type {
-  AccessController,
-  AccessControllerInstance,
-  AccessControllerOptions,
-  Entry,
-} from '@orbitdb/core'
-
-enum CAP {
+export enum CAP {
   PUT = 'PUT',
   DEL = 'DEL',
   ALL = '*',
 }
 
-// Define a type for the ACL structure
 type ACL = Record<'caps', CAP[]>
-
-// Define a type for the database
 type ACLDatabase = {
   get: (key: string) => Promise<ACL | null>
   put: (key: string, value: ACL) => Promise<string>
@@ -24,124 +14,126 @@ type ACLDatabase = {
 
 const CUSTOM_ACCESS_CONTROLLER_TYPE = 'custom' as const
 
-const logger = createLogger({
-  defaultMeta: {
-    service: 'orbitdb',
-    label: 'access-controller',
-  },
-})
+export interface CustomAccessControllerInstance extends AccessControllerInstance {
+  type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
+  write: string[]
+  grant: (id: string, key: string, caps: CAP[]) => Promise<void>
+  revoke: (id: string, key: string, caps: CAP[]) => Promise<void>
+  canAppend: (entry: EntryInstance) => Promise<boolean>
+}
 
-export const CustomAccessController = (): ((
-  options: AccessControllerOptions,
-) => AccessController<'custom', AccessControllerInstance>) => {
-  return ({ orbitdb, address, identities }) => {
-    const accessController = async () => {
-      const db: ACLDatabase = await orbitdb.open<ACL, 'keyvalue'>(
-        `${address}-acl`,
-        { type: 'keyvalue' },
-      )
+export class CustomAccessController implements CustomAccessControllerInstance {
+  public type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE = CUSTOM_ACCESS_CONTROLLER_TYPE
 
-      async function canAppend({
-        identity,
-        payload,
-      }: Entry.Instance<unknown>): Promise<boolean> {
-        logger.info(`Checking if user ${identity} can append to ${payload.key}`)
+  static get type(): typeof CUSTOM_ACCESS_CONTROLLER_TYPE {
+    return CUSTOM_ACCESS_CONTROLLER_TYPE
+  }
 
-        const writerIdentity = await identities.getIdentity(identity)
-        if (!writerIdentity) {
-          return false
-        }
+  private db: ACLDatabase
+  private orbitdb: OrbitDBInstance
+  private identities: IdentitiesInstance
 
-        const { id } = writerIdentity
-        const { key, op: cap } = payload
+  public address: string
+  public write: string[] = []
 
-        const hasWriteAccess = await hasCapability(id, key, cap as CAP)
-        if (hasWriteAccess) {
-          return identities.verifyIdentity(writerIdentity)
-        }
+  private constructor(
+    orbitdb: OrbitDBInstance,
+    identities: IdentitiesInstance,
+    address: string,
+    db: ACLDatabase,
+  ) {
+    this.orbitdb = orbitdb
+    this.identities = identities
+    this.address = address
+    this.db = db
+  }
 
-        return false
-      }
+  static async create(options: {
+    orbitdb: OrbitDBInstance
+    identities: IdentitiesInstance
+    address: string
+  }): Promise<CustomAccessControllerInstance> {
+    const { orbitdb, identities, address } = options
 
-      async function grant(
-        id: string,
-        key: string,
-        caps: CAP[],
-      ): Promise<void> {
-        logger.info(
-          `Granting ${key} caps ${caps} to user ${id} for ${address} db`,
-        )
+    const db: ACLDatabase = await orbitdb.open<ACL, 'keyvalue'>(
+      'keyvalue',
+      `${address}-acl`,
+    )
 
-        const acl = await db.get(id + key)
-        const updatedCaps = caps.includes(CAP.ALL)
-          ? [CAP.ALL]
-          : acl
-            ? [...new Set([...acl.caps, ...caps])]
-            : caps
+    return new CustomAccessController(
+      orbitdb,
+      identities,
+      address,
+      db,
+    )
+  }
 
-        await db.put(id + key, {
-          caps: updatedCaps,
-        })
-      }
+  async grant(id: string, key: string, caps: CAP[]): Promise<void> {
+    const acl = await this.db.get(id + key)
+    const updatedCaps = caps.includes(CAP.ALL)
+      ? [CAP.ALL]
+      : (acl
+          ? [...new Set([...acl.caps, ...caps])]
+          : caps)
 
-      async function revoke(
-        id: string,
-        key: string,
-        caps: CAP[],
-      ): Promise<void> {
-        logger.info(
-          `Revoking ${key} caps ${caps} from user ${id} for ${address} db`,
-        )
+    await this.db.put(id + key, {
+      caps: updatedCaps,
+    })
+  }
 
-        const acl = await db.get(id + key)
-        if (!acl) {
-          return
-        }
-
-        const currentCaps = acl.caps
-        const updatedCaps = caps.includes(CAP.ALL)
-          ? []
-          : currentCaps.includes(CAP.ALL)
-            ? [CAP.PUT, CAP.DEL].filter((op) => !caps.includes(op))
-            : currentCaps.filter((op) => !caps.includes(op))
-
-        await db.put(id + key, {
-          caps: updatedCaps,
-        })
-      }
-
-      const hasCapability = async (id: string, key: string, cap: CAP) => {
-        logger.info(
-          `Checking ${key} cap ${cap} for identity ${id} for ${address} db`,
-        )
-
-        const acl = await db.get(id + key)
-        if (!acl) {
-          return false
-        }
-
-        const currentCaps = acl.caps
-        if (!currentCaps) {
-          return false
-        }
-
-        if (currentCaps.includes(CAP.ALL)) {
-          return true
-        }
-
-        return currentCaps.includes(cap)
-      }
-
-      return {
-        canAppend,
-
-        grant,
-        revoke,
-      }
+  async revoke(id: string, key: string, caps: CAP[]): Promise<void> {
+    const acl = await this.db.get(id + key)
+    if (!acl) {
+      return
     }
 
-    accessController.type = CUSTOM_ACCESS_CONTROLLER_TYPE
+    const currentCaps = acl.caps
+    const updatedCaps = caps.includes(CAP.ALL)
+      ? []
+      : (currentCaps.includes(CAP.ALL)
+          ? [CAP.PUT, CAP.DEL].filter((op) => {
+              return !caps.includes(op)
+            })
+          : currentCaps.filter((op) => {
+              return !caps.includes(op)
+            }))
 
-    return accessController
+    await this.db.put(id + key, {
+      caps: updatedCaps,
+    })
+  }
+
+  private async hasCapability(id: string, key: string, cap: CAP): Promise<boolean> {
+    const acl = await this.db.get(id + key)
+    if (!acl) {
+      return false
+    }
+
+    const currentCaps = acl.caps
+    if (!currentCaps) {
+      return false
+    }
+
+    if (currentCaps.includes(CAP.ALL)) {
+      return true
+    }
+
+    return currentCaps.includes(cap)
+  }
+
+  async canAppend(entry: EntryInstance): Promise<boolean> {
+    const { identity, payload } = entry
+    const writerIdentity = await this.identities.getIdentity(identity!)
+    if (!writerIdentity) {
+      return false
+    }
+
+    const { key, op: cap } = payload as { key: string, op: CAP }
+    const hasWriteAccess = await this.hasCapability(writerIdentity.id, key, cap)
+    if (hasWriteAccess) {
+      return this.identities.verifyIdentity(writerIdentity)
+    }
+
+    return false
   }
 }

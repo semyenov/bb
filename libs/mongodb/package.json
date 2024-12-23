@@ -32,11 +32,11 @@
     "release": "yarn npm publish"
   },
   "dependencies": {
-    "consola": "^3.2.3",
-    "mongodb": "^6.8.0"
+    "consola": "^3.3.0",
+    "mongodb": "^6.12.0"
   },
   "devDependencies": {
-    "pkgroll": "^2.1.1",
-    "typescript": "^5.5.3"
+    "pkgroll": "^2.5.1",
+    "typescript": "^5.7.2"
   }
 }

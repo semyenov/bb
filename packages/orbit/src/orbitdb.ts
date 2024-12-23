@@ -1,24 +1,30 @@
+import type {
+  AccessControllerInstance,
+  AccessControllerTypeMap,
+} from './access-controllers'
+import type { DatabaseTypeMap } from './databases'
+import type {
+  IdentitiesInstance,
+  IdentityInstance,
+} from './identities'
+import type { KeyStoreInstance } from './key-store'
+import type { Manifest } from './manifest-store'
+import type { StorageInstance } from './storage'
+
+import type { OrbitDBHeliaInstance, PeerId } from './vendor'
 import {
-  type AccessControllerInstance,
-  type AccessControllerTypeMap,
   getAccessController,
-} from './access-controllers/index.js'
-import { IPFSAccessController } from './access-controllers/ipfs.js'
-import { OrbitDBAddress } from './address.js'
-import { DATABASE_DEFAULT_TYPE } from './constants.js'
-import { type DatabaseTypeMap, getDatabaseType } from './databases/index.js'
+} from './access-controllers'
+import { IPFSAccessController } from './access-controllers/ipfs'
+import { OrbitDBAddress } from './address'
+import { DATABASE_DEFAULT_TYPE } from './constants'
+import { getDatabaseType } from './databases'
 import {
   Identities,
-  type IdentitiesInstance,
-  type IdentityInstance,
-} from './identities/index.js'
-import { KeyStore, type KeyStoreInstance } from './key-store.js'
-import { type Manifest, ManifestStore } from './manifest-store.js'
-import { join } from './utils'
-import { createId } from './utils/index.js'
-
-import type { StorageInstance } from './storage/index.js'
-import type { HeliaInstance, PeerId } from './vendor.js'
+} from './identities'
+import { KeyStore } from './key-store'
+import { ManifestStore } from './manifest-store'
+import { createId, join } from './utils'
 
 export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
   type?: D
@@ -40,7 +46,7 @@ export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
 
 export interface OrbitDBOptions {
   id?: string
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   identity?: IdentityInstance
   identities?: IdentitiesInstance
   directory?: string
@@ -48,7 +54,7 @@ export interface OrbitDBOptions {
 
 export interface OrbitDBInstance {
   id: string
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   directory: string
   keystore: KeyStoreInstance
   identity: IdentityInstance
@@ -57,7 +63,7 @@ export interface OrbitDBInstance {
   open: <T, D extends keyof DatabaseTypeMap>(
     type: D,
     address: string,
-    options: OrbitDBOpenOptions<T, D>,
+    options?: OrbitDBOpenOptions<T, D>,
   ) => Promise<DatabaseTypeMap<T>[D]>
   stop: () => Promise<void>
 }
@@ -66,7 +72,7 @@ const DEFAULT_ACCESS_CONTROLLER = IPFSAccessController.create
 
 export class OrbitDB implements OrbitDBInstance {
   public id: string
-  public ipfs: HeliaInstance
+  public ipfs: OrbitDBHeliaInstance
   public directory: string
   public keystore: KeyStoreInstance
   public identity: IdentityInstance
@@ -81,7 +87,7 @@ export class OrbitDB implements OrbitDBInstance {
 
   private constructor(
     id: string,
-    ipfs: HeliaInstance,
+    ipfs: OrbitDBHeliaInstance,
     directory: string,
     keystore: KeyStoreInstance,
     identity: IdentityInstance,
@@ -111,7 +117,9 @@ export class OrbitDB implements OrbitDBInstance {
     let identities: IdentitiesInstance
 
     if (options.identities) {
+      // eslint-disable-next-line prefer-destructuring
       identities = options.identities
+      // eslint-disable-next-line prefer-destructuring
       keystore = identities.keystore
     }
     else {
@@ -119,7 +127,7 @@ export class OrbitDB implements OrbitDBInstance {
         path: join(directory, './keystore'),
       })
       identities = await Identities.create({
-        ipfs: options.ipfs,
+        ipfs,
         keystore,
       })
     }
@@ -158,13 +166,16 @@ export class OrbitDB implements OrbitDBInstance {
     address: string,
     options: OrbitDBOpenOptions<T, D> = {},
   ): Promise<DatabaseTypeMap<T>[D]> {
+    const { sync, headsStorage, entryStorage, indexStorage, referencesCount } = options
+
+    let { meta } = options
+
     let type_: D = type
     let address_: string = address
 
     let name: string
     let manifest: Manifest | null
     let accessController: AccessControllerInstance
-    let { meta } = options
 
     if (this.databases[address_!]) {
       return this.databases[address_!] as DatabaseTypeMap<T>[D]
@@ -192,6 +203,7 @@ export class OrbitDB implements OrbitDBInstance {
         address: manifest.accessController,
       })
 
+      // eslint-disable-next-line prefer-destructuring
       name = manifest.name
       meta ||= manifest.meta
 
@@ -217,7 +229,9 @@ export class OrbitDB implements OrbitDBInstance {
 
       address_ = m.hash
 
+      // eslint-disable-next-line prefer-destructuring
       manifest = m.manifest
+      // eslint-disable-next-line prefer-destructuring
       name = manifest.name
       meta ||= manifest.meta
 
@@ -239,11 +253,11 @@ export class OrbitDB implements OrbitDBInstance {
       meta,
       accessController,
       directory: this.directory,
-      syncAutomatically: options.sync,
-      headsStorage: options.headsStorage,
-      entryStorage: options.entryStorage,
-      indexStorage: options.indexStorage,
-      referencesCount: options.referencesCount,
+      sync,
+      headsStorage,
+      entryStorage,
+      indexStorage,
+      referencesCount,
     })) as DatabaseTypeMap<T>[typeof type]
 
     database.events.addEventListener('close', this.onDatabaseClosed(address_))
@@ -276,4 +290,4 @@ export class OrbitDB implements OrbitDBInstance {
   }
 }
 
-export { OrbitDBAddress }
+export const createOrbitDB = OrbitDB.create

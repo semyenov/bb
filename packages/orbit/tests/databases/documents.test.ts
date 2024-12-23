@@ -1,34 +1,31 @@
-// eslint-disable-next-line ts/ban-ts-comment
+import type {
+  AccessControllerInstance,
+  DocumentsInstance,
+  IdentitiesInstance,
+  IdentityInstance,
+  KeyStoreInstance,
+  OrbitDBHeliaInstance,
+} from '@regioni/orbit'
+
 // @ts-nocheck
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
-
 import { copy } from 'fs-extra'
-import { indexBy } from 'remeda'
 import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   Documents,
   Identities,
   KeyStore,
 } from '../../src'
 import testKeysPath from '../fixtures/test-keys-path.js'
-import createHelia from '../utils/create-helia.js'
 
-import type {
-  AccessControllerInstance,
-  DocumentsDoc,
-  DocumentsInstance,
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-} from '@orbitdb/core'
+import createHelia from '../utils/create-helia.js'
 
 const keysPath = './testkeys'
 
 describe('documents Database', () => {
-  let ipfs: IPFS
+  let ipfs: OrbitDBHeliaInstance
   let keystore: KeyStoreInstance
   let accessController: AccessControllerInstance
   let identities: IdentitiesInstance
@@ -167,7 +164,7 @@ describe('documents Database', () => {
       await db.del('hello world 3')
       await db.put(expected)
 
-      const findFn = (doc) => {
+      const findFn = (doc: any) => {
         return doc.views > 5
       }
 
@@ -178,7 +175,7 @@ describe('documents Database', () => {
       await db.put({ _id: 'hello world 1', msg: 'writing 1 to db', views: 10 })
       await db.del('hello world 1')
 
-      const findFn = (doc) => {
+      const findFn = (doc: any) => {
         return doc.views > 5
       }
 
@@ -188,13 +185,13 @@ describe('documents Database', () => {
 
   describe('custom index doc', () => {
     beforeEach(async () => {
-      db = await Documents.create<{ doc: string, msg: string }>({
+      db = await Documents.create({
         ipfs,
         identity: testIdentity1,
         address: databaseId,
         accessController,
         indexBy: 'doc',
-      }) as DocumentsInstance<{ doc: string, msg: string }>
+      })
     })
 
     afterEach(async () => {
@@ -293,7 +290,7 @@ describe('documents Database', () => {
       await db.del('hello world 3')
       await db.put(expected)
 
-      const findFn = (doc) => {
+      const findFn = (doc: any) => {
         return doc.views > 5
       }
 
@@ -304,7 +301,7 @@ describe('documents Database', () => {
       await db.put({ doc: 'hello world 1', msg: 'writing 1 to db', views: 10 })
       await db.del('hello world 1')
 
-      const findFn = (doc) => {
+      const findFn = (doc: any) => {
         return doc.views > 5
       }
 
@@ -335,7 +332,7 @@ describe('documents Database', () => {
     })
 
     it('returns no documents when the database is empty', async () => {
-      const all: DocumentsDoc[] = []
+      const all: any[] = []
       for await (const doc of db.iterator()) {
         all.unshift(doc)
       }
@@ -361,7 +358,7 @@ describe('documents Database', () => {
       catch (error) {
         console.log('error', error)
       }
-      const all: DocumentsDoc[] = []
+      const all: any[] = []
       console.log('db', await db.all())
       for await (const doc of db.iterator()) {
         all.unshift(doc)
@@ -371,7 +368,7 @@ describe('documents Database', () => {
 
     it('returns only the amount of documents given as a parameter', async () => {
       const amount = 3
-      const all: DocumentsDoc[] = []
+      const all: any[] = []
       for await (const doc of db.iterator({ amount })) {
         all.unshift(doc)
       }
@@ -380,7 +377,7 @@ describe('documents Database', () => {
 
     it('returns only two documents if amount given as a parameter is 2', async () => {
       const amount = 2
-      const all: DocumentsDoc[] = []
+      const all: any[] = []
       for await (const doc of db.iterator({ amount })) {
         all.unshift(doc)
       }
@@ -389,7 +386,7 @@ describe('documents Database', () => {
 
     it('returns only one document if amount given as a parameter is 1', async () => {
       const amount = 1
-      const all: DocumentsDoc[] = []
+      const all: any[] = []
       for await (const doc of db.iterator({ amount })) {
         all.unshift(doc)
       }

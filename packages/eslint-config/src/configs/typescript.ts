@@ -1,6 +1,5 @@
-import tsParser from '@typescript-eslint/parser'
-
 import type { Linter } from 'eslint'
+import tsParser from '@typescript-eslint/parser'
 
 const typescript = {
   languageOptions: {

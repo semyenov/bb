@@ -6,7 +6,7 @@ import { Argument, Command } from 'commander'
 import { consola } from 'consola'
 
 import { ErrorUserKeyNotFound, ErrorUserNotFound } from './modules/users/errors'
-import { type UserStoreInstance, UsersStore } from './modules/users/store'
+import { UsersStore, type UserStoreInstance } from './modules/users/store'
 
 const ID_ARGUMENT_DESCRIPTION = 'user id'
 

@@ -1,10 +1,12 @@
-import { type GossipSub, gossipsub } from '@chainsafe/libp2p-gossipsub'
+import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
+import type { Identify } from '@libp2p/identify'
+import type { PubSub } from '@libp2p/interface'
+import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
 import { bitswap } from '@helia/block-brokers'
 import { bootstrap } from '@libp2p/bootstrap'
 import {
-  circuitRelayServer,
   circuitRelayTransport,
 } from '@libp2p/circuit-relay-v2'
 import { identify } from '@libp2p/identify'
@@ -13,44 +15,20 @@ import { tcp } from '@libp2p/tcp'
 import { webRTC } from '@libp2p/webrtc'
 import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
-import { createLogger } from '@regioni/lib-logger'
+
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
-import { type Libp2pOptions, createLibp2p } from 'libp2p'
-
+import { createLibp2p, type Libp2pOptions } from 'libp2p'
 import { OrbitDB } from './index.js'
-
-const logger = createLogger({
-  defaultMeta: {
-    service: 'orbitdb',
-    label: 'test',
-  },
-})
 
 const directory = './orbitdb'
 const options: Libp2pOptions<{
-  pubsub: GossipSub
+  pubsub: PubSub<GossipsubEvents>
+  identify: Identify
 }> = {
   addresses: {
     listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
-  // logger: {
-  //   forComponent(name: string) {
-  //     const l = (formatter: string, ...args: []) => {
-  //       logger.info(formatter, { label: name, ...args })
-  //     }
-
-  //     l.enabled = true
-  //     l.error = (formatter: string, ...args: []) => {
-  //       logger.error(formatter, { label: name, ...args })
-  //     }
-  //     l.trace = (formatter: string, ...args: []) => {
-  //       logger.debug(formatter, { label: name, ...args })
-  //     }
-
-  //     return l
-  //   },
-  // },
   peerDiscovery: [
     mdns(),
     bootstrap({
@@ -63,11 +41,9 @@ const options: Libp2pOptions<{
     webSockets({ filter: all }),
     circuitRelayTransport(),
   ],
-  connectionEncryption: [noise()],
+  connectionEncrypters: [noise()],
   streamMuxers: [yamux()],
-  connectionManager: {
-    maxPeerAddrsToDial: 1000,
-  },
+  connectionManager: { maxPeerAddrsToDial: 1000 },
   connectionGater: {
     denyDialMultiaddr: () => {
       return false
@@ -75,10 +51,9 @@ const options: Libp2pOptions<{
   },
   services: {
     identify: identify(),
-    circuitRelay: circuitRelayServer(),
     pubsub: gossipsub({
       allowPublishToZeroTopicPeers: true,
-    }) as unknown as GossipSub,
+    }),
   },
 }
 

@@ -1,19 +1,16 @@
 /* eslint-disable unused-imports/no-unused-vars */
-// eslint-disable-next-line ts/ban-ts-comment
-// @ts-ignore
-import LRU from 'lru'
-import PQueue from 'p-queue'
-
-import { MemoryStorage } from '../storage/memory.js'
-
-import { Clock, type ClockInstance } from './clock.js'
-import { ConflictResolution } from './conflict-resolution.js'
-import { Entry, type EntryInstance } from './entry.js'
-import { Heads } from './heads.js'
-
 import type { AccessControllerInstance } from '../access-controllers/index.js'
 import type { IdentityInstance } from '../identities/index.js'
 import type { StorageInstance } from '../storage'
+
+import LRU from 'lru'
+import PQueue from 'p-queue'
+import { MemoryStorage } from '../storage/memory.js'
+import { Clock, type ClockInstance } from './clock.js'
+
+import { ConflictResolution } from './conflict-resolution.js'
+import { Entry, type EntryInstance } from './entry.js'
+import { Heads } from './heads.js'
 
 export interface LogIteratorOptions {
   gt?: string
@@ -363,7 +360,7 @@ export class Log<T> implements LogInstance<T> {
 
     let index = 0
     const useBuffer = (end || false) && amount !== -1 && !lt && !lte
-    const buffer = useBuffer ? new LRU(amount + 2) : null
+    const buffer = useBuffer ? new LRU<string>(amount + 2) : null
 
     const it = this.traverse(start, shouldStopTraversal)
 
@@ -373,7 +370,7 @@ export class Log<T> implements LogInstance<T> {
       const skip = skipFirst || skipLast
       if (!skip) {
         if (useBuffer) {
-          buffer!.set(index++, entry.hash)
+          buffer!.set(String(index++), entry.hash!)
         }
         else {
           yield entry
@@ -387,7 +384,7 @@ export class Log<T> implements LogInstance<T> {
       const keys = buffer!.keys.slice(startIndex, endIndex)
       for (const key of keys) {
         const hash = buffer!.get(key)
-        const entry = await this.get(hash)
+        const entry = await this.get(hash!)
         if (entry) {
           yield entry
         }

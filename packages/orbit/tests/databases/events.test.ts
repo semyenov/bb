@@ -1,29 +1,29 @@
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-nocheck
 
-import { deepStrictEqual, strictEqual } from 'node:assert'
+import type {
+  AccessControllerInstance,
+  EventsDoc,
+  EventsInstance,
+  IdentitiesInstance,
+  IdentityInstance,
+  IPFS,
+  KeyStoreInstance,
+} from '@orbitdb/core'
 
+import { deepStrictEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   Events,
   Identities,
   KeyStore,
 } from '../../src'
 import testKeysPath from '../fixtures/test-keys-path.js'
-import createHelia from '../utils/create-helia.js'
 
-import type {
-  AccessControllerInstance,
-  EventsDoc,
-  EventsInstance,
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-} from '@orbitdb/core'
+import createHelia from '../utils/create-helia.js'
 
 const keysPath = './testkeys'
 describe('events Database', () => {

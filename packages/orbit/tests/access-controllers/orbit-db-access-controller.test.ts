@@ -26,7 +26,7 @@ describe('orbitDBAccessController', () => {
     testIdentity2: IdentityInstance
 
   beforeAll(async () => {
-    [ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
+    ;[ipfs1, ipfs2] = await Promise.all([createHelia(), createHelia()])
     await connectPeers(ipfs1, ipfs2)
 
     const keystore1 = await KeyStore.create({ path: `${dbPath1}/keys` })
@@ -106,7 +106,9 @@ describe('orbitDBAccessController', () => {
         // ...
         // doesn't matter what we put here, only identity is used for the check
       }
-      const canAppend = await accessController.canAppend(mockEntry)
+      const canAppend = await accessController.canAppend(
+        mockEntry as Entry.Instance,
+      )
       strictEqual(canAppend, true)
     })
   })

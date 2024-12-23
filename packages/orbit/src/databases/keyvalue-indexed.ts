@@ -1,19 +1,18 @@
-import {
-  DATABASE_KEYVALUE_INDEXED_TYPE,
-  DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
-} from '../constants.js'
-import { LevelStorage } from '../storage/level.js'
-import { join } from '../utils'
-
-import { KeyValueDatabase, type KeyValueInstance } from './keyvalue.js'
-
-import type { DatabaseOperation, DatabaseType } from './index.js'
+import type { PeerSet } from '@libp2p/peer-collections'
 import type { DatabaseInstance, DatabaseOptions } from '../database.js'
 import type { EntryInstance } from '../oplog/entry.js'
 import type { LogInstance } from '../oplog/log.js'
 import type { StorageInstance } from '../storage/index.js'
 import type { SyncEvents, SyncInstance } from '../sync.js'
-import type { PeerSet } from '@libp2p/peer-collections'
+import type { DatabaseOperation, DatabaseType } from './index.js'
+import {
+  DATABASE_KEYVALUE_INDEXED_TYPE,
+  DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
+} from '../constants.js'
+
+import { LevelStorage } from '../storage/level.js'
+import { join } from '../utils'
+import { KeyValueDatabase, type KeyValueInstance } from './keyvalue.js'
 
 class Index<T> {
   private index: LevelStorage<EntryInstance<DatabaseOperation<T>>>

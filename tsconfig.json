@@ -2,10 +2,6 @@
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@regioni/*": ["packages/*/src"]
-      // "@regioni/lib/*": ["packages/lib/src/*"]
-    },
     "noEmit": true
   }
 }

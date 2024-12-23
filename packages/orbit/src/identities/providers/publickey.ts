@@ -1,14 +1,14 @@
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-
-import { IDENTITIES_PROVIDER_PUBLICKEY } from '../../constants.js'
-import { signMessage, verifyMessage } from '../../key-store.js'
-
 import type { IdentityInstance } from '../identity.js'
+
 import type {
   IdentityProviderInstance,
   IdentityProviderOptions,
   // IdentityProviderStatic,
 } from '../providers'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+
+import { IDENTITIES_PROVIDER_PUBLICKEY } from '../../constants.js'
+import { signMessage, verifyMessage } from '../../key-store.js'
 
 export class PublicKeyIdentityProvider implements IdentityProviderInstance {
   static type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
@@ -31,7 +31,7 @@ export class PublicKeyIdentityProvider implements IdentityProviderInstance {
     const key
       = (await this.keystore.getKey(id)) || (await this.keystore.createKey(id))
 
-    return uint8ArrayToString(key.public.marshal(), 'base16')
+    return uint8ArrayToString(key.publicKey.raw, 'base16')
   }
 
   async signIdentity(data: string, { id }: { id: string }): Promise<string> {

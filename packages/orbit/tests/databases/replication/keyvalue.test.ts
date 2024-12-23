@@ -1,26 +1,26 @@
+import type { KeyValueDatabase } from '../../../src/databases/keyvalue'
+
+import type { IdentityInstance } from '../../../src/identities/identity'
+import type { OrbitDBHeliaInstance } from '../../../src/vendor'
 import { deepStrictEqual } from 'node:assert'
 
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
-
 import {
   Identities,
   KeyStore,
   KeyValue,
 } from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path.js'
+
 import connectPeers from '../../utils/connect-nodes.js'
 import createHelia from '../../utils/create-helia.js'
 import waitFor from '../../utils/wait-for.js'
 
-import type { KeyValueDatabase } from '../../../src/databases/keyvalue'
-import type { IdentityInstance } from '../../../src/identities/identity'
-import type { HeliaInstance } from '../../../src/vendor'
-
 const keysPath = './testkeys'
 describe('keyValue Database Replication', () => {
-  let ipfs1: HeliaInstance, ipfs2: HeliaInstance
+  let ipfs1: OrbitDBHeliaInstance, ipfs2: OrbitDBHeliaInstance
   let keystore: KeyStore
   let identities: Identities
   let identities2: Identities

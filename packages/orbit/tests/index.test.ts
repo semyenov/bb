@@ -1,11 +1,14 @@
+import type { IdentityInstance } from '../src/identities/identity'
+import type { OrbitDBHeliaInstance } from '../src/vendor'
 import { deepStrictEqual, strictEqual } from 'node:assert'
+
 import { existsSync, readdirSync } from 'node:fs'
 import Path from 'node:path'
-
 import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
+import { rimraf } from 'rimraf'
+
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   Database,
   Entry,
@@ -18,15 +21,12 @@ import {
 import testKeysPath from './fixtures/test-keys-path.js'
 import createHelia from './utils/create-helia.js'
 
-import type { IdentityInstance } from '../src/identities/identity'
-import type { HeliaInstance } from '../src/vendor'
-
 const keysPath = './testkeys'
 
 describe('database', () => {
   // this.timeout(30000)
 
-  let ipfs: HeliaInstance
+  let ipfs: OrbitDBHeliaInstance
   let keystore: KeyStore
   let identities: Identities
   let testIdentity: IdentityInstance
@@ -43,7 +43,7 @@ describe('database', () => {
   }
 
   beforeAll(async () => {
-    ipfs = await createHelia() as unknown as HeliaInstance
+    ipfs = await createHelia() as unknown as OrbitDBHeliaInstance
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
     identities = await Identities.create({ keystore, ipfs })

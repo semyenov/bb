@@ -1,16 +1,12 @@
-import {
-  IPFSAccessController,
-  type IPFSAccessControllerInstance,
-} from './ipfs.js'
-import {
-  OrbitDBAccessController,
-  type OrbitDBAccessControllerInstance,
-} from './orbitdb.js'
-
 import type { IdentitiesInstance } from '../identities/identities.js'
 import type { EntryInstance } from '../oplog/entry'
 import type { OrbitDBInstance } from '../orbitdb.js'
 import type { StorageInstance } from '../storage'
+import type { IPFSAccessControllerInstance } from './ipfs.js'
+import type { OrbitDBAccessControllerInstance } from './orbitdb.js'
+
+import { IPFSAccessController } from './ipfs.js'
+import { OrbitDBAccessController } from './orbitdb.js'
 
 export interface CreateAccessControllerOptions {
   write?: string[]

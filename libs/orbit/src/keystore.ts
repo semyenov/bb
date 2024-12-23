@@ -1,11 +1,16 @@
-import { generateKeyPair, importKey } from '@libp2p/crypto/keys'
-import { type CreateStorageOptions, createStorage } from 'unstorage'
+import type { KeyStoreInstance } from '@regioni/orbit'
+import type { CreateStorageOptions } from 'unstorage'
 
+import {
+  generateKeyPair,
+  privateKeyFromRaw as importKey,
+} from '@libp2p/crypto/keys'
+import {
+  fromString as uint8ArrayFromString,
+  toString as uint8ArrayToString,
+} from 'uint8arrays'
+import { createStorage } from 'unstorage'
 import { ErrorKeyNotFound } from './errors'
-
-import type { KeyStoreInstance } from '@orbitdb/core'
-
-const PASSWORD = 'password'
 
 export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreInstance> {
   const storage = createStorage<string>(options)
@@ -26,12 +31,11 @@ export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreI
       return storage.removeItem(id)
     },
     async addKey(id, key) {
-      const keyString = await key.export(PASSWORD, 'libp2p-key')
+      const keyString = uint8ArrayToString(key.raw)
       await storage.setItem(id, keyString)
     },
     getPublic(keys) {
-      return keys.public.marshal()
-        .toString()
+      return uint8ArrayToString(keys.publicKey.raw)
     },
     async getKey(id) {
       const keyString = await storage.getItem(id)
@@ -39,7 +43,7 @@ export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreI
         throw ErrorKeyNotFound
       }
 
-      return importKey<'secp256k1'>(keyString, PASSWORD)
+      return importKey(uint8ArrayFromString(keyString))
     },
   }
 

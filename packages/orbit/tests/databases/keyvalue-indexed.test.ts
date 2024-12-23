@@ -1,11 +1,16 @@
+import type { AccessControllerInstance } from 'packages/orbit/dist/index.js'
+import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed.js'
+import type { IdentityInstance } from '../../src/identities/identity.js'
+
+import type { OrbitDBHeliaInstance } from '../../src/vendor.js'
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import fs from 'node:fs'
-import path from 'node:path'
 
+import path from 'node:path'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   Identities,
   KeyStore,
@@ -15,13 +20,9 @@ import {
 import testKeysPath from '../fixtures/test-keys-path.js'
 import createHelia from '../utils/create-helia.js'
 
-import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed.js'
-import type { IdentityInstance } from '../../src/identities/identity.js'
-import type { HeliaInstance } from '../../src/vendor.js'
-
 const keysPath = './testkeys'
 describe('keyValueIndexed Database', () => {
-  let ipfs: HeliaInstance
+  let ipfs: OrbitDBHeliaInstance
   let keystore: KeyStore
   let accessController: AccessControllerInstance
   let identities: Identities

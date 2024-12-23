@@ -1,3 +1,6 @@
+import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
+import type { PubSub } from '@libp2p/interface'
+import type { Libp2pOptions } from 'libp2p'
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
@@ -8,22 +11,11 @@ import {
 import { type Identify, identify } from '@libp2p/identify'
 import { mdns } from '@libp2p/mdns'
 import { tcp } from '@libp2p/tcp'
+// import { createLogger } from '@regioni/lib-logger'
+
 import { webRTC } from '@libp2p/webrtc'
 import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
-// import { createLogger } from '@regioni/lib-logger'
-
-import { pulse } from './rpc2'
-
-import type { createRPC } from './rpc'
-import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
-import type {
-  CircuitRelayService,
-} from '@libp2p/circuit-relay-v2'
-import type { PubSub, ServiceMap } from '@libp2p/interface'
-import type { Libp2pOptions } from 'libp2p'
-
-export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>
 
 // const logger = createLogger({
 //   defaultMeta: {
@@ -31,10 +23,8 @@ export type Options<T extends ServiceMap = ServiceMap> = Libp2pOptions<T>
 //   },
 // })
 
-export const DefaultLibp2pOptions: Options<{
-  rpc: ReturnType<ReturnType<typeof pulse>>
+export const DefaultLibp2pOptions: Libp2pOptions<{
   identify: Identify
-  circuitRelay: CircuitRelayService
   pubsub: PubSub<GossipsubEvents>
 }> = {
   addresses: {
@@ -61,10 +51,12 @@ export const DefaultLibp2pOptions: Options<{
   transports: [
     tcp(),
     // webRTC(),
-    webSockets({ filter: all }),
+    webSockets({
+      filter: all,
+    }),
   ],
 
-  connectionEncryption: [noise()],
+  connectionEncrypters: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
     denyDialMultiaddr: () => {
@@ -73,15 +65,13 @@ export const DefaultLibp2pOptions: Options<{
   },
   services: {
     identify: identify(),
-    circuitRelay: circuitRelayServer(),
     pubsub: gossipsub({
       allowPublishToZeroTopicPeers: true,
     }),
-    rpc: pulse(),
   },
 } as const
 
-export const DefaultLibp2pBrowserOptions: Options<{
+export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
   identify: Identify
   pubsub: PubSub<GossipsubEvents>
 }> = {
@@ -92,9 +82,9 @@ export const DefaultLibp2pBrowserOptions: Options<{
     tcp(),
     // webRTC(),
     webSockets({ filter: all }),
-    circuitRelayTransport({ discoverRelays: 1 }),
+
   ],
-  connectionEncryption: [noise()],
+  connectionEncrypters: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
     denyDialMultiaddr: () => {

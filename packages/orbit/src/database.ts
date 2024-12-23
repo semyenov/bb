@@ -1,32 +1,35 @@
+import type { PeerSet } from '@libp2p/peer-collections'
+import type { AccessControllerInstance } from './access-controllers'
+
+import type { DatabaseOperation } from './databases'
+import type {
+  IdentitiesInstance,
+  IdentityInstance,
+} from './identities'
+import type { EntryInstance } from './oplog/entry'
+import type { LogInstance } from './oplog/log'
+import type {
+  StorageInstance,
+} from './storage'
+
+import type { SyncEvents, SyncInstance } from './sync'
+import type { OrbitDBHeliaInstance, PeerId } from './vendor'
 import { TypedEventEmitter } from '@libp2p/interface'
 import PQueue from 'p-queue'
-
 import {
   DATABASE_CACHE_SIZE,
   DATABASE_PATH,
   DATABASE_REFERENCES_COUNT,
-} from './constants.js'
-import { Entry, Log } from './oplog/index.js'
+} from './constants'
+import { Entry, Log } from './oplog'
 import {
   ComposedStorage,
   IPFSBlockStorage,
-  LRUStorage,
   LevelStorage,
-  type StorageInstance,
-} from './storage/index.js'
-import { Sync, type SyncEvents, type SyncInstance } from './sync.js'
+  LRUStorage,
+} from './storage'
+import { Sync } from './sync'
 import { join } from './utils'
-
-import type { AccessControllerInstance } from './access-controllers'
-import type { DatabaseOperation } from './databases/index.js'
-import type {
-  IdentitiesInstance,
-  IdentityInstance,
-} from './identities/index.js'
-import type { EntryInstance } from './oplog/entry.js'
-import type { LogInstance } from './oplog/log.js'
-import type { HeliaInstance, PeerId } from './vendor.js'
-import type { PeerSet } from '@libp2p/peer-collections'
 
 export interface DatabaseOptions<T> {
   meta: any
@@ -35,7 +38,7 @@ export interface DatabaseOptions<T> {
   directory: string
   referencesCount?: number
   syncAutomatically?: boolean
-  ipfs: HeliaInstance
+  ipfs: OrbitDBHeliaInstance
   identity?: IdentityInstance
   identities?: IdentitiesInstance
   headsStorage?: StorageInstance<Uint8Array>
@@ -102,7 +105,7 @@ export class Database<
   ) => Promise<void>
 
   private constructor(
-    ipfs: HeliaInstance,
+    ipfs: OrbitDBHeliaInstance,
 
     identity: IdentityInstance,
     accessController: AccessControllerInstance,

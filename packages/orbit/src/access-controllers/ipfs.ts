@@ -1,21 +1,22 @@
+import type { IdentitiesInstance } from '../identities/index.js'
+import type { EntryInstance } from '../oplog/entry.js'
+import type { OrbitDBInstance } from '../orbitdb.js'
+import type {
+  StorageInstance,
+} from '../storage/index.js'
+import type { AccessControllerInstance } from './index.js'
+
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
-
 import { ACCESS_CONTROLLER_IPFS_TYPE } from '../constants.js'
 import {
   ComposedStorage,
   IPFSBlockStorage,
   LRUStorage,
-  type StorageInstance,
-} from '../storage/index.js'
+} from '../storage'
 import { join } from '../utils'
-
-import type { AccessControllerInstance } from './index.js'
-import type { IdentitiesInstance } from '../identities/index.js'
-import type { EntryInstance } from '../oplog/entry.js'
-import type { OrbitDBInstance } from '../orbitdb.js'
 
 const codec = dagCbor
 const hasher = sha256
@@ -86,8 +87,9 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     write?: string[]
     storage?: StorageInstance<any>
   }): Promise<IPFSAccessControllerInstance> {
-    const { ipfs } = options.orbitdb
-    const { identities } = options
+    const { orbitdb, identities } = options
+    const { ipfs, identity: { id: identityId } } = orbitdb
+
     const storage
       = options.storage
       || ComposedStorage.create({
@@ -98,8 +100,8 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
         }),
       })
 
-    let { address } = options
-    let write = options.write || [options.orbitdb.identity.id]
+    let { address, write } = options
+    write ||= [identityId]
 
     if (address) {
       const manifestBytes = await storage.get(address.replaceAll('/ipfs/', ''))
@@ -110,6 +112,7 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
         hasher,
       })
 
+      // eslint-disable-next-line prefer-destructuring
       write = value.write
     }
     else {

@@ -1,11 +1,11 @@
+import type { IdentityInstance } from '../identities'
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
+
 import { sha256 } from 'multiformats/hashes/sha2'
 
 import { Clock, type ClockInstance } from './clock.js'
-
-import type { IdentityInstance } from '../identities'
 
 const codec = dagCbor
 const hasher = sha256
@@ -56,7 +56,7 @@ export const Entry = {
       v: 2,
     }
 
-    const { bytes, cid } = await Block.encode({ value: entry, codec, hasher })
+    const { bytes } = await Block.encode({ value: entry, codec, hasher })
 
     const signature = await identity.sign!(bytes)
 

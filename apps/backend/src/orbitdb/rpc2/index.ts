@@ -81,14 +81,19 @@ export interface EventMap {
 }
 
 export interface Pulse extends TypedEventEmitter<EventMap> {
+  /**
+   * Sends a message to a specified peer.
+   * @param peer - The peer to send the message to.
+   * @param msg - The message to send.
+   */
   send: (peer: PeerId, msg: unknown) => Promise<void>
 }
 
 export interface PulseInit {
   protocolName?: string
   timeout?: number
-  // maxInboundStreams?: number
-  // maxOutboundStreams?: number
+  // maxInboundStreams?: number // Consider removing if not used
+  // maxOutboundStreams?: number // Consider removing if not used
   runOnTransientConnection?: boolean
 }
 
