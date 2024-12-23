@@ -1,16 +1,16 @@
-import type { IdentitiesInstance } from '../identities/index.js'
-import type { EntryInstance } from '../oplog/entry.js'
-import type { OrbitDBInstance } from '../orbitdb.js'
+import type { AccessControllerInstance } from '.'
+import type { IdentitiesInstance } from '../identities'
+import type { EntryInstance } from '../oplog/entry'
+import type { OrbitDBInstance } from '../orbitdb'
 import type {
   StorageInstance,
-} from '../storage/index.js'
-import type { AccessControllerInstance } from './index.js'
+} from '../storage'
 
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
-import { ACCESS_CONTROLLER_IPFS_TYPE } from '../constants.js'
+import { ACCESS_CONTROLLER_IPFS_TYPE } from '../constants'
 import {
   ComposedStorage,
   IPFSBlockStorage,

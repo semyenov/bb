@@ -1,7 +1,6 @@
 import type { Sink, Source } from 'it-stream-types'
 import type { Uint8ArrayList } from 'uint8arraylist'
-import type { EntryInstance } from './oplog/entry'
-import type { LogInstance } from './oplog/log'
+import type { EntryInstance, LogInstance } from './oplog'
 import type { OrbitDBHeliaInstance, PeerId } from './vendor'
 
 import {

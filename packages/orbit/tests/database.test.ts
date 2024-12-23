@@ -1,9 +1,11 @@
+import type { EntryInstance } from '../src/oplog'
 import { deepEqual, strictEqual } from 'node:assert'
 import { existsSync, readdir } from 'node:fs'
-import path from 'node:path'
 
+import path from 'node:path'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
+
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
 import {
@@ -14,11 +16,9 @@ import {
   LevelStorage,
   MemoryStorage,
 } from '../src'
+import testKeysPath from './fixtures/test-keys-path'
 
-import testKeysPath from './fixtures/test-keys-path.js'
 import createHelia from './utils/create-helia'
-
-import type { EntryInstance } from '../src/oplog'
 
 const keysPath = './testkeys'
 

@@ -5,6 +5,7 @@
   "packages": ["packages/*", "apps/*", "libs/*"],
   "command": {
     "run": {
+      "progress": true,
       "script": "build",
       "concurrency": 8,
       "parallel": true,

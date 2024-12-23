@@ -1,10 +1,10 @@
-import type { OrbitDBHeliaInstance } from '../vendor.js'
+import type { OrbitDBHeliaInstance } from '../vendor'
 import {
   KeyStore,
   type KeyStoreInstance,
   signMessage,
   verifyMessage,
-} from '../key-store.js'
+} from '../key-store'
 import {
   ComposedStorage,
   IPFSBlockStorage,
@@ -13,7 +13,7 @@ import {
 } from '../storage'
 
 import { join } from '../utils'
-import { Identity, type IdentityInstance } from './identity.js'
+import { Identity, type IdentityInstance } from './identity'
 
 import { type IdentityProviderInstance, IdentityProviders } from './providers'
 

@@ -1,28 +1,28 @@
-import { deepStrictEqual } from 'node:assert'
+import type {
+  Entry,
+  EventsDoc,
+  EventsInstance,
+  IdentitiesInstance,
+  IdentityInstance,
+  IPFS,
+  KeyStoreInstance,
+} from '@orbitdb/core'
 
+import { deepStrictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
 
+import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
 import {
   Events,
   Identities,
   KeyStore,
 } from '../../../src'
-import testKeysPath from '../../fixtures/test-keys-path.js'
-import connectPeers from '../../utils/connect-nodes.js'
-import createHelia from '../../utils/create-helia.js'
-import waitFor from '../../utils/wait-for.js'
+import testKeysPath from '../../fixtures/test-keys-path'
+import connectPeers from '../../utils/connect-nodes'
+import createHelia from '../../utils/create-helia'
 
-import type {
-  Entry,
-  EventsDoc,
-  EventsInstance,
-  IPFS,
-  IdentitiesInstance,
-  IdentityInstance,
-  KeyStoreInstance,
-} from '@orbitdb/core'
+import waitFor from '../../utils/wait-for'
 
 const keysPath = './testkeys'
 

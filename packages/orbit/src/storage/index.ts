@@ -1,10 +1,10 @@
-import type { StorageInstance } from './types.js'
-import { ComposedStorage, type ComposedStorageOptions } from './composed.js'
-import { IPFSBlockStorage, type IPFSBlockStorageOptions } from './ipfs-block.js'
-import { LevelStorage, type LevelStorageOptions } from './level.js'
-import { LRUStorage, type LRUStorageOptions } from './lru.js'
+import type { StorageInstance } from './types'
+import { ComposedStorage, type ComposedStorageOptions } from './composed'
+import { IPFSBlockStorage, type IPFSBlockStorageOptions } from './ipfs-block'
+import { LevelStorage, type LevelStorageOptions } from './level'
+import { LRUStorage, type LRUStorageOptions } from './lru'
 
-import { MemoryStorage } from './memory.js'
+import { MemoryStorage } from './memory'
 
 export {
   ComposedStorage,

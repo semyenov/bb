@@ -14,7 +14,7 @@ export class ComposedStorage<T> implements StorageInstance<T> {
     this.storage2 = options.storage2
   }
 
-  static create<T>(options: ComposedStorageOptions<T>): ComposedStorage<T> {
+  static create<T = unknown>(options: ComposedStorageOptions<T>): ComposedStorage<T> {
     return new ComposedStorage<T>(options)
   }
 

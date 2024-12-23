@@ -35,6 +35,7 @@
     "@regioni/lib-jose": "workspace:^",
     "@regioni/lib-logger": "workspace:^",
     "@regioni/orbit": "workspace:^",
+    "bn": "^1.0.5",
     "bn.js": "^5.2.1",
     "consola": "^3.3.0",
     "elliptic": "^6.6.1",

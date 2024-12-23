@@ -1,53 +1,53 @@
 import type { StorageInstance } from './types'
-import LRU from 'lru'
+import { LRUCache } from 'lru-cache'
 import { STORAGE_LRU_SIZE } from '../constants'
 
 export interface LRUStorageOptions {
   size?: number
 }
 
-export class LRUStorage<T> implements StorageInstance<T> {
-  private lru: LRU<T>
+export class LRUStorage<T = unknown> implements StorageInstance<T> {
+  private lru: LRUCache<string, { data: T }>
   private readonly size: number
 
   private constructor({ size = STORAGE_LRU_SIZE }: LRUStorageOptions = {}) {
     this.size = size
-    this.lru = new LRU<T>(this.size)
+    this.lru = new LRUCache<string, { data: T }>({ max: this.size })
   }
 
-  static create<T>(options: LRUStorageOptions = {}): LRUStorage<T> {
+  static create<T = unknown>(options: LRUStorageOptions = {}): LRUStorage<T> {
     return new LRUStorage<T>(options)
   }
 
   async put(hash: string, data: T): Promise<void> {
-    this.lru.set(hash, data)
+    this.lru.set(hash, { data })
   }
 
   async del(hash: string): Promise<void> {
-    this.lru.remove(hash)
+    this.lru.delete(hash)
   }
 
   async get(hash: string): Promise<T | null> {
-    return this.lru.get(hash) || null
+    return this.lru.get(hash)?.data || null
   }
 
   async *iterator(): AsyncIterableIterator<[string, T]> {
-    for (const key of this.lru.keys) {
+    for (const key of Array.from(this.lru.keys())) {
       const value = this.lru.get(key)
-      yield [key, value] as [string, T]
+      yield [key, value?.data] as [string, T]
     }
   }
 
   async merge(other: StorageInstance<T>): Promise<void> {
     if (other) {
       for await (const [key, value] of other.iterator()) {
-        this.lru.set(key, value)
+        this.lru.set(key, { data: value })
       }
     }
   }
 
   async clear(): Promise<void> {
-    this.lru = new LRU(this.size)
+    this.lru.clear()
   }
 
   async close(): Promise<void> {

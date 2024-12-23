@@ -1,6 +1,6 @@
-import type { PrivateKey } from '@regioni/orbit'
+import type { PrivateKey } from '@libp2p/interface'
+import type BN from 'bn.js'
 
-import type { BN } from 'bn.js'
 import type {
   JWK_EC_Private,
   JWK_EC_Public,
@@ -9,7 +9,6 @@ import type {
   JWTVerifyGetKey,
   VerifyOptions,
 } from 'jose'
-
 import { Buffer } from 'node:buffer'
 import { ec as EC } from 'elliptic'
 import {
@@ -18,13 +17,14 @@ import {
   SignJWT,
 } from 'jose'
 
-const ec = new EC('secp256k1')
 const headerParams = {
   kty: 'EC',
   alg: 'ES256K',
   crv: 'secp256k1',
   b64: true,
-} satisfies JWTHeaderParameters
+} as const satisfies JWTHeaderParameters
+
+const ec = new EC('secp256k1')
 
 export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<{
   privateKey: JWK_EC_Private
@@ -38,13 +38,17 @@ export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<{
     .toString()) || 'unknown'
   const keys = ec.keyFromPrivate(keyPair.raw)
 
+  const publicKey = keys.getPublic()
+  const privateKey = keys.getPrivate()
+
   const [x, y, d] = await Promise.all([
-    encodeBase64Url(keys.getPublic()
-      .getX()),
-    encodeBase64Url(keys.getPublic()
-      .getY()),
-    encodeBase64Url(keys.getPrivate()),
+    publicKey.getX(),
+    publicKey.getY(),
+    privateKey,
   ])
+    .then((xyd) => {
+      return xyd.map(encodeBase64Url)
+    })
 
   return {
     privateKey: { ...headerParams, kid, x, y, d },
@@ -75,7 +79,7 @@ export function verify(
   return jwtVerify(jwt, keyset, options)
 }
 
-function encodeBase64Url(data: typeof BN.prototype) {
+function encodeBase64Url(data: BN) {
   return Buffer.from(data.toString('hex'), 'hex')
     .toString('base64url')
 }

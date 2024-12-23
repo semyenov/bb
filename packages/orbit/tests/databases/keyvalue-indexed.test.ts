@@ -1,8 +1,8 @@
-import type { AccessControllerInstance } from 'packages/orbit/dist/index.js'
-import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed.js'
-import type { IdentityInstance } from '../../src/identities/identity.js'
+import type { AccessControllerInstance } from 'packages/orbit/dist'
+import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed'
+import type { IdentityInstance } from '../../src/identities/identity'
 
-import type { OrbitDBHeliaInstance } from '../../src/vendor.js'
+import type { OrbitDBHeliaInstance } from '../../src/vendor'
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import fs from 'node:fs'
 
@@ -16,9 +16,9 @@ import {
   KeyStore,
   KeyValueIndexed,
   MemoryStorage,
-} from '../../src/index.js'
-import testKeysPath from '../fixtures/test-keys-path.js'
-import createHelia from '../utils/create-helia.js'
+} from '../../src'
+import testKeysPath from '../fixtures/test-keys-path'
+import createHelia from '../utils/create-helia'
 
 const keysPath = './testkeys'
 describe('keyValueIndexed Database', () => {

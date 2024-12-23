@@ -1,5 +1,5 @@
-import type { DatabaseTypeMap } from './databases/index.js'
-import type { OrbitDBHeliaInstance } from './vendor.js'
+import type { DatabaseTypeMap } from './databases'
+import type { OrbitDBHeliaInstance } from './vendor'
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 
@@ -11,7 +11,7 @@ import {
   IPFSBlockStorage,
   LRUStorage,
   type StorageInstance,
-} from './storage/index.js'
+} from './storage'
 
 export interface Manifest {
   name: string

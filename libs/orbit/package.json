@@ -3,7 +3,6 @@
   "name": "@regioni/lib-orbit",
   "type": "module",
   "version": "0.0.2",
-  "packageManager": "yarn@4.0.1",
   "description": "Rollup lib script",
   "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
@@ -33,8 +32,8 @@
   },
   "dependencies": {
     "@libp2p/crypto": "^5.0.8",
-    "@orbitdb/core": "^2.4.3",
     "@regioni/lib-logger": "workspace:^",
+    "@regioni/orbit": "workspace:^",
     "consola": "^3.3.0",
     "libp2p": "^2.4.2",
     "unstorage": "^1.14.1"

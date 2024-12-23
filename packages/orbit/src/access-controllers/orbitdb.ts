@@ -1,15 +1,15 @@
-import { ACCESS_CONTROLLER_ORBITDB_TYPE } from '../constants.js'
-import { createId } from '../utils/index.js'
-
-import { IPFSAccessController } from './ipfs.js'
-
-import type { AccessControllerInstance } from './index.js'
-import type { DatabaseEvents } from '../database.js'
-import type { DatabaseTypeMap } from '../databases/index.js'
-import type { IdentitiesInstance } from '../identities/index.js'
-import type { EntryInstance } from '../oplog/entry.js'
-import type { OrbitDBInstance } from '../orbitdb.js'
 import type { TypedEventEmitter } from '@libp2p/interface'
+import type { AccessControllerInstance } from '.'
+
+import type { DatabaseEvents } from '../database'
+
+import type { DatabaseTypeMap } from '../databases'
+import type { IdentitiesInstance } from '../identities'
+import type { EntryInstance } from '../oplog/entry'
+import type { OrbitDBInstance } from '../orbitdb'
+import { ACCESS_CONTROLLER_ORBITDB_TYPE } from '../constants'
+import { createId } from '../utils'
+import { IPFSAccessController } from './ipfs'
 
 export interface OrbitDBAccessControllerInstance<
   E extends DatabaseEvents<string[]> = DatabaseEvents<string[]>,

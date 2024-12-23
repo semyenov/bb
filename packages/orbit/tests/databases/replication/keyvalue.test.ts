@@ -12,11 +12,11 @@ import {
   KeyStore,
   KeyValue,
 } from '../../../src'
-import testKeysPath from '../../fixtures/test-keys-path.js'
+import testKeysPath from '../../fixtures/test-keys-path'
 
-import connectPeers from '../../utils/connect-nodes.js'
-import createHelia from '../../utils/create-helia.js'
-import waitFor from '../../utils/wait-for.js'
+import connectPeers from '../../utils/connect-nodes'
+import createHelia from '../../utils/create-helia'
+import waitFor from '../../utils/wait-for'
 
 const keysPath = './testkeys'
 describe('keyValue Database Replication', () => {

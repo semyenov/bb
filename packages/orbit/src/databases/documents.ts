@@ -1,15 +1,14 @@
 import type { PeerSet } from '@libp2p/peer-collections'
-import type { DatabaseOperation } from '.'
+import type { DatabaseOperation, DatabaseType } from '.'
 
-import type { LogInstance } from '../oplog/log.js'
-import type { SyncEvents, SyncInstance } from '../sync.js'
-import type { DatabaseType } from './index.js'
-import { DATABASE_DOCUMENTS_TYPE } from '../constants.js'
+import type { LogInstance } from '../oplog/log'
+import type { SyncEvents, SyncInstance } from '../sync'
+import { DATABASE_DOCUMENTS_TYPE } from '../constants'
 import {
   Database,
   type DatabaseInstance,
   type DatabaseOptions,
-} from '../database.js'
+} from '../database'
 
 export interface DocumentsDoc<T = unknown> {
   key?: string

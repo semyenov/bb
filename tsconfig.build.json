@@ -3,15 +3,18 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": [],
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
     "strict": true,
+    "strictNullChecks": true,
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
     "noEmitOnError": true,
+    "outDir": "./dist",
     "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true
-  },
-  "exclude": ["node_modules", "dist"]
+  }
 }

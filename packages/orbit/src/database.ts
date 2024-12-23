@@ -1,6 +1,5 @@
 import type { PeerSet } from '@libp2p/peer-collections'
 import type { AccessControllerInstance } from './access-controllers'
-
 import type { DatabaseOperation } from './databases'
 import type {
   IdentitiesInstance,
@@ -11,9 +10,9 @@ import type { LogInstance } from './oplog/log'
 import type {
   StorageInstance,
 } from './storage'
-
 import type { SyncEvents, SyncInstance } from './sync'
 import type { OrbitDBHeliaInstance, PeerId } from './vendor'
+
 import { TypedEventEmitter } from '@libp2p/interface'
 import PQueue from 'p-queue'
 import {
@@ -168,9 +167,9 @@ export class Database<
 
     const indexStorage
       = options.indexStorage
-      || ComposedStorage.create({
-        storage1: LRUStorage.create({ size: DATABASE_CACHE_SIZE }),
-        storage2: await LevelStorage.create({
+      || ComposedStorage.create<boolean>({
+        storage1: LRUStorage.create<boolean>({ size: DATABASE_CACHE_SIZE }),
+        storage2: await LevelStorage.create<boolean>({
           path: join(path, '/log/_index/'),
         }),
       })

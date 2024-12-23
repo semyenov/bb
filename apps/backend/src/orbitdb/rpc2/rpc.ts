@@ -1,15 +1,15 @@
-import * as dagCbor from '@ipld/dag-cbor'
-import { TypedEventEmitter } from '@libp2p/interface'
-import * as lp from 'it-length-prefixed'
-import { pipe } from 'it-pipe'
-import { pushable } from 'it-pushable'
-
-import { DEFAULT_TIMEOUT, PROTOCOL_NAME, RUN_ON_TRANSIENT_CONNECTION } from './constants.js'
-
-import type { EventMap, PulseComponents, PulseInit, Pulse as PulseInterface } from './index.js'
 import type { Logger, Message, PeerId, Startable } from '@libp2p/interface'
 import type { IncomingStreamData } from '@libp2p/interface-internal'
 import type { Pushable } from 'it-pushable'
+import type { EventMap, PulseComponents, PulseInit, Pulse as PulseInterface } from '.'
+import * as dagCbor from '@ipld/dag-cbor'
+
+import { TypedEventEmitter } from '@libp2p/interface'
+
+import * as lp from 'it-length-prefixed'
+import { pipe } from 'it-pipe'
+import { pushable } from 'it-pushable'
+import { DEFAULT_TIMEOUT, PROTOCOL_NAME, RUN_ON_TRANSIENT_CONNECTION } from './constants'
 
 export function encode(source: unknown) {
   return dagCbor.encode(source)
@@ -52,12 +52,12 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
                 this.log.error('error handling perf protocol message', error)
 
                 return Promise.resolve()
-              }
+              },
             )
-        }, 
+        },
         {
           runOnTransientConnection: this.runOnTransientConnection,
-        }
+        },
       )
 
     this.started = true
@@ -93,9 +93,9 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
       signal,
     })
 
-    return this.handleConnection({ 
+    return this.handleConnection({
       connection,
-      stream 
+      stream,
     })
   }
 
@@ -109,24 +109,24 @@ export class Pulse extends TypedEventEmitter<EventMap> implements Startable, Pul
     outboundStream = pushable()
 
     this.outboundStreams.set(
-      connection.remotePeer.toString(), 
-      outboundStream
+      connection.remotePeer.toString(),
+      outboundStream,
     )
 
     pipe(
-      stream, 
-      lp.decode, 
+      stream,
+      lp.decode,
       async (source) => {
         for await (const message of source) {
           super.dispatchEvent(new CustomEvent<Message>('msg', { detail: decode(message.subarray()) }))
         }
-      }
+      },
     )
 
     pipe(
-      outboundStream, 
-      lp.encode, 
-      stream.sink
+      outboundStream,
+      lp.encode,
+      stream.sink,
     )
       .finally(() => {
         this.log('closing stream')

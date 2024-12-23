@@ -1,16 +1,16 @@
 /* eslint-disable unused-imports/no-unused-vars */
-import type { AccessControllerInstance } from '../access-controllers/index.js'
-import type { IdentityInstance } from '../identities/index.js'
+import type { AccessControllerInstance } from '../access-controllers'
+import type { IdentityInstance } from '../identities'
 import type { StorageInstance } from '../storage'
 
-import LRU from 'lru'
+import { LRUCache } from 'lru-cache'
 import PQueue from 'p-queue'
-import { MemoryStorage } from '../storage/memory.js'
-import { Clock, type ClockInstance } from './clock.js'
+import { MemoryStorage } from '../storage/memory'
+import { Clock, type ClockInstance } from './clock'
 
-import { ConflictResolution } from './conflict-resolution.js'
-import { Entry, type EntryInstance } from './entry.js'
-import { Heads } from './heads.js'
+import { ConflictResolution } from './conflict-resolution'
+import { Entry, type EntryInstance } from './entry'
+import { Heads } from './heads'
 
 export interface LogIteratorOptions {
   gt?: string
@@ -62,7 +62,7 @@ export interface LogInstance<T> {
   close: () => Promise<void>
 }
 
-export class Log<T> implements LogInstance<T> {
+export class Log<T extends object> implements LogInstance<T> {
   public id: string
   public access?: AccessControllerInstance
   public identity: IdentityInstance
@@ -360,7 +360,7 @@ export class Log<T> implements LogInstance<T> {
 
     let index = 0
     const useBuffer = (end || false) && amount !== -1 && !lt && !lte
-    const buffer = useBuffer ? new LRU<string>(amount + 2) : null
+    const buffer = useBuffer ? new LRUCache<string, string>({ max: amount + 2 }) : null
 
     const it = this.traverse(start, shouldStopTraversal)
 
@@ -381,7 +381,8 @@ export class Log<T> implements LogInstance<T> {
     if (useBuffer) {
       const endIndex = buffer!.keys.length
       const startIndex = endIndex > amount ? endIndex - amount : 0
-      const keys = buffer!.keys.slice(startIndex, endIndex)
+      const keys = Array.from(buffer!.keys())
+        .slice(startIndex, endIndex)
       for (const key of keys) {
         const hash = buffer!.get(key)
         const entry = await this.get(hash!)

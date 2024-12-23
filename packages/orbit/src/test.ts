@@ -19,7 +19,7 @@ import { all } from '@libp2p/websockets/filters'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p, type Libp2pOptions } from 'libp2p'
-import { OrbitDB } from './index.js'
+import { OrbitDB } from '.'
 
 const directory = './orbitdb'
 const options: Libp2pOptions<{

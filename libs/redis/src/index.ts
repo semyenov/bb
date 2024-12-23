@@ -1,11 +1,11 @@
-import { createClient } from 'redis'
-
 import type {
   RedisClientOptions,
   RedisFunctions,
   RedisModules,
   RedisScripts,
 } from 'redis'
+
+import { createClient } from 'redis'
 
 export async function createRedisStore(
   options: RedisClientOptions<RedisModules, RedisFunctions, RedisScripts>,

@@ -1,24 +1,24 @@
-import { deepEqual, strictEqual } from 'node:assert'
+import type { EntryInstance } from '../src/oplog'
 
+import { deepEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
+
 import { afterEach, beforeEach, describe, it } from 'vitest'
 
 import {
   ComposedStorage,
   Database,
-  IPFSBlockStorage,
   Identities,
+  IPFSBlockStorage,
   KeyStore,
   MemoryStorage,
 } from '../src'
-
 import testKeysPath from './fixtures/test-keys-path'
 import connectPeers from './utils/connect-nodes'
 import createHelia from './utils/create-helia'
-import waitFor from './utils/wait-for'
 
-import type { EntryInstance } from '../src/oplog/index'
+import waitFor from './utils/wait-for'
 
 const keysPath = './.out/testkeys'
 
