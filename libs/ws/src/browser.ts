@@ -1,8 +1,8 @@
+import type { IJoseVerify } from '@regioni/lib-jose'
 import { sign, verify } from '@regioni/lib-jose'
 import { createLogger } from '@regioni/lib-logger'
-import WebSocket, { type MessageEvent } from 'ws'
 
-import type { IJoseVerify } from '@regioni/lib-jose'
+import WebSocket, { type MessageEvent } from 'ws'
 
 type BufferLike = string | ArrayBufferView | ArrayBufferLike
 
@@ -37,6 +37,7 @@ export function wrapSocket(ws: WebSocketBrowserProxy) {
       if (prop === 'send') {
         return customSend.bind(target)
       }
+
       return Reflect.get(target, prop)
     },
   })
@@ -52,10 +53,11 @@ function customOn(
     async function customListener(this: WebSocketBrowserProxy, ...args: any[]) {
       if (event === 'message') {
         const [event] = args as [MessageEvent]
-        const data = event.data
+        const { data } = event
 
         if (!this.jose) {
           logger.debug('Receiving: jose not initialized', data)
+
           return listener.call(this, event)
         }
 
@@ -63,14 +65,18 @@ function customOn(
           const { payload } = await verify(data.toString(), this.jose.jwks)
           const newEvent = createMessageEvent(event, payload)
           logger.debug('Receiving payload', { payload, event: newEvent })
+
           return listener.call(this, newEvent)
-        } catch {
+        }
+        catch {
           const newEvent = createMessageEvent(event, {})
+
           return listener.call(this, newEvent)
         }
       }
 
       logger.debug('Receiving', event, args)
+
       return listener.call(this, ...args)
     },
   )
@@ -91,6 +97,7 @@ async function customSend(this: WebSocketBrowserProxy, data: BufferLike) {
   if (!this.jose) {
     logger.debug('Sending: jose not initialized', data)
     this.send(data)
+
     return
   }
 

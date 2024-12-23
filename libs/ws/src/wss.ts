@@ -1,10 +1,10 @@
-import consola from 'consola'
-import { WebSocketServer } from 'ws'
-
-import { wrapSocket } from './wrapper'
-
 import type { IJoseVerify } from '@regioni/lib-jose'
 import type { ServerOptions, WebSocket } from 'ws'
+
+import consola from 'consola'
+
+import { WebSocketServer } from 'ws'
+import { wrapSocket } from './wrapper'
 
 const logger = consola.withTag('wss')
 

@@ -1,9 +1,9 @@
-import { sign, verify } from '@regioni/lib-jose'
-import consola from 'consola'
-
-import type { WebSocketProxy } from './ws'
 import type { IJoseVerify } from '@regioni/lib-jose'
 import type Buffer from 'node:buffer'
+
+import type { WebSocketProxy } from './ws'
+import { sign, verify } from '@regioni/lib-jose'
+import consola from 'consola'
 
 type BufferLike =
   | string
@@ -26,6 +26,7 @@ type BufferLike =
 const logger = consola.withTag('ws')
 export function wrapSocket<T>(ws: WebSocketProxy, jose?: IJoseVerify) {
   ws.jose = jose
+
   return new Proxy(ws, {
     get: (target, prop, receiver) => {
       switch (prop) {
@@ -67,7 +68,8 @@ function customOn(
           JSON.stringify(payload),
           isBinary,
         )
-      } catch {
+      }
+      catch {
         return listener.call(
           this,
           // JSON.stringify({ ...jws, ...(payload as object) }),
@@ -90,6 +92,7 @@ async function customSend(
 ) {
   if (!this.jose) {
     logger.debug('Sending: jose not initialized', data)
+
     return this.send(data, cb)
   }
 

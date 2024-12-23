@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/lerna-lite/lerna-lite/main/packages/cli/schemas/lerna-schema.json",
   "npmClient": "yarn",
   "version": "0.0.2",
-  "packages": ["packages/*", "apps/*"],
+  "packages": ["packages/*", "apps/*", "libs/*"],
   "command": {
     "run": {
       "script": "build",
