@@ -109,6 +109,7 @@
     "multiformats": "^13.3.1",
     "nanoid": "^5.0.9",
     "remeda": "^2.19.0",
+    "trpc-cli": "^0.5.1",
     "ts-pattern": "^5.6.0",
     "uint8arrays": "^5.1.0",
     "unstorage": "^1.14.1"
