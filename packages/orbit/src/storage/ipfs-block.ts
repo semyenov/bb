@@ -1,4 +1,3 @@
-/* eslint-disable unused-imports/no-unused-vars */
 import type { OrbitDBHeliaInstance } from '../vendor'
 import type { StorageInstance } from './types'
 
@@ -44,16 +43,16 @@ export class IPFSBlockStorage<T extends Uint8Array> implements StorageInstance<T
     }
   }
 
-  async del(hash: string): Promise<void> {
-    // No-op for IPFS Block Storage
-  }
-
   async get(hash: string): Promise<T | null> {
     const cid = CID.parse(hash, base58btc)
     const { signal } = new TimeoutController(this.timeout)
     const block = await this.ipfs.blockstore.get(cid, { signal })
 
     return (block || null) as T | null
+  }
+
+  async del(_hash: string): Promise<void> {
+    // No-op for IPFS Block Storage
   }
 
   async *iterator(): AsyncIterableIterator<[string, T]> {

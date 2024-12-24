@@ -15,7 +15,15 @@ const levelPath = './.out/blocks'
 const algorithm = 'ES256K'
 const options = DefaultLibp2pOptions
 
-const logger = createLogger({ defaultMeta: { service: 'orbitdb:jose' } })
+const logger = createLogger({
+  handleExceptions: true,
+  handleRejections: true,
+  defaultMeta: {
+    service: 'backend',
+    label: 'orbitdb',
+    version: '0.0.1',
+  },
+})
 
 async function main() {
   const ipfs = await createHelia({
@@ -30,18 +38,22 @@ async function main() {
   const keyPair = await keystore.createKey('userA')
 
   const privateJWK = await secp256k1ToJWK(keyPair)
-  logger.info('privateJWK', { privateJWK })
+  logger.info('privateJWK', privateJWK)
 
   const signKey = await jose.importJWK(privateJWK.privateKey)
-  logger.info('importedJoseJWK', { signKey })
+  logger.info('importedJoseJWK', signKey)
 
-  const jws = await new jose.SignJWT({ payload: 'test' })
+  const jws = await new jose.SignJWT({ test: 'test' })
     .setProtectedHeader({ alg: algorithm })
     .sign(signKey)
-  logger.info('jws', { jws })
+  logger.info('encoded jws', { jws })
 
-  const payload = await jose.jwtVerify(jws, signKey)
-  logger.info('payload', { payload })
+  const {
+    payload,
+    protectedHeader,
+  } = await jose.jwtVerify(jws, signKey)
+  logger.info('payload', payload)
+  logger.info('protectedHeader', protectedHeader)
 
   await ipfs.stop()
 }

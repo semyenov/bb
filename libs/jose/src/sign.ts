@@ -38,7 +38,11 @@ export async function secp256k1ToJWK(keyPair: Secp256k1PrivateKey): Promise<KeyP
   const publicKey = keys.getPublic()
   const privateKey = keys.getPrivate()
 
-  const [x, y, d] = await Promise.all([
+  const [
+    x,
+    y,
+    d,
+  ] = await Promise.all([
     publicKey.getX(),
     publicKey.getY(),
     privateKey,

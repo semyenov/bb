@@ -8,33 +8,48 @@ import { UserSchema } from './schema'
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'users',
+    service: 'backend',
+    version: '0.0.1',
+    label: 'users',
   },
 })
 
 export const usersRouter = rootRouter({
-  getAll: publicProcedure.query(({ ctx: { redis } }) => {
+  getAll: publicProcedure.query(({
+    ctx: { redis },
+  }) => {
     return redis.users.getAll()
   }),
 
   getItem: publicProcedure
     .input(wrap(Type.Object({ id: Type.String() })))
-    .query(({ input: { id }, ctx: { redis } }) => {
-      return redis.users.findOne(id)
+    .query(({
+      input: { id },
+      ctx: { redis },
+    }) => {
+      return redis.users.findOne(
+        id,
+      )
     }),
 
   postItem: publicProcedure
     .input(wrap(UserSchema))
-    .mutation(async ({ input: user, ctx: { redis } }) => {
-      if (!user.id) {
+    .mutation(async ({
+      input: { id, ...user },
+      ctx: { redis },
+    }) => {
+      if (!id) {
         throw new Error('Invalid id')
       }
 
-      logger.info(`postItem: ${user.id}`, {
-        id: user.id,
+      logger.info(`postItem: ${id}`, {
+        id,
       })
 
-      await redis.users.insertOne(user.id, user)
+      await redis.users.insertOne(id, {
+        ...user,
+        id,
+      })
     }),
 })
 

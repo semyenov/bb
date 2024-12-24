@@ -89,7 +89,7 @@
     "@multiformats/dns": "^1.0.6",
     "@multiformats/multiaddr": "^12.3.4",
     "@orbitdb/core": "^2.4.3",
-    "@sinclair/typebox": "^0.34.13",
+    "@sinclair/typebox": "^0.33.7",
     "@stablelib/random": "^2.0.0",
     "@stablelib/x25519": "^2.0.0",
     "@trpc/client": "^10.45.2",

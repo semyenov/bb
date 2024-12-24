@@ -2,6 +2,7 @@ import type {
   EventHandler,
   Message,
   SignedMessage,
+  Startable,
   StreamHandler,
   SubscriptionChangeData,
 } from '@libp2p/interface'
@@ -33,12 +34,10 @@ export interface SyncOptions<T> {
   onSynced?: (head: Uint8Array) => Promise<void>
 }
 
-export interface SyncInstance<T, E extends SyncEvents<T>> {
+export interface SyncInstance<T, E extends SyncEvents<T>> extends Startable {
   peers: PeerSet
   events: TypedEventEmitter<E>
 
-  start: () => Promise<void>
-  stop: () => Promise<void>
   add: (entry: EntryInstance<T>) => Promise<void>
 }
 
@@ -134,12 +133,23 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
     const peerId = connection.remotePeer
     try {
       this.peers.add(peerId)
-      await pipe(stream, this.receiveHeads(peerId), this.sendHeads(), stream)
+      await pipe(
+        stream,
+        this.receiveHeads(peerId),
+        this.sendHeads(),
+        stream,
+      )
     }
     catch (error) {
       this.peers.delete(peerId)
-      console.error('error', error)
-      this.events.dispatchEvent(new ErrorEvent('error', { error }))
+      this.events.dispatchEvent(
+        new ErrorEvent(
+          'error',
+          {
+            error,
+          },
+        ),
+      )
     }
   }
 
@@ -147,10 +157,12 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
     CustomEvent<SubscriptionChangeData>
   > = async (event) => {
       const task = async () => {
-        const { peerId: remotePeer, subscriptions } = event.detail
-        const peerId = remotePeer
+        const {
+          peerId,
+          subscriptions,
+        } = event.detail
         const subscription = subscriptions.find(
-          (e: any) => {
+          (e) => {
             return e.topic === this.address
           },
         )
@@ -164,21 +176,31 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
           }
 
           const timeoutController = new TimeoutController(this.timeout)
-          const { signal } = timeoutController
           try {
             this.peers.add(peerId)
             const stream = await this.ipfs.libp2p.dialProtocol(
-              remotePeer,
+              peerId,
               this.headsSyncAddress,
-              { signal },
+              timeoutController,
             )
-            pipe(this.sendHeads(), stream, this.receiveHeads(peerId))
+            pipe(
+              this.sendHeads(),
+              stream,
+              this.receiveHeads(peerId),
+            )
           }
-          catch (error: any) {
-            console.error(error)
+          catch (error) {
             this.peers.delete(peerId)
-            if (error.code !== 'ERR_UNSUPPORTED_PROTOCOL') {
-              this.events.dispatchEvent(new ErrorEvent('error', { error }))
+            const { code } = error as { code: string }
+            if (code !== 'ERR_UNSUPPORTED_PROTOCOL') {
+              this.events.dispatchEvent(
+                new ErrorEvent(
+                  'error',
+                  {
+                    error,
+                  },
+                ),
+              )
             }
           }
           finally {
@@ -188,18 +210,29 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
         else {
           this.peers.delete(peerId)
           this.events.dispatchEvent(
-            new CustomEvent('leave', { detail: { peerId } }),
+            new CustomEvent(
+              'leave',
+              {
+                detail: {
+                  peerId,
+                },
+              },
+            ),
           )
         }
       }
 
-      this.queue.add(task)
+      await this.queue.add(task)
     }
 
   private handleUpdateMessage: EventHandler<CustomEvent<Message>> = async (
     message,
   ) => {
-    const { topic, data, from } = message.detail as SignedMessage
+    const {
+      topic,
+      data,
+      from,
+    } = message.detail as SignedMessage
 
     const task = async () => {
       try {
@@ -208,13 +241,19 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
         }
       }
       catch (error) {
-        console.error('error 123', error)
-        this.events.dispatchEvent(new ErrorEvent('error', { error }))
+        this.events.dispatchEvent(
+          new ErrorEvent(
+            'error',
+            {
+              error,
+            },
+          ),
+        )
       }
     }
 
     if (topic === this.address) {
-      this.queue.add(task)
+      await this.queue.add(task)
     }
   }
 
@@ -224,6 +263,7 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
         this.headsSyncAddress,
         this.handleReceiveHeads,
       )
+
       this.ipfs.libp2p.services.pubsub.addEventListener(
         'subscription-change',
         this.handlePeerSubscribed,
@@ -232,6 +272,7 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
         'message',
         this.handleUpdateMessage,
       )
+
       await Promise.resolve(
         this.ipfs.libp2p.services.pubsub.subscribe(
           this.address,
@@ -244,8 +285,8 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
 
   public async stop(): Promise<void> {
     if (this.started) {
-      this.started = false
       await this.queue.onIdle()
+
       await this.ipfs.libp2p.unhandle(
         this.headsSyncAddress,
       )
@@ -266,14 +307,24 @@ export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncIns
       )
 
       this.peers.clear()
+      this.started = false
     }
   }
 
   public async add(entry: EntryInstance<T>): Promise<void> {
-    if (this.started && entry.bytes) {
-      await this.ipfs.libp2p.services.pubsub.publish(
-        this.address,
-        entry.bytes,
+    const {
+      started,
+      address,
+      ipfs,
+    } = this
+
+    const {
+      bytes,
+    } = entry
+    if (started && bytes) {
+      await ipfs.libp2p.services.pubsub.publish(
+        address,
+        bytes,
       )
     }
   }

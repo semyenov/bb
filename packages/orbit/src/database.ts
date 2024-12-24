@@ -103,8 +103,6 @@ export class Database<
   ) => Promise<void>
 
   private constructor(
-    ipfs: OrbitDBHeliaInstance,
-
     identity: IdentityInstance,
     accessController: AccessControllerInstance,
     log: LogInstance<DatabaseOperation<T>>,
@@ -218,7 +216,6 @@ export class Database<
     })
 
     return new Database(
-      ipfs,
       identity,
       accessController,
       log,

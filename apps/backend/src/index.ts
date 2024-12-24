@@ -8,6 +8,8 @@ import { applyWSSHandler } from '@trpc/server/adapters/ws'
 import { createContext } from './context'
 import { router } from './router'
 
+export * from './modules'
+
 const logger = createLogger({
   defaultMeta: {
     service: 'server',

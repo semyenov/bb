@@ -59,9 +59,9 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     return ACCESS_CONTROLLER_IPFS_TYPE
   }
 
-  private storage: StorageInstance<Uint8Array>
-  private orbitdb: OrbitDBInstance
-  private identities: IdentitiesInstance
+  storage: StorageInstance<Uint8Array>
+  orbitdb: OrbitDBInstance
+  identities: IdentitiesInstance
 
   private constructor(options: {
     orbitdb: OrbitDBInstance
@@ -101,10 +101,16 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     write ||= [identityId]
 
     if (address) {
-      const manifestBytes = await storage.get(address.replaceAll('/ipfs/', ''))
+      const manifestBytes = await storage.get(
+        address.replaceAll('/ipfs/', ''),
+      )
+
+      if (!manifestBytes) {
+        throw new Error('Manifest not found')
+      }
 
       const { value } = await Block.decode<{ write: string[] }, 113, 18>({
-        bytes: manifestBytes!,
+        bytes: manifestBytes,
         codec,
         hasher,
       })
@@ -115,8 +121,8 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     else {
       address = await AccessControlList({
         type: ACCESS_CONTROLLER_IPFS_TYPE,
-        storage,
         params: { write },
+        storage,
       })
 
       address = join(
@@ -138,10 +144,15 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
   }
 
   async canAppend(entry: EntryInstance): Promise<boolean> {
-    const writerIdentity = await this.identities.getIdentity(entry.identity!)
+    if (!entry.identity) {
+      return false
+    }
+
+    const writerIdentity = await this.identities.getIdentity(entry.identity)
     if (!writerIdentity) {
       return false
     }
+
     const { id } = writerIdentity
     // Allow if the write access list contain the writer's id or is '*'
     if (this.write.includes(id) || this.write.includes('*')) {

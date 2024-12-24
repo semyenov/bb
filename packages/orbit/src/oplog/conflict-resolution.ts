@@ -1,4 +1,3 @@
-/* eslint-disable unused-imports/no-unused-vars */
 import type { EntryInstance } from './entry'
 
 import { Clock } from './clock'
@@ -8,7 +7,7 @@ export class ConflictResolution {
     return ConflictResolution.SortByClockId(a, b, ConflictResolution.First)
   }
 
-  private static First<T>(a: EntryInstance<T>, b: EntryInstance<T>): number {
+  private static First<T>(_a: EntryInstance<T>, _b: EntryInstance<T>): number {
     return 1
   }
 

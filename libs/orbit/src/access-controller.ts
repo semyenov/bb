@@ -1,13 +1,14 @@
-import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, OrbitDBInstance } from '@regioni/orbit'
+import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, KeyValueDatabase, OrbitDBInstance } from '@regioni/orbit'
 
 export type ACLCap = 'PUT' | 'DEL' | '*'
-export type ACL = Record<'caps', ACLCap[]>
-export type ACLDatabase = {
-  get: (key: string) => Promise<ACL | null>
-  put: (key: string, value: ACL) => Promise<string>
-}
+export type ACLRecord = Record<'caps', ACLCap[]>
+export type ACLDatabase = KeyValueDatabase<ACLRecord>
 
 const CUSTOM_ACCESS_CONTROLLER_TYPE = 'custom' as const
+
+const ACL_PUT_CAP = 'PUT' as const
+const ACL_DEL_CAP = 'DEL' as const
+const ACL_ALL_CAP = '*' as const
 
 export interface CustomAccessControllerInstance extends AccessControllerInstance {
   type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
@@ -30,45 +31,45 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   public address: string
   public write: string[] = []
 
-  private constructor(
-    orbitdb: OrbitDBInstance,
-    identities: IdentitiesInstance,
-    address: string,
-    db: ACLDatabase,
-  ) {
-    this.identities = identities
-    this.address = address
-    this.db = db
+  private constructor(options: {
+    identities: IdentitiesInstance
+    address: string
+    db: ACLDatabase
+  }) {
+    this.identities = options.identities
+    this.address = options.address
+    this.db = options.db
   }
 
   static async create(options: {
+    address: string
     orbitdb: OrbitDBInstance
     identities: IdentitiesInstance
-    address: string
   }): Promise<CustomAccessControllerInstance> {
-    const { orbitdb, identities, address } = options
-
-    const db: ACLDatabase = await orbitdb.open<ACL, 'keyvalue'>(
+    const {
+      address,
+      orbitdb,
+      identities,
+    } = options
+    const db: ACLDatabase = await orbitdb.open<ACLRecord, 'keyvalue'>(
       'keyvalue',
       `${address}-acl`,
     )
 
-    return new CustomAccessController(
-      orbitdb,
-      identities,
+    return new CustomAccessController({
       address,
+      identities,
       db,
-    )
+    })
   }
 
   async grant(id: string, key: string, caps: ACLCap[]): Promise<void> {
     const aclKey = formatKey(id, key)
-
-    const acl = await this.db.get(aclKey)
-    const updatedCaps = caps.includes('*')
-      ? ['*' as ACLCap]
-      : (acl
-          ? [...new Set([...acl.caps, ...caps])]
+    const aclData = await this.db.get(aclKey)
+    const updatedCaps = caps.includes(ACL_ALL_CAP)
+      ? [ACL_ALL_CAP]
+      : (aclData
+          ? [...new Set([...aclData.caps, ...caps])]
           : caps)
 
     await this.db.put(aclKey, {
@@ -83,11 +84,13 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return
     }
 
-    const currentCaps = aclData.caps
-    const updatedCaps = caps.includes('*')
-      ? []
-      : (currentCaps.includes('*')
-          ? ['PUT', 'DEL'].filter((op) => {
+    const {
+      caps: currentCaps,
+    } = aclData
+    const updatedCaps = caps.includes(ACL_ALL_CAP)
+      ? [ACL_ALL_CAP]
+      : (currentCaps.includes(ACL_ALL_CAP)
+          ? [ACL_PUT_CAP, ACL_DEL_CAP].filter((op) => {
               return !caps.includes(op as ACLCap)
             })
           : currentCaps.filter((op) => {
@@ -95,7 +98,7 @@ export class CustomAccessController implements CustomAccessControllerInstance {
             }))
 
     await this.db.put(aclKey, {
-      caps: updatedCaps as ACLCap[],
+      caps: updatedCaps,
     })
   }
 
@@ -106,12 +109,14 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return false
     }
 
-    const currentCaps = aclData.caps
+    const {
+      caps: currentCaps,
+    } = aclData
     if (!currentCaps) {
       return false
     }
 
-    if (currentCaps.includes('*')) {
+    if (currentCaps.includes(ACL_ALL_CAP)) {
       return true
     }
 
@@ -134,7 +139,11 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     }
 
     const { key, op: cap } = payload as { key: string, op: ACLCap }
-    const hasCapability = await this.hasCapability(writerIdentity.id, key, cap)
+    const hasCapability = await this.hasCapability(
+      writerIdentity.id,
+      key,
+      cap,
+    )
     if (hasCapability) {
       return this.identities.verifyIdentity(writerIdentity)
     }
@@ -143,6 +152,15 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   }
 }
 
-function formatKey(id: string, key: string): string {
-  return `${id}:${key}`
+function formatKey(...args: string[]): string {
+  return args
+    .map((arg) => {
+      return arg
+        .trim()
+        .replaceAll(
+          '/',
+          '-',
+        )
+    })
+    .join(':')
 }

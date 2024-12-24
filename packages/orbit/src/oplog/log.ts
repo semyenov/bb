@@ -1,4 +1,3 @@
-/* eslint-disable unused-imports/no-unused-vars */
 import type { AccessControllerInstance } from '../access-controllers'
 import type { IdentityInstance } from '../identities'
 import type { StorageInstance } from '../storage'
@@ -122,7 +121,7 @@ export class Log<T extends object> implements LogInstance<T> {
     return {
       write: [],
       type: 'allow-all',
-      canAppend: async (entry: EntryInstance<any>) => {
+      canAppend: async (_entry: EntryInstance<any>) => {
         return true
       },
     }
@@ -410,8 +409,8 @@ export class Log<T extends object> implements LogInstance<T> {
   }
 
   private defaultStopFn = async (
-    entry: EntryInstance<T>,
-    useRefs: boolean,
+    _entry: EntryInstance<T>,
+    _useRefs: boolean,
   ): Promise<boolean> => {
     return false
   }
@@ -532,7 +531,7 @@ export class Log<T extends object> implements LogInstance<T> {
     return refs
   }
 
-  private async fetchEntry(hash: string): Promise<EntryInstance<T> | null> {
-    return await this.get(hash)
-  }
+  // private async fetchEntry(hash: string): Promise<EntryInstance<T> | null> {
+  //   return await this.get(hash)
+  // }
 }

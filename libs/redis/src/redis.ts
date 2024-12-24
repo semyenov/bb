@@ -1,14 +1,19 @@
+import type { Meta, User } from '@regioni/backend'
+
 import type {
   RedisClientOptions,
   RedisFunctions,
   RedisModules,
   RedisScripts,
 } from './vendor.d'
-
 import { createClient } from 'redis'
 
 export async function createRedisStore(
-  options: RedisClientOptions<RedisModules, RedisFunctions, RedisScripts>,
+  options: RedisClientOptions<
+    RedisModules,
+    RedisFunctions,
+    RedisScripts
+  >,
 ) {
   const connection = createClient(options)
   await connection.connect()
@@ -101,8 +106,8 @@ export async function createRedisStore(
 
   return {
     data: createCRUD('data'),
-    meta: createCRUD('meta'),
-    users: createCRUD('users'),
+    meta: createCRUD<Meta>('meta'),
+    users: createCRUD<User>('users'),
     schemas: createCRUD('schemas'),
     disconnect: connection.disconnect,
   }

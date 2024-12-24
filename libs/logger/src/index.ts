@@ -3,25 +3,40 @@ import type { LoggerOptions } from 'winston'
 import { inspect } from 'node:util'
 
 import {
+  config as c,
   createLogger as createWinstonLogger,
   format as f,
   transports as t,
 } from 'winston'
 
-export function createLogger(options: LoggerOptions = {}) {
+const {
+  colors: defaultColors,
+  levels: defaultLevels,
+} = c.npm
+
+export function createLogger({
+  levels = defaultLevels,
+  defaultMeta = {
+    service: 'service',
+    label: 'root',
+    version: '0.0.1',
+  },
+  ...options
+}: LoggerOptions) {
   return createWinstonLogger({
-    defaultMeta: {
-      service: 'service',
-      version: '0.0.1',
-      label: 'root',
-    },
-
+    levels,
+    defaultMeta,
     exitOnError: false,
+    handleExceptions: true,
     handleRejections: true,
-
     format: f.combine(
       ...[
-        f.timestamp(),
+        f.label({
+          label: defaultMeta.label,
+        }),
+        f.timestamp({
+          format: 'DD.MM.YYYY HH:mm:ss.SSS',
+        }),
         f.errors({
           stack: true,
           inspect: false,
@@ -43,73 +58,75 @@ export function createLogger(options: LoggerOptions = {}) {
 
     transports: [
       new t.Console({
-        level: 'debug',
-
         format: f.combine(
-          ...[
-            f.colorize({
-              level: true,
-              message: false,
+          f.colorize({
+            level: true,
+            message: false,
+            colors: defaultColors,
+          }),
+          f.printf((log): string => {
+            const {
+              level = 'debug',
+              label = 'label',
+              service = 'service',
+              version = '0.0.1',
+              timestamp = new Date()
+                .getTime() / 1000,
+              stack,
+            } = log as TransformableInfo & {
+              level: string
+              label: string
+              service: string
+              version: string
+              timestamp: number
+              stack: string
+            }
 
-              colors: {
-                error: 'red',
-                warn: 'yellow',
-                info: 'blue',
-                debug: 'gray',
-              },
-            }),
-            f.printf((log): string => {
-              const {
-                level = 'debug',
-                label = 'label',
-                service = 'service',
-                version = '0.0.1',
-                timestamp = new Date()
-                  .toISOString(),
-                message,
-                stack,
-                data,
-              } = log as TransformableInfo & {
-                level: string
-                label: string
-                service: string
-                version: string
-                timestamp: string
-                message: string
-                stack: string
-                data: object
-              }
+            let {
+              message,
+              data = {},
+            } = log as TransformableInfo & {
+              message: string | object
+              data: object
+            }
 
-              return [
-                `. ${[level, label]
-                  .filter(Boolean)
-                  .join(':')}`,
-                `\\ ${[service, version]
-                  .filter(Boolean)
-                  .join('@')}`,
-                `> ${(timestamp).split('T')[1]}`,
+            if (typeof message === 'object') {
+              data = { ...data, ...message }
+              message = ''
+            }
 
-                message
-                  ? `\\ ${message}`
-                  : undefined,
-                stack
-                  ? `\\ ${stack.slice(stack.indexOf('\n') + 1)}`
-                  : undefined,
-                Object.keys(data).length > 0
-                  ? inspect(data, {
-                      breakLength: 80,
-                      compact: true,
-                      colors: true,
-                      showHidden: true,
-                      sorted: true,
-                    })
-                  : undefined,
-              ]
+            return [
+              `. ${[label, level]
                 .filter(Boolean)
-                .join('\n')
-                .concat('\n')
-            }),
-          ],
+                .join(':')}`,
+              `\\ ${[service, version]
+                .filter(Boolean)
+                .join('@')}`,
+              `> ${timestamp}`,
+
+              message
+                ? `\\ ${message}`
+                : undefined,
+              stack
+                ? `\\ ${stack.slice(
+                  stack.indexOf('\n') + 1,
+                )}`
+                : undefined,
+              Object.keys(data).length > 0
+                ? inspect(data, {
+                    breakLength: 40,
+                    compact: true,
+                    colors: true,
+                    showHidden: true,
+                    sorted: true,
+                    depth: 4,
+                  })
+                : undefined,
+            ]
+              .filter(Boolean)
+              .join('\n')
+              .concat('\n')
+          }),
         ),
       }),
 
