@@ -1,6 +1,12 @@
 {
-  "name": "TileJSON",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "$id": "TileJSON",
+  "title": "TileJSON",
+
   "type": "object",
+  "required": ["tilejson", "tiles", "vector_layers"],
+  "additionalProperties": true,
   "properties": {
     "tilejson": {
       "type": "string",
@@ -16,6 +22,8 @@
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["id", "fields"],
+        "additionalProperties": true,
         "properties": {
           "id": {
             "type": "string"
@@ -35,9 +43,7 @@
           "minzoom": {
             "type": "integer"
           }
-        },
-        "required": ["id", "fields"],
-        "additionalProperties": true
+        }
       }
     },
     "attribution": {
@@ -101,8 +107,5 @@
       "type": "string",
       "pattern": "\\d+\\.\\d+\\.\\d+\\w?[\\w\\d]*"
     }
-  },
-  "required": ["tilejson", "tiles", "vector_layers"],
-  "additionalProperties": true,
-  "$id": "TileJSON"
+  }
 }

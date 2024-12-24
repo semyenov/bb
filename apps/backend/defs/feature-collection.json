@@ -1,7 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+
   "$id": "FeatureCollection",
   "title": "GeoJSON FeatureCollection",
+
   "type": "object",
   "required": ["type", "features"],
   "properties": {
@@ -13,6 +15,7 @@
       "type": "array",
       "items": {
         "title": "GeoJSON Feature",
+
         "type": "object",
         "required": ["type", "properties", "geometry"],
         "properties": {
@@ -47,6 +50,7 @@
               },
               {
                 "title": "GeoJSON Point",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -72,6 +76,7 @@
               },
               {
                 "title": "GeoJSON LineString",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -101,6 +106,7 @@
               },
               {
                 "title": "GeoJSON Polygon",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -133,6 +139,7 @@
               },
               {
                 "title": "GeoJSON MultiPoint",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -161,6 +168,7 @@
               },
               {
                 "title": "GeoJSON MultiLineString",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -193,6 +201,7 @@
               },
               {
                 "title": "GeoJSON MultiPolygon",
+
                 "type": "object",
                 "required": ["type", "coordinates"],
                 "properties": {
@@ -228,6 +237,7 @@
               },
               {
                 "title": "GeoJSON GeometryCollection",
+
                 "type": "object",
                 "required": ["type", "geometries"],
                 "properties": {
@@ -241,6 +251,7 @@
                       "oneOf": [
                         {
                           "title": "GeoJSON Point",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {
@@ -266,6 +277,7 @@
                         },
                         {
                           "title": "GeoJSON LineString",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {
@@ -295,6 +307,7 @@
                         },
                         {
                           "title": "GeoJSON Polygon",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {
@@ -327,6 +340,7 @@
                         },
                         {
                           "title": "GeoJSON MultiPoint",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {
@@ -355,6 +369,7 @@
                         },
                         {
                           "title": "GeoJSON MultiLineString",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {
@@ -387,6 +402,7 @@
                         },
                         {
                           "title": "GeoJSON MultiPolygon",
+
                           "type": "object",
                           "required": ["type", "coordinates"],
                           "properties": {

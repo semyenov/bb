@@ -1,21 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "MultiPoint",
-  "title": "GeoJSON MultiPoint",
+
+  "$id": "MultiPolygon",
+  "title": "GeoJSON MultiPolygon",
+
   "type": "object",
   "required": ["type", "coordinates"],
   "properties": {
     "type": {
       "type": "string",
-      "enum": ["MultiPoint"]
+      "enum": ["MultiPolygon"]
     },
     "coordinates": {
       "type": "array",
       "items": {
         "type": "array",
-        "minItems": 2,
         "items": {
-          "type": "number"
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "number"
+            }
+          }
         }
       }
     },

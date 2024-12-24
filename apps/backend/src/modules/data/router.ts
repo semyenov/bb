@@ -36,18 +36,6 @@ export const dataRouter = rootRouter({
       input: { id, path, data },
       ctx: { redis, ajv },
     }) => {
-      if (!id) {
-        throw new Error('Invalid id')
-      }
-
-      if (!data) {
-        throw new Error('Invalid data')
-      }
-
-      if (!path) {
-        throw new Error('Invalid path')
-      }
-
       const {
         namespace,
         schemaId,

@@ -1,7 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+
   "$id": "LineString",
   "title": "GeoJSON LineString",
+
   "type": "object",
   "required": ["type", "coordinates"],
   "properties": {
