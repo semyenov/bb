@@ -1,8 +1,7 @@
-import { Type } from '@sinclair/typebox'
-
-import { MetaSchema } from '../meta/schema'
-
 import type { Infer } from '@typeschema/typebox'
+
+import { Type } from '@sinclair/typebox'
+import { MetaSchema } from '../meta/schema'
 
 export const UserSchema = Type.Composite([
   MetaSchema,

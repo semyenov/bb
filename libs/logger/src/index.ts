@@ -13,6 +13,7 @@ export function createLogger(options: LoggerOptions = {}) {
     defaultMeta: {
       service: 'service',
       version: '0.0.1',
+      label: 'root',
     },
 
     exitOnError: false,
@@ -28,6 +29,7 @@ export function createLogger(options: LoggerOptions = {}) {
         f.metadata({
           key: 'data',
           fillExcept: [
+            'service',
             'stack',
             'version',
             'message',

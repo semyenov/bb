@@ -1,6 +1,6 @@
-import { Type } from '@sinclair/typebox'
-
 import type { Infer } from '@typeschema/typebox'
+
+import { Type } from '@sinclair/typebox'
 
 export const MetaInfoSchema = Type.Object({
   name: Type.String(),

@@ -1,14 +1,21 @@
 import type { Router } from './router'
 
+import { createLogger } from '@regioni/lib-logger'
 import { WebSocketServerProxy } from '@regioni/lib-ws'
 import { createHTTPServer } from '@trpc/server/adapters/standalone'
 import { applyWSSHandler } from '@trpc/server/adapters/ws'
-import consola from 'consola'
 
 import { createContext } from './context'
 import { router } from './router'
 
-const logger = consola.withTag('server')
+const logger = createLogger({
+  defaultMeta: {
+    service: 'server',
+    version: '1.0.0',
+    label: 'root',
+  },
+})
+
 export const app = createHTTPServer({
   router,
   createContext,
@@ -36,4 +43,4 @@ applyWSSHandler<Router>({
 })
 
 app.listen(4000)
-logger.info('Listening on 4000')
+logger.info('Listening on http://localhost:4000')

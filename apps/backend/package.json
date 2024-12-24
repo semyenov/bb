@@ -72,6 +72,7 @@
     "@regioni/lib-bullmq": "workspace:^",
     "@regioni/lib-logger": "workspace:^",
     "@regioni/lib-mongodb": "workspace:^",
+    "@regioni/lib-orbit": "workspace:^",
     "@regioni/lib-pointers": "workspace:^",
     "@regioni/lib-redis": "workspace:^",
     "@regioni/lib-superjson": "workspace:^",

@@ -6,7 +6,7 @@ export const bullmq = new Queue<{ message: string }, { status: number }>(
   'appQueue',
   {
     connection: {
-      host: 'redis',
+      host: 'localhost',
       port: 6379,
     },
     defaultJobOptions: {

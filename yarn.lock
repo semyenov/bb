@@ -4501,6 +4501,7 @@ __metadata:
     "@regioni/lib-bullmq": "workspace:^"
     "@regioni/lib-logger": "workspace:^"
     "@regioni/lib-mongodb": "workspace:^"
+    "@regioni/lib-orbit": "workspace:^"
     "@regioni/lib-pointers": "workspace:^"
     "@regioni/lib-redis": "workspace:^"
     "@regioni/lib-superjson": "workspace:^"
@@ -4583,7 +4584,6 @@ __metadata:
     eslint-plugin-unused-imports: "npm:^4.1.4"
     eslint-plugin-vue: "npm:^9.32.0"
     eslint-plugin-yml: "npm:^1.16.0"
-    esno: "npm:^4.8.0"
     jsonc-eslint-parser: "npm:^2.4.0"
     pkgroll: "npm:^2.5.1"
     tslib: "npm:^2.8.1"
@@ -4674,7 +4674,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@regioni/lib-orbit@workspace:libs/orbit":
+"@regioni/lib-orbit@workspace:^, @regioni/lib-orbit@workspace:libs/orbit":
   version: 0.0.0-use.local
   resolution: "@regioni/lib-orbit@workspace:libs/orbit"
   dependencies:
@@ -9710,17 +9710,6 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: 10/a48ee67dd4e737974bbb49ca5d12d0ce35bcd874507807599e3655bb398320ab27c9deed1aad508a963967815e626c21208f52158c2fc0796d0cc8186528efeb
-  languageName: node
-  linkType: hard
-
-"esno@npm:^4.8.0":
-  version: 4.8.0
-  resolution: "esno@npm:4.8.0"
-  dependencies:
-    tsx: "npm:^4.19.1"
-  bin:
-    esno: esno.js
-  checksum: 10/68ef4576ebbb5311db9a3881e4e43e6c26a3a91d73e093427eb0d153fe93f750ac7ecbd79872da8f358697d0c21af14e148fecb3a7c148c4a6cad0fdb0ac109b
   languageName: node
   linkType: hard
 
@@ -16701,7 +16690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.1, tsx@npm:^4.19.2":
+"tsx@npm:^4.19.2":
   version: 4.19.2
   resolution: "tsx@npm:4.19.2"
   dependencies:

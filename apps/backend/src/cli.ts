@@ -92,7 +92,9 @@ async function verifyData(userStore: UserStoreInstance, data: string) {
 }
 
 async function run() {
-  const userStore = await UsersStore({ base: usersPath })
+  const userStore = await UsersStore.create({
+    base: usersPath,
+  })
 
   const program = new Command()
 
@@ -116,7 +118,11 @@ async function run() {
 
   userCommand
     .command('delete')
-    .aliases(['remove', 'rm', 'del'])
+    .aliases([
+      'remove',
+      'rm',
+      'del',
+    ])
     .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
     .description('Delete a user')
     .action((id: string) => {

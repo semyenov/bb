@@ -101,6 +101,8 @@ export async function createRedisStore(
 
   return {
     data: createCRUD('data'),
+    meta: createCRUD('meta'),
+    users: createCRUD('users'),
     schemas: createCRUD('schemas'),
     disconnect: connection.disconnect,
   }

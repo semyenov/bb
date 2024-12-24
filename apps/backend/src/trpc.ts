@@ -7,6 +7,7 @@ import { initTRPC } from '@trpc/server'
 const logger = createLogger({
   defaultMeta: {
     service: 'trpc',
+    module: 'root',
   },
 })
 
