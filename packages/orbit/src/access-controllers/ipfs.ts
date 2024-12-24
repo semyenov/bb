@@ -101,10 +101,17 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     write ||= [identityId]
 
     if (address) {
-      const manifestBytes = await storage.get(address.replaceAll('/ipfs/', ''))
+      const manifestBytes = await storage.get(
+        address.replaceAll('/ipfs/', ''),
+      )
+      if (!manifestBytes) {
+        throw new Error(
+          'Access controller manifest not found',
+        )
+      }
 
       const { value } = await Block.decode<{ write: string[] }, 113, 18>({
-        bytes: manifestBytes!,
+        bytes: manifestBytes,
         codec,
         hasher,
       })
@@ -138,10 +145,17 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
   }
 
   async canAppend(entry: EntryInstance): Promise<boolean> {
-    const writerIdentity = await this.identities.getIdentity(entry.identity!)
+    const writerIdentity = await this.identities.getIdentity(
+      entry.identity!,
+    )
+
+    console.log('writerIdentity', writerIdentity)
+    console.log('this.write', this)
+
     if (!writerIdentity) {
       return false
     }
+
     const { id } = writerIdentity
     // Allow if the write access list contain the writer's id or is '*'
     if (this.write.includes(id) || this.write.includes('*')) {

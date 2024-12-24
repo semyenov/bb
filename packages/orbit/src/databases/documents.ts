@@ -1,13 +1,15 @@
 import type { PeerSet } from '@libp2p/peer-collections'
 import type { DatabaseOperation, DatabaseType } from '.'
-
-import type { LogInstance } from '../oplog/log'
+import type {
+  DatabaseInstance,
+  DatabaseOptions,
+} from '../database'
+import type { LogInstance } from '../oplog'
 import type { SyncEvents, SyncInstance } from '../sync'
+
 import { DATABASE_DOCUMENTS_TYPE } from '../constants'
 import {
   Database,
-  type DatabaseInstance,
-  type DatabaseOptions,
 } from '../database'
 
 export interface DocumentsDoc<T = unknown> {
@@ -20,9 +22,7 @@ export interface DocumentsIteratorOptions {
   amount?: number
 }
 
-export interface DocumentsOptions {
-  indexBy?: string
-}
+export type DocumentsOptions<T> = DatabaseOptions<T>
 
 export interface DocumentsInstance<T = unknown> extends DatabaseInstance<T> {
   type: 'documents'
@@ -56,12 +56,11 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
   }
 
   static async create<T>(
-    options: DatabaseOptions<T> & DocumentsOptions,
+    { ...options }: DocumentsOptions<T>,
   ): Promise<DocumentsDatabase<T>> {
-    const indexBy = options.indexBy || '_id'
     const database = await Database.create<T>(options)
 
-    return new DocumentsDatabase<T>(database, indexBy)
+    return new DocumentsDatabase<T>(database, '_id')
   }
 
   get name(): string | undefined {

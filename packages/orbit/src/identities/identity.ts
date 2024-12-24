@@ -143,15 +143,15 @@ export class Identity implements IdentityInstance {
 
   async verifyIdentity(): Promise<boolean> {
     const {
-      publicKey,
       id,
-      signatures,
+      publicKey,
+      signatures: { id: signatureId, publicKey: signaturePublicKey },
     } = this
 
     return verifyMessage(
-      signatures.publicKey,
-      id,
-      publicKey + signatures.id,
+      signaturePublicKey,
+      publicKey,
+      signatureId + publicKey,
     )
   }
 }

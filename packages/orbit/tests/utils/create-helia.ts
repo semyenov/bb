@@ -12,29 +12,32 @@ import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
 
-const isBrowser = () => typeof window !== 'undefined'
+function isBrowser() {
+  return typeof window !== 'undefined'
+}
 
 const Libp2pOptions = {
   addresses: {
     listen: ['/ip4/0.0.0.0/tcp/0/ws'],
   },
   transports: [
+    webRTC(),
     webSockets({
       filter: all,
-    }),
-    webRTC(),
-    circuitRelayTransport({
-      discoverRelays: 1,
     }),
   ],
   connectionEncryption: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
-    denyDialMultiaddr: () => false,
+    denyDialMultiaddr: () => {
+      return false
+    },
   },
   services: {
     identify: identify(),
-    pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+    pubsub: gossipsub({
+      allowPublishToZeroTopicPeers: true,
+    }),
   },
 }
 
@@ -46,39 +49,39 @@ const Libp2pBrowserOptions = {
     listen: ['/webrtc'],
   },
   transports: [
+    webRTC(),
     webSockets({
       filter: all,
-    }),
-    webRTC(),
-    circuitRelayTransport({
-      discoverRelays: 1,
     }),
   ],
   connectionEncryption: [noise()],
   streamMuxers: [yamux()],
   connectionGater: {
-    denyDialMultiaddr: () => false,
+    denyDialMultiaddr: () => {
+      return false
+    },
   },
   services: {
     identify: identify(),
-    pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+    pubsub: gossipsub({
+      allowPublishToZeroTopicPeers: true,
+    }),
   },
 }
 
-export default async ({ directory }: { directory?: string } = {}) => {
+export default async ({ dir }: { dir?: string } = {}) => {
   const options = isBrowser()
     ? Libp2pBrowserOptions
     : Libp2pOptions
 
   const libp2p = await createLibp2p({ ...options })
-
-  const blockstore = directory
-    ? new LevelBlockstore(`${directory}/blocks`)
+  const blockstore = dir
+    ? new LevelBlockstore(`${dir}/blocks`)
     : new MemoryBlockstore()
 
   const heliaOptions = {
-    blockstore,
     libp2p,
+    blockstore,
     blockBrokers: [bitswap()],
   }
 

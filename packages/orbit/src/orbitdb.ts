@@ -111,7 +111,7 @@ export class OrbitDB implements OrbitDBInstance {
     const {
       ipfs,
       id = await createId(),
-      dir = './orbitdb',
+      dir = './.orbitdb',
     } = options
 
     let keystore: KeyStoreInstance
@@ -132,7 +132,7 @@ export class OrbitDB implements OrbitDBInstance {
 
     const getIdentity = async (identity?: IdentityInstance) => {
       if (identity) {
-        if (typeof identity.provider === 'function') {
+        if (typeof identity.provider) {
           return identities.createIdentity({
             id: identity.id,
             provider: identity.provider,
@@ -224,6 +224,12 @@ export class OrbitDB implements OrbitDBInstance {
         identities: this.identities,
       })
 
+      if (!accessController.address) {
+        throw new Error(
+          'Access controller address is required',
+        )
+      }
+
       const m = await this.manifestStore.create({
         name: address_,
         type: type_,
@@ -264,9 +270,12 @@ export class OrbitDB implements OrbitDBInstance {
       referencesCount,
     }) as DatabaseTypeMap<T>[typeof type]
 
-    database.events.addEventListener('close', this.onDatabaseClosed(address_))
+    database.events.addEventListener(
+      'close',
+      this.onDatabaseClosed(address_),
+    )
 
-    this.databases[address_!] = database
+    this.databases[address_] = database
 
     return database
   }

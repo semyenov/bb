@@ -5,6 +5,13 @@ import { createLogger } from '@regioni/lib-logger'
 
 import { startOrbitDB, stopOrbitDB } from './orbit'
 
+interface IUser {
+  _id: string
+  firstName: string
+  lastName: string
+  email: string
+}
+
 const logger = createLogger({
   defaultMeta: {
     service: 'test',
@@ -15,7 +22,7 @@ const dbName = process.argv[2] || 'my-database'
 const dbDir = process.argv[3] || './.orbitdb/db1'
 
 const dbId = process.argv[4]
-  || 'zdpuAsxVFKAoY6z8LnLsUtTKkGB4deEcXmhyAEbwkefaLsXR6'
+  || 'test'
 
 async function main() {
 // Create OrbitDB instance
@@ -24,25 +31,24 @@ async function main() {
     dir: dbDir,
   })
   const { libp2p } = orbitdb.ipfs
-  // libp2p.
+
+  // libp2p
   logger.info('peerId', libp2p.peerId)
   logger.info('multiaddr', libp2p.getMultiaddrs())
   logger.info('protocol', libp2p.getProtocols())
-  // logger.log('info', { lib2p2: JSON.stringify(orbitdb.ipfs.libp2p) })
-  interface IUser {
-    _id: string
-    firstName: string
-    lastName: string
-    email: string
-  }
 
   // Open a database
-  const db = await orbitdb.open<IUser, 'documents'>('documents', dbName, {
-    type: 'documents',
-    indexBy: 'email',
-  })
+  const db = await orbitdb.open<IUser, 'documents'>(
+    'documents',
+    dbName,
+    { indexBy: 'email' },
+  )
 
-  logger.log('info', { address: db.address })
+  logger.log(
+    'info',
+    'db address',
+    { address: db.address },
+  )
 
   // Listen for updates
   db.events.addEventListener(
@@ -93,7 +99,12 @@ async function main() {
       })
 
       const startTime = performance.now()
-      await Promise.all(chunk.map(db.put))
+      await Promise.all(chunk.map(({
+        _id,
+        ...value
+      }) => {
+        return db.put({ _id, ...value })
+      }))
       time += performance.now() - startTime
     }
 

@@ -26,15 +26,15 @@ class Index<T> {
     this.indexedEntries = indexedEntries
   }
 
-  static async create<T>(directory?: string): Promise<Index<T>> {
+  static async create<T>(dir?: string): Promise<Index<T>> {
     const index = await LevelStorage.create<
       EntryInstance<DatabaseOperation<T>>
     >({
-      path: directory,
+      path: dir,
       valueEncoding: DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
     })
     const indexedEntries = await LevelStorage.create<boolean>({
-      path: join(directory || './.orbitdb', `/_indexedEntries/`),
+      path: join(dir || './.orbitdb', `/_indexedEntries/`),
       valueEncoding: DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
     })
 
@@ -114,17 +114,14 @@ class Index<T> {
   }
 }
 
-export interface KeyValueIndexedOptions<T> {
-  storage?: StorageInstance<T>
-}
+export type KeyValueIndexedOptions<T> = DatabaseOptions<T>
 
 export interface KeyValueIndexedInstance<T = unknown>
   extends DatabaseInstance<T> {
   type: 'keyvalue-indexed'
 }
 
-export class KeyValueIndexedDatabase<T = unknown>
-implements KeyValueIndexedInstance<T> {
+export class KeyValueIndexedDatabase<T = unknown> implements KeyValueIndexedInstance<T> {
   private keyValueStore: KeyValueInstance<T>
   private index: Index<T>
 
@@ -142,7 +139,7 @@ implements KeyValueIndexedInstance<T> {
   }
 
   static async create<T>(
-    options: DatabaseOptions<T> & KeyValueIndexedOptions<T>,
+    { ...options }: KeyValueIndexedOptions<T>,
   ): Promise<KeyValueIndexedDatabase<T>> {
     const {
       ipfs,
@@ -159,12 +156,12 @@ implements KeyValueIndexedInstance<T> {
       syncAutomatically,
     } = options
 
-    const indexDirectory = join(
+    const indexDir = join(
       dir || './.orbitdb',
       `./${address}/_index/`,
     )
 
-    const index = await Index.create<T>(indexDirectory)
+    const index = await Index.create<T>(indexDir)
     const keyValueStore = await KeyValueDatabase.create({
       ipfs,
       identity,

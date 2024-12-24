@@ -83,7 +83,6 @@ export class Database<
 > implements DatabaseInstance<T, E> {
   public name?: string
   public address?: string
-  public indexBy?: string
   public peers: PeerSet
   public meta: any
   public log: LogInstance<DatabaseOperation<T>>
@@ -140,7 +139,7 @@ export class Database<
       address,
       ipfs,
       onUpdate,
-      dir: directory,
+      dir,
       meta = {},
       identity,
       accessController,
@@ -148,7 +147,7 @@ export class Database<
     } = options
 
     const path = join(
-      directory || DATABASE_PATH,
+      dir || DATABASE_PATH,
       `./${address}/`,
     )
 
@@ -205,7 +204,9 @@ export class Database<
                 new CustomEvent(
                   'update',
                   {
-                    detail: { entry },
+                    detail: {
+                      entry,
+                    },
                   },
                 ),
               )
@@ -234,15 +235,27 @@ export class Database<
 
   public async addOperation(op: DatabaseOperation<T>): Promise<string> {
     const task = async () => {
-      const entry = await this.log.append(op, {
-        referencesCount: DATABASE_REFERENCES_COUNT,
-      })
+      const entry = await this.log.append(
+        op,
+        {
+          referencesCount: DATABASE_REFERENCES_COUNT,
+        },
+      )
+
       await this.sync.add(entry)
       if (this.onUpdate) {
         await this.onUpdate(this.log, entry)
       }
+
       this.events.dispatchEvent(
-        new CustomEvent('update', { detail: { entry } }),
+        new CustomEvent(
+          'update',
+          {
+            detail: {
+              entry,
+            },
+          },
+        ),
       )
 
       return entry.hash!

@@ -11,7 +11,7 @@ import { join } from '../utils'
 import { Identity } from './identity'
 import { IdentityProviderRegistry as IdentityProviders } from './providers/registry'
 
-interface IdentitiesCreateIdentityOptions {
+export interface IdentitiesCreateIdentityOptions {
   id?: string
   provider?: IdentityProviderInstance
 }
@@ -39,14 +39,26 @@ export class Identities implements IdentitiesInstance {
   keystore: KeyStoreInstance
   private storage: StorageInstance<Uint8Array>
   private cache: LRUStorage<
-    Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+    Omit<
+      IdentityInstance,
+      'getKey' |
+      'sign' |
+      'verify' |
+      'provider'
+    >
   >
 
   private constructor(options: {
     keystore: KeyStoreInstance
     storage: StorageInstance<Uint8Array>
     cache: LRUStorage<
-      Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+      Omit<
+        IdentityInstance,
+        'getKey' |
+        'sign' |
+        'verify' |
+        'provider'
+      >
     >
   }) {
     this.keystore = options.keystore
@@ -55,7 +67,7 @@ export class Identities implements IdentitiesInstance {
   }
 
   static async create(
-    options: IdentitiesOptions = { path: DEFAULT_KEYS_PATH },
+    { ...options }: IdentitiesOptions = { path: DEFAULT_KEYS_PATH },
   ): Promise<Identities> {
     const keystore
       = options.keystore
@@ -72,7 +84,13 @@ export class Identities implements IdentitiesInstance {
         })
 
     const cache = await LRUStorage.create<
-      Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+      Omit<
+        IdentityInstance,
+        'getKey' |
+        'sign' |
+        'verify' |
+        'provider'
+      >
     >({
       size: 1000,
     })
@@ -107,6 +125,7 @@ export class Identities implements IdentitiesInstance {
       = IdentityProvider({
         keystore: this.keystore,
       })
+
     const identityId = await identityProvider.getId({ id })
 
     const privateKey
@@ -115,7 +134,7 @@ export class Identities implements IdentitiesInstance {
 
     const identityIdSignature = await signMessage(
       privateKey,
-      identityId,
+      id,
     )
     const publicKey = uint8ArrayToString(
       privateKey.publicKey.raw,
@@ -123,7 +142,7 @@ export class Identities implements IdentitiesInstance {
     )
     const publicKeyAndIdSignature = await identityProvider.signIdentity(
       publicKey + identityIdSignature,
-      { id },
+      { id: identityId },
     )
     const signatures = {
       id: identityIdSignature,
@@ -175,28 +194,32 @@ export class Identities implements IdentitiesInstance {
       publicKey,
       id,
     )) {
+      console.log('signatureId', signatureId)
+      console.log('publicKey', publicKey)
+      console.log('id', id)
+
       return false
     }
 
-    const cached = await this.cache.get(id)
+    const cached = await this.cache.get(signatureId)
     if (cached) {
       return Identity.isEqual(identity, await Identity.create({
         ...cached,
-        sign: signFactory(this.keystore, id),
+        sign: signFactory(this.keystore, signatureId),
         verify: verifyFactory(),
         provider,
       }))
     }
 
-    const identityVerified = await identity.verifyIdentity()
-    if (identityVerified) {
+    const isVerified = await identity.verifyIdentity()
+    if (isVerified) {
       await this.cache.put(
-        id,
+        signatureId,
         identity,
       )
     }
 
-    return identityVerified
+    return isVerified
   }
 
   async getIdentity(hash: string): Promise<IdentityInstance | null> {

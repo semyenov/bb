@@ -1,7 +1,7 @@
 import type { PeerSet } from '@libp2p/peer-collections'
 import type { DatabaseOperation, DatabaseType } from '.'
 
-import type { LogInstance } from '../oplog/log'
+import type { LogInstance } from '../oplog'
 import type { SyncEvents, SyncInstance } from '../sync'
 import { DATABASE_EVENTS_TYPE } from '../constants'
 import {
@@ -50,7 +50,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
   }
 
   static async create<T>(
-    options: EventsOptions<T>,
+    { ...options }: EventsOptions<T>,
   ): Promise<EventsDatabase<T>> {
     const database = await Database.create<T>(options)
 

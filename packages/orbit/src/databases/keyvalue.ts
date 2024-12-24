@@ -4,15 +4,12 @@ import type { AccessControllerInstance } from '../access-controllers'
 import type { DatabaseInstance, DatabaseOptions } from '../database'
 import type { IdentityInstance } from '../identities'
 import type { LogInstance } from '../oplog/log'
-import type { StorageInstance } from '../storage'
 import type { SyncEvents, SyncInstance } from '../sync'
 
 import { DATABASE_KEYVALUE_TYPE } from '../constants'
 import { Database } from '../database'
 
-export interface KeyValueOptions<T> {
-  storage?: StorageInstance<T>
-}
+export type KeyValueOptions<T> = DatabaseOptions<T>
 
 export interface KeyValueEntry<T> {
   key?: string
@@ -22,7 +19,6 @@ export interface KeyValueEntry<T> {
 
 export interface KeyValueInstance<T> extends DatabaseInstance<T> {
   type: 'keyvalue'
-  indexBy?: string
 
   put: (key: string, value: T) => Promise<string>
   set: (key: string, value: T) => Promise<string>
@@ -48,7 +44,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
   }
 
   static async create<T>(
-    options: DatabaseOptions<T> & KeyValueOptions<T>,
+    { ...options }: KeyValueOptions<T>,
   ): Promise<KeyValueDatabase<T>> {
     const database = await Database.create<T>(options)
 

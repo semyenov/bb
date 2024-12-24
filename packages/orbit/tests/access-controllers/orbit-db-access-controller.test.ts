@@ -42,13 +42,13 @@ describe('orbitDBAccessController', () => {
       ipfs: ipfs1,
       identities: identities1,
       id: 'userA',
-      directory: dbPath1,
+      dir: dbPath1,
     })
     orbitdb2 = await OrbitDB.create({
       ipfs: ipfs2,
       identities: identities2,
       id: 'userB',
-      directory: dbPath2,
+      dir: dbPath2,
     })
   })
 

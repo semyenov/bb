@@ -22,22 +22,22 @@ export interface DatabaseTypeMap<T = unknown> {
   'keyvalue-indexed': KeyValueIndexedDatabase<T>
 }
 
-export interface DatabaseType<T, D extends keyof DatabaseTypeMap<T>> {
+export interface DatabaseType<T, D extends keyof DatabaseTypeMap<T> = keyof DatabaseTypeMap<T>, O extends DatabaseOptions<T> = DatabaseOptions<T>> {
   type: D
-  create: (options: DatabaseOptions<T>) => Promise<DatabaseTypeMap<T>[D]>
+  create: (options: O) => Promise<DatabaseTypeMap<T>[D]>
 }
 
 const databaseTypes: Record<
   string,
-  (options: DatabaseOptions<any>) => Promise<DatabaseTypeMap<any>[keyof DatabaseTypeMap<any>]>
+  DatabaseType<any>['create']
 > = {}
 
-export function useDatabaseType<T, D extends keyof DatabaseTypeMap<T>>(database: DatabaseType<T, D>) {
-  if (!database.type) {
+export function useDatabaseType<T>({ type, create }: DatabaseType<T>) {
+  if (!type) {
     throw new Error('Database type does not contain required field \'type\'.')
   }
 
-  databaseTypes[database.type] = database.create
+  databaseTypes[type] = create as (options: DatabaseOptions<T>) => Promise<DatabaseTypeMap<T>[typeof type]>
 }
 
 export function getDatabaseType<
@@ -48,11 +48,11 @@ export function getDatabaseType<
     throw new Error('Type not specified')
   }
 
-  if (!databaseTypes[type!]) {
+  if (!databaseTypes[type]) {
     throw new Error(`Unsupported database type: '${type}'`)
   }
 
-  return databaseTypes[type!]
+  return databaseTypes[type] as (options: DatabaseOptions<T>) => Promise<DatabaseTypeMap<T>[D]>
 }
 
 useDatabaseType(Events)
