@@ -1,10 +1,11 @@
 import { bitswap } from '@helia/block-brokers'
 import { secp256k1ToJWK } from '@regioni/lib-jose'
+import { createLogger } from '@regioni/lib-logger'
 import { KeyStore } from '@regioni/orbit'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
-import * as jose from 'jose'
 
+import * as jose from 'jose'
 import { createLibp2p } from 'libp2p'
 import { DefaultLibp2pOptions } from './config'
 
@@ -13,6 +14,8 @@ const levelPath = './.out/blocks'
 
 const algorithm = 'ES256K'
 const options = DefaultLibp2pOptions
+
+const logger = createLogger({ defaultMeta: { service: 'orbitdb:jose' } })
 
 async function main() {
   const ipfs = await createHelia({
@@ -27,18 +30,18 @@ async function main() {
   const keyPair = await keystore.createKey('userA')
 
   const privateJWK = await secp256k1ToJWK(keyPair)
-  console.log('privateJWK', privateJWK)
+  logger.info('privateJWK', { privateJWK })
 
   const signKey = await jose.importJWK(privateJWK.privateKey)
-  console.log('importedJoseJWK', signKey)
+  logger.info('importedJoseJWK', { signKey })
 
   const jws = await new jose.SignJWT({ payload: 'test' })
     .setProtectedHeader({ alg: algorithm })
     .sign(signKey)
-  console.log('jws', jws)
+  logger.info('jws', { jws })
 
   const payload = await jose.jwtVerify(jws, signKey)
-  console.log('payload', payload)
+  logger.info('payload', { payload })
 
   await ipfs.stop()
 }

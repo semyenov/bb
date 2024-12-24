@@ -28,7 +28,6 @@ import { createId, join } from './utils'
 
 export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
   type?: D
-
   meta?: any
   address?: string
   referencesCount?: number
@@ -87,7 +86,7 @@ export class OrbitDB implements OrbitDBInstance {
 
   private constructor(
     id: string,
-    directory: string,
+    dir: string,
     ipfs: OrbitDBHeliaInstance,
     keystore: KeyStoreInstance,
     identity: IdentityInstance,
@@ -96,7 +95,7 @@ export class OrbitDB implements OrbitDBInstance {
   ) {
     this.id = id
     this.ipfs = ipfs
-    this.dir = directory
+    this.dir = dir
     this.keystore = keystore
     this.identity = identity
     this.peerId = ipfs.libp2p.peerId
@@ -109,18 +108,17 @@ export class OrbitDB implements OrbitDBInstance {
       throw new Error('IPFS instance is a required argument.')
     }
 
-    const id = options.id || (await createId())
-    const { ipfs } = options
-    const dir = options.dir || './orbitdb'
+    const {
+      ipfs,
+      id = await createId(),
+      dir = './orbitdb',
+    } = options
 
     let keystore: KeyStoreInstance
-    let identities: IdentitiesInstance
+    let { identities } = options
 
-    if (options.identities) {
-      // eslint-disable-next-line prefer-destructuring
-      identities = options.identities
-      // eslint-disable-next-line prefer-destructuring
-      keystore = identities.keystore
+    if (identities) {
+      ({ keystore } = identities)
     }
     else {
       keystore = await KeyStore.create({
@@ -251,7 +249,7 @@ export class OrbitDB implements OrbitDBInstance {
       throw new Error(`Unsupported database type: '${type}'`)
     }
 
-    const database = (await Database({
+    const database = await Database({
       ipfs: this.ipfs,
       identity: this.identity,
       address: address_,
@@ -264,7 +262,7 @@ export class OrbitDB implements OrbitDBInstance {
       entryStorage,
       indexStorage,
       referencesCount,
-    })) as DatabaseTypeMap<T>[typeof type]
+    }) as DatabaseTypeMap<T>[typeof type]
 
     database.events.addEventListener('close', this.onDatabaseClosed(address_))
 

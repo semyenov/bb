@@ -39,6 +39,7 @@ async function main() {
   // Open a database
   const db = await orbitdb.open<IUser, 'documents'>('documents', dbName, {
     type: 'documents',
+    indexBy: 'email',
   })
 
   logger.log('info', { address: db.address })
@@ -62,7 +63,8 @@ async function main() {
   })
 
   // Add some data
-  await generate(100)
+  // await generate(100)
+  await db.put({ _id: '12', email: 'test@test.com', firstName: 'test', lastName: 'test' })
 
   // Get some data
   const value = await db.get('12')

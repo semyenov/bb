@@ -150,7 +150,7 @@ implements KeyValueIndexedInstance<T> {
       address,
       name,
       accessController,
-      dir: directory,
+      dir,
       meta,
       headsStorage,
       entryStorage,
@@ -160,7 +160,7 @@ implements KeyValueIndexedInstance<T> {
     } = options
 
     const indexDirectory = join(
-      directory || './.orbitdb',
+      dir || './.orbitdb',
       `./${address}/_index/`,
     )
 
@@ -171,7 +171,7 @@ implements KeyValueIndexedInstance<T> {
       address,
       name,
       accessController,
-      dir: directory,
+      dir,
       meta,
       headsStorage,
       entryStorage,

@@ -40,7 +40,7 @@ export interface DocumentsInstance<T = unknown> extends DatabaseInstance<T> {
 
 export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
   private database: DatabaseInstance<T>
-  public indexBy: string
+  public indexBy = '_id'
 
   get type(): 'documents' {
     return DATABASE_DOCUMENTS_TYPE

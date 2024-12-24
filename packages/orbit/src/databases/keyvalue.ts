@@ -55,10 +55,6 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
     return new KeyValueDatabase<T>(database)
   }
 
-  get indexBy(): string | undefined {
-    return this.database.indexBy
-  }
-
   get name(): string | undefined {
     return this.database.name
   }

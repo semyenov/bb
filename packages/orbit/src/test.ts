@@ -21,6 +21,7 @@ import { createLibp2p, type Libp2pOptions } from 'libp2p'
 import { OrbitDB } from './orbitdb'
 
 const directory = './orbitdb'
+const id = 'test'
 
 const options: Libp2pOptions<{
   pubsub: PubSub<GossipsubEvents>
@@ -62,14 +63,14 @@ async function main() {
     blockBrokers: [bitswap()],
   })
   const orbit = await OrbitDB.create({
-    id: 'test',
+    id,
     dir: './orbitdb',
     ipfs,
   })
 
   const db = await orbit.open<{ _id: string, test: string }, 'documents'>(
     'documents',
-    '/orbitdb/zdpuAqDgvEBDFh2xdNMwzAYJXg17J46Z25yMYHsMuiZpJcbT6',
+    id,
   )
 
   db.events.addEventListener('update', (entry) => {

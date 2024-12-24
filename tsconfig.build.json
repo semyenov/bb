@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "baseUrl": ".",
+    "rootDir": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowJs": true,
