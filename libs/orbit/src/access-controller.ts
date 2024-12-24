@@ -136,7 +136,7 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     const { key, op: cap } = payload as { key: string, op: ACLCap }
     const hasCapability = await this.hasCapability(writerIdentity.id, key, cap)
     if (hasCapability) {
-      return writerIdentity.verifyIdentity()
+      return this.identities.verifyIdentity(writerIdentity)
     }
 
     return false

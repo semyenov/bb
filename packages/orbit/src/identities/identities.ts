@@ -1,6 +1,6 @@
 import type { KeyStoreInstance } from '../key-store'
 import type { StorageInstance } from '../storage'
-import type { OrbitDBHeliaInstance } from '../vendor'
+import type { OrbitDBHeliaInstance } from '../vendor.d'
 import type { IdentityInstance } from './identity'
 import type { IdentityProviderInstance } from './providers'
 

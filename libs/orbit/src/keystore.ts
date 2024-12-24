@@ -34,9 +34,6 @@ export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreI
       const keyString = uint8ArrayToString(key.raw)
       await storage.setItem(id, keyString)
     },
-    getPublic(keys) {
-      return uint8ArrayToString(keys.publicKey.raw)
-    },
     async getKey(id) {
       const keyString = await storage.getItem(id)
       if (!keyString) {

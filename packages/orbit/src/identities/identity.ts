@@ -1,10 +1,10 @@
-import type { IdentityProviderInstance } from './providers/types'
+import type { IdentityProviderInstance } from './providers'
 
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
-import { verifyMessage } from '..'
+import { verifyMessage } from '../key-store'
 
 export interface IdentitySignatures {
   id: string

@@ -14,9 +14,9 @@ function isBrowser() {
 
 export async function startOrbitDB({
   id,
+  dir = '.',
   identity,
   identities,
-  directory = '.',
 }: Omit<OrbitDBOptions, 'ipfs'>) {
   const options = isBrowser()
     ? DefaultLibp2pBrowserOptions
@@ -24,15 +24,15 @@ export async function startOrbitDB({
 
   const ipfs = await createHelia({
     libp2p: await createLibp2p({ ...options }),
-    blockstore: new LevelBlockstore(`${directory}/ipfs/blocks`),
+    blockstore: new LevelBlockstore(`${dir}/ipfs/blocks`),
     blockBrokers: [bitswap()],
   })
 
   return OrbitDB.create({
     id,
+    dir,
     identity,
     identities,
-    directory,
     ipfs,
   })
 }

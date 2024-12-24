@@ -1,3 +1,3 @@
 export * from './identities'
 export * from './identity'
-export * from './providers/registry'
+export * from './providers'

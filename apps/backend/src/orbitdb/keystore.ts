@@ -33,14 +33,14 @@ async function main() {
 
   const keystore = await KeyStore.create({ path: keysPath })
   const identities = await Identities.create({ keystore, ipfs })
-  const provider = new PublicKeyIdentityProvider({ keystore })
+  const provider = PublicKeyIdentityProvider.create({ keystore })
   const identity = await identities.createIdentity({ id, provider })
   const orbit = await createOrbitDB({
     id: 'orbitdb-AAA',
     ipfs,
     identities,
     identity,
-    directory: './.out/orbitdb',
+    dir: './.out/orbitdb',
   })
 
   const db = await orbit.open('events', 'test')

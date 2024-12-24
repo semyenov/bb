@@ -16,7 +16,7 @@ export type CreateContextOptions =
 export async function createContext() {
   const ajv = await createAjv()
   const redis = await createRedisStore({
-    url: 'redis://redis:6379',
+    url: 'redis://localhost:6379',
   })
 
   return {

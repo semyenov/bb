@@ -21,7 +21,7 @@ async function main() {
 // Create OrbitDB instance
   const orbitdb = await startOrbitDB({
     id: dbId,
-    directory: dbDir,
+    dir: dbDir,
   })
   const { libp2p } = orbitdb.ipfs
   // libp2p.
