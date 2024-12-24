@@ -1,13 +1,17 @@
 import type { StorageInstance } from './storage'
-import type { PrivateKey } from './vendor'
+import type { Secp256k1PrivateKey } from './vendor.d'
 
-import * as crypto from '@libp2p/crypto'
+import {
+  generateKeyPair,
+  privateKeyFromRaw,
+  publicKeyFromRaw,
+} from '@libp2p/crypto/keys'
+
 import {
   compare as uint8ArrayCompare,
   fromString as uint8ArrayFromString,
   toString as uint8ArrayToString,
 } from 'uint8arrays'
-
 import { KEYSTORE_PATH } from './constants'
 import { ComposedStorage, LevelStorage, LRUStorage } from './storage'
 
@@ -17,12 +21,11 @@ export interface KeyStoreOptions {
 }
 
 export interface KeyStoreInstance {
-  createKey: (id: string) => Promise<PrivateKey>
+  createKey: (id: string) => Promise<Secp256k1PrivateKey>
   hasKey: (id: string) => Promise<boolean>
-  addKey: (id: string, key: PrivateKey) => Promise<void>
+  addKey: (id: string, key: Secp256k1PrivateKey) => Promise<void>
   removeKey: (id: string) => Promise<void>
-  getKey: (id: string) => Promise<PrivateKey | null>
-  getPublic: (key: PrivateKey) => string
+  getKey: (id: string) => Promise<Secp256k1PrivateKey | null>
   clear: () => Promise<void>
   close: () => Promise<void>
 }
@@ -31,11 +34,6 @@ const VERIFIED_CACHE_STORAGE = LRUStorage.create<{
   publicKey: string
   data: string | Uint8Array
 }>({ size: 1000 })
-
-const unmarshal
-  = crypto.keys.privateKeyFromRaw
-const unmarshalPubKey
-  = crypto.keys.publicKeyFromRaw
 
 export class KeyStore implements KeyStoreInstance {
   private storage: StorageInstance<Uint8Array>
@@ -81,22 +79,22 @@ export class KeyStore implements KeyStoreInstance {
     return hasKey
   }
 
-  async addKey(id: string, key: PrivateKey): Promise<void> {
+  async addKey(id: string, key: Secp256k1PrivateKey): Promise<void> {
     await this.storage.put(`private_${id}`, key.raw)
   }
 
-  async createKey(id: string): Promise<PrivateKey> {
+  async createKey(id: string): Promise<Secp256k1PrivateKey> {
     if (!id) {
       throw new Error('id needed to create a key')
     }
 
-    const keys = await crypto.keys.generateKeyPair('secp256k1')
-    await this.storage.put(`private_${id}`, keys.raw)
+    const key = await generateKeyPair('secp256k1')
+    await this.storage.put(`private_${id}`, key.raw)
 
-    return keys
+    return key
   }
 
-  async getKey(id: string): Promise<PrivateKey | null> {
+  async getKey(id: string): Promise<Secp256k1PrivateKey | null> {
     if (!id) {
       throw new Error('id needed to get a key')
     }
@@ -106,15 +104,7 @@ export class KeyStore implements KeyStoreInstance {
       return null
     }
 
-    return unmarshal(storedKey)
-  }
-
-  getPublic(keys: PrivateKey): string {
-    if (!keys) {
-      throw new Error('keys needed to get a public key')
-    }
-
-    return uint8ArrayToString(keys.publicKey.raw, 'base16')
+    return privateKeyFromRaw(storedKey) as Secp256k1PrivateKey
   }
 
   async removeKey(id: string): Promise<void> {
@@ -137,7 +127,7 @@ async function verify(
   signature: string,
   data: Uint8Array | string,
 ) {
-  const pubKey = unmarshalPubKey(uint8ArrayFromString(publicKey, 'base16'))
+  const pubKey = publicKeyFromRaw(uint8ArrayFromString(publicKey, 'base16'))
   if (!pubKey) {
     throw new Error('Public key could not be decoded')
   }
@@ -151,7 +141,7 @@ async function verify(
 async function verifySignature(
   signature: string,
   publicKey: string,
-  data: Uint8Array | string,
+  data: string | Uint8Array,
 ) {
   if (!signature) {
     throw new Error('No signature given')
@@ -163,14 +153,18 @@ async function verifySignature(
     throw new Error('Given input data was undefined')
   }
 
-  return verify(publicKey, signature, data)
+  return verify(
+    publicKey,
+    signature,
+    ensureUint8Array(data),
+  )
 }
 
 export async function signMessage(
-  key: PrivateKey,
+  privateKey: Secp256k1PrivateKey,
   data: string | Uint8Array,
 ): Promise<string> {
-  if (!key) {
+  if (!privateKey) {
     throw new Error('No signing key given')
   }
 
@@ -178,7 +172,7 @@ export async function signMessage(
     throw new Error('Given input data was undefined')
   }
 
-  const signature = await key.sign(
+  const signature = await privateKey.sign(
     ensureUint8Array(data),
   )
 
@@ -197,7 +191,7 @@ export async function verifyMessage(
     if (verified) {
       await verifiedCache.put(signature, {
         publicKey,
-        data,
+        data: ensureUint8Array(data),
       })
     }
 
@@ -210,5 +204,6 @@ export async function verifyMessage(
     return match
   }
 
-  return cached.publicKey === publicKey && compare(cached.data, data)
+  return cached.publicKey === publicKey
+    && compare(cached.data, data)
 }

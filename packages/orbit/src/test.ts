@@ -5,7 +5,7 @@ import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
 import { bitswap } from '@helia/block-brokers'
-import { bootstrap } from '@libp2p/bootstrap'
+// import { bootstrap } from '@libp2p/bootstrap'
 import {
   circuitRelayTransport,
 } from '@libp2p/circuit-relay-v2'
@@ -15,13 +15,13 @@ import { tcp } from '@libp2p/tcp'
 import { webRTC } from '@libp2p/webrtc'
 import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
-
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p, type Libp2pOptions } from 'libp2p'
-import { OrbitDB } from '.'
+import { OrbitDB } from './orbitdb'
 
 const directory = './orbitdb'
+
 const options: Libp2pOptions<{
   pubsub: PubSub<GossipsubEvents>
   identify: Identify
@@ -31,9 +31,7 @@ const options: Libp2pOptions<{
   },
   peerDiscovery: [
     mdns(),
-    bootstrap({
-      list: ['/ip4/192.168.10.53/tcp/41613/ws/p2p/12D3KooWHrQf4KmPEJEwY53NdzQ5woniNq6Jt7So8fEYScjUWeQQ'],
-    }),
+    // bootstrap(),
   ],
   transports: [
     tcp(),
@@ -65,7 +63,7 @@ async function main() {
   })
   const orbit = await OrbitDB.create({
     id: 'test',
-    directory: './orbitdb',
+    dir: './orbitdb',
     ipfs,
   })
 
@@ -79,10 +77,10 @@ async function main() {
   })
 
   console.log(db)
-  // db.put({ _id: 'test', test: 'test' })
+  db.put({ _id: 'test', test: 'test' })
 
-  // const result = await db.get('test')
-  // console.log(result)
+  const result = await db.get('test')
+  console.log(result)
 }
 
 main()

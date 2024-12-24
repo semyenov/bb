@@ -1,13 +1,8 @@
 import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, OrbitDBInstance } from '@regioni/orbit'
 
-export enum CAP {
-  PUT = 'PUT',
-  DEL = 'DEL',
-  ALL = '*',
-}
-
-type ACL = Record<'caps', CAP[]>
-type ACLDatabase = {
+export type ACLCap = 'PUT' | 'DEL' | '*'
+export type ACL = Record<'caps', ACLCap[]>
+export type ACLDatabase = {
   get: (key: string) => Promise<ACL | null>
   put: (key: string, value: ACL) => Promise<string>
 }
@@ -17,8 +12,8 @@ const CUSTOM_ACCESS_CONTROLLER_TYPE = 'custom' as const
 export interface CustomAccessControllerInstance extends AccessControllerInstance {
   type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
   write: string[]
-  grant: (id: string, key: string, caps: CAP[]) => Promise<void>
-  revoke: (id: string, key: string, caps: CAP[]) => Promise<void>
+  grant: (id: string, key: string, caps: ACLCap[]) => Promise<void>
+  revoke: (id: string, key: string, caps: ACLCap[]) => Promise<void>
   canAppend: (entry: EntryInstance) => Promise<boolean>
 }
 
@@ -30,7 +25,6 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   }
 
   private db: ACLDatabase
-  private orbitdb: OrbitDBInstance
   private identities: IdentitiesInstance
 
   public address: string
@@ -42,7 +36,6 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     address: string,
     db: ACLDatabase,
   ) {
-    this.orbitdb = orbitdb
     this.identities = identities
     this.address = address
     this.db = db
@@ -68,53 +61,57 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     )
   }
 
-  async grant(id: string, key: string, caps: CAP[]): Promise<void> {
-    const acl = await this.db.get(id + key)
-    const updatedCaps = caps.includes(CAP.ALL)
-      ? [CAP.ALL]
+  async grant(id: string, key: string, caps: ACLCap[]): Promise<void> {
+    const aclKey = formatKey(id, key)
+
+    const acl = await this.db.get(aclKey)
+    const updatedCaps = caps.includes('*')
+      ? ['*' as ACLCap]
       : (acl
           ? [...new Set([...acl.caps, ...caps])]
           : caps)
 
-    await this.db.put(id + key, {
+    await this.db.put(aclKey, {
       caps: updatedCaps,
     })
   }
 
-  async revoke(id: string, key: string, caps: CAP[]): Promise<void> {
-    const acl = await this.db.get(id + key)
-    if (!acl) {
+  async revoke(id: string, key: string, caps: ACLCap[]): Promise<void> {
+    const aclKey = formatKey(id, key)
+    const aclData = await this.db.get(aclKey)
+    if (!aclData) {
       return
     }
 
-    const currentCaps = acl.caps
-    const updatedCaps = caps.includes(CAP.ALL)
+    const currentCaps = aclData.caps
+    const updatedCaps = caps.includes('*')
       ? []
-      : (currentCaps.includes(CAP.ALL)
-          ? [CAP.PUT, CAP.DEL].filter((op) => {
-              return !caps.includes(op)
+      : (currentCaps.includes('*')
+          ? ['PUT', 'DEL'].filter((op) => {
+              return !caps.includes(op as ACLCap)
             })
           : currentCaps.filter((op) => {
-              return !caps.includes(op)
+              return !caps.includes(op as ACLCap)
             }))
 
-    await this.db.put(id + key, {
-      caps: updatedCaps,
+    await this.db.put(aclKey, {
+      caps: updatedCaps as ACLCap[],
     })
   }
 
-  private async hasCapability(id: string, key: string, cap: CAP): Promise<boolean> {
-    const acl = await this.db.get(id + key)
-    if (!acl) {
+  private async hasCapability(id: string, key: string, cap: ACLCap): Promise<boolean> {
+    const aclKey = formatKey(id, key)
+    const aclData = await this.db.get(aclKey)
+    if (!aclData) {
       return false
     }
 
-    const currentCaps = acl.caps
+    const currentCaps = aclData.caps
     if (!currentCaps) {
       return false
     }
 
-    if (currentCaps.includes(CAP.ALL)) {
+    if (currentCaps.includes('*')) {
       return true
     }
 
@@ -122,18 +119,30 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   }
 
   async canAppend(entry: EntryInstance): Promise<boolean> {
-    const { identity, payload } = entry
-    const writerIdentity = await this.identities.getIdentity(identity!)
+    const {
+      identity,
+      payload,
+    } = entry
+
+    if (!identity) {
+      return false
+    }
+
+    const writerIdentity = await this.identities.getIdentity(identity)
     if (!writerIdentity) {
       return false
     }
 
-    const { key, op: cap } = payload as { key: string, op: CAP }
-    const hasWriteAccess = await this.hasCapability(writerIdentity.id, key, cap)
-    if (hasWriteAccess) {
-      return this.identities.verifyIdentity(writerIdentity)
+    const { key, op: cap } = payload as { key: string, op: ACLCap }
+    const hasCapability = await this.hasCapability(writerIdentity.id, key, cap)
+    if (hasCapability) {
+      return writerIdentity.verifyIdentity()
     }
 
     return false
   }
+}
+
+function formatKey(id: string, key: string): string {
+  return `${id}:${key}`
 }

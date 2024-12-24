@@ -1,38 +1,17 @@
 import type { PeerSet } from '@libp2p/peer-collections'
 import type { DatabaseOperation, DatabaseType } from '.'
 import type { AccessControllerInstance } from '../access-controllers'
+import type { DatabaseInstance, DatabaseOptions } from '../database'
 import type { IdentityInstance } from '../identities'
-import type { EntryInstance } from '../oplog'
 import type { LogInstance } from '../oplog/log'
 import type { StorageInstance } from '../storage'
 import type { SyncEvents, SyncInstance } from '../sync'
-import type { OrbitDBHeliaInstance } from '../vendor'
 
 import { DATABASE_KEYVALUE_TYPE } from '../constants'
-import {
-  Database,
-  type DatabaseInstance,
-  type DatabaseOptions,
-} from '../database'
+import { Database } from '../database'
 
-export interface KeyValueDatabaseOptions<T = unknown>
-  extends DatabaseOptions<T> {
-  ipfs: OrbitDBHeliaInstance
-  identity?: IdentityInstance
-  address?: string
-  name?: string
-  access?: AccessControllerInstance
-  directory: string
-  meta: any
-  headsStorage?: StorageInstance<Uint8Array>
-  entryStorage?: StorageInstance<Uint8Array>
-  indexStorage?: StorageInstance<boolean>
-  referencesCount?: number
-  syncAutomatically?: boolean
-  onUpdate?: (
-    log: LogInstance<DatabaseOperation<T>>,
-    entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
-  ) => Promise<void>
+export interface KeyValueOptions<T> {
+  storage?: StorageInstance<T>
 }
 
 export interface KeyValueEntry<T> {
@@ -69,7 +48,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
   }
 
   static async create<T>(
-    options: KeyValueDatabaseOptions<T>,
+    options: DatabaseOptions<T> & KeyValueOptions<T>,
   ): Promise<KeyValueDatabase<T>> {
     const database = await Database.create<T>(options)
 
@@ -123,18 +102,6 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
     return this.database.addOperation(operation)
   }
 
-  async put(key: string, value: T): Promise<string> {
-    return this.database.addOperation({ op: 'PUT', key, value })
-  }
-
-  async set(key: string, value: T): Promise<string> {
-    return this.put(key, value)
-  }
-
-  async del(key: string): Promise<string> {
-    return this.database.addOperation({ op: 'DEL', key, value: null })
-  }
-
   async get(key: string): Promise<T | null> {
     for await (const entry of this.database.log.traverse()) {
       const { op, key: k, value } = entry.payload
@@ -147,6 +114,18 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
     }
 
     return null
+  }
+
+  async put(key: string, value: T): Promise<string> {
+    return this.database.addOperation({ op: 'PUT', key, value })
+  }
+
+  async set(key: string, value: T): Promise<string> {
+    return this.put(key, value)
+  }
+
+  async del(key: string): Promise<string> {
+    return this.database.addOperation({ op: 'DEL', key, value: null })
   }
 
   async *iterator({ amount }: { amount?: number } = {}): AsyncIterable<
@@ -189,7 +168,7 @@ export class KeyValueDatabase<T = unknown> implements KeyValueInstance<T> {
   }
 }
 
-export const KeyValue: DatabaseType<any, 'keyvalue'> = {
-  create: KeyValueDatabase.create,
+export const KeyValue: DatabaseType<unknown, 'keyvalue'> = {
   type: DATABASE_KEYVALUE_TYPE,
+  create: KeyValueDatabase.create,
 }

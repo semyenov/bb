@@ -1,14 +1,12 @@
+import type { Router } from './router'
+
 import { WebSocketServerProxy } from '@regioni/lib-ws'
 import { createHTTPServer } from '@trpc/server/adapters/standalone'
 import { applyWSSHandler } from '@trpc/server/adapters/ws'
 import consola from 'consola'
 
 import { createContext } from './context'
-import { type Router, router } from './router'
-
-// import type { Router } from './router'
-
-export * from './router'
+import { router } from './router'
 
 const logger = consola.withTag('server')
 export const app = createHTTPServer({

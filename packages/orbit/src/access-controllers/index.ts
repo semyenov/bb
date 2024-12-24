@@ -1,5 +1,5 @@
-import type { IdentitiesInstance } from '../identities/identities'
-import type { EntryInstance } from '../oplog/entry'
+import type { IdentitiesInstance } from '../identities'
+import type { EntryInstance } from '../oplog'
 import type { OrbitDBInstance } from '../orbitdb'
 import type { StorageInstance } from '../storage'
 import type { IPFSAccessControllerInstance } from './ipfs'
@@ -68,5 +68,5 @@ export function useAccessController<
 useAccessController(IPFSAccessController)
 useAccessController(OrbitDBAccessController)
 
-export type { IPFSAccessControllerInstance, OrbitDBAccessControllerInstance }
-export { IPFSAccessController, OrbitDBAccessController }
+export * from './ipfs'
+export * from './orbitdb'

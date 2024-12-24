@@ -11,7 +11,7 @@ import type {
   StorageInstance,
 } from './storage'
 import type { SyncEvents, SyncInstance } from './sync'
-import type { OrbitDBHeliaInstance, PeerId } from './vendor'
+import type { OrbitDBHeliaInstance, PeerId } from './vendor.d'
 
 import { TypedEventEmitter } from '@libp2p/interface'
 import PQueue from 'p-queue'
@@ -34,16 +34,16 @@ export interface DatabaseOptions<T> {
   meta: any
   name?: string
   address?: string
-  directory: string
+  dir: string
   referencesCount?: number
   syncAutomatically?: boolean
   ipfs: OrbitDBHeliaInstance
-  identity?: IdentityInstance
+  identity: IdentityInstance
+  accessController: AccessControllerInstance
   identities?: IdentitiesInstance
   headsStorage?: StorageInstance<Uint8Array>
   entryStorage?: StorageInstance<Uint8Array>
   indexStorage?: StorageInstance<boolean>
-  accessController?: AccessControllerInstance
   onUpdate?: (
     log: LogInstance<DatabaseOperation<T>>,
     entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
@@ -109,7 +109,9 @@ export class Database<
     identity: IdentityInstance,
     accessController: AccessControllerInstance,
     log: LogInstance<DatabaseOperation<T>>,
-    syncAutomatically: boolean,
+    sync: SyncInstance<DatabaseOperation<T>, SyncEvents<DatabaseOperation<T>>>,
+    events: TypedEventEmitter<DatabaseEvents<T>>,
+    queue: PQueue,
 
     name?: string,
     address?: string,
@@ -125,29 +127,34 @@ export class Database<
     this.identity = identity
     this.accessController = accessController
     this.onUpdate = onUpdate
-    this.events = new TypedEventEmitter<DatabaseEvents<T>>()
-    this.queue = new PQueue({ concurrency: 1 })
+    this.events = events
+    this.queue = queue
 
     this.log = log
-    this.sync = new Sync({
-      ipfs,
-      log,
-      start: syncAutomatically ?? true,
-      onSynced: async (bytes) => {
-        await this.applyOperation(bytes)
-      },
-    })
+    this.sync = sync
     this.peers = this.sync.peers
   }
 
   static async create<T>(options: DatabaseOptions<T>) {
-    const meta = options.meta || {}
-    const { name, address, ipfs, onUpdate, directory } = options
-    const identity = options.identity!
-    const accessController = options.accessController!
-    const syncAutomatically = options.syncAutomatically ?? true
+    const {
+      name,
+      address,
+      ipfs,
+      onUpdate,
+      dir: directory,
+      meta = {},
+      identity,
+      accessController,
+      syncAutomatically = true,
+    } = options
 
-    const path = join(directory || DATABASE_PATH, `./${address}/`)
+    const path = join(
+      directory || DATABASE_PATH,
+      `./${address}/`,
+    )
+
+    const events = new TypedEventEmitter<DatabaseEvents<T>>()
+    const queue = new PQueue({ concurrency: 1 })
 
     const entryStorage
       = options.entryStorage
@@ -182,37 +189,48 @@ export class Database<
       indexStorage,
     })
 
+    const sync = await Sync.create({
+      ipfs,
+      log,
+      start: syncAutomatically ?? true,
+      onSynced: async (bytes) => {
+        const task = async () => {
+          const entry = await Entry.decode<DatabaseOperation<T>>(bytes)
+          if (entry) {
+            const updated = await log.joinEntry(entry)
+            if (updated) {
+              if (onUpdate) {
+                await onUpdate(log, entry)
+              }
+              events.dispatchEvent(
+                new CustomEvent(
+                  'update',
+                  {
+                    detail: { entry },
+                  },
+                ),
+              )
+            }
+          }
+        }
+
+        await queue.add(task)
+      },
+    })
+
     return new Database(
       ipfs,
       identity,
       accessController,
       log,
-      syncAutomatically,
+      sync,
+      events,
+      queue,
       name,
       address,
       meta,
       onUpdate,
     )
-  }
-
-  private async applyOperation(bytes: Uint8Array): Promise<void> {
-    const task = async () => {
-      const entry = await Entry.decode<DatabaseOperation<T>>(bytes)
-      if (entry) {
-        const updated = await this.log.joinEntry(entry, this.name)
-
-        if (updated) {
-          if (this.onUpdate) {
-            await this.onUpdate(this.log, entry)
-          }
-          this.events.dispatchEvent(
-            new CustomEvent('update', { detail: { entry } }),
-          )
-        }
-      }
-    }
-
-    await this.queue.add(task)
   }
 
   public async addOperation(op: DatabaseOperation<T>): Promise<string> {

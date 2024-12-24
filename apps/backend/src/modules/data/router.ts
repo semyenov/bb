@@ -1,12 +1,16 @@
+import { createLogger } from '@regioni/lib-logger'
 import { parsePath } from '@regioni/lib-pointers'
+
 import { wrap } from '@typeschema/typebox'
-import consola from 'consola'
 
 import { publicProcedure, rootRouter } from '../../trpc'
-
 import { GetItemInputSchema, PostItemInputSchema } from './schema'
 
-const logger = consola.withTag('server')
+const logger = createLogger({
+  defaultMeta: {
+    service: 'data',
+  },
+})
 
 export const dataRouter = rootRouter({
   getAll: publicProcedure.query(({ ctx: { redis } }) => {
@@ -23,6 +27,9 @@ export const dataRouter = rootRouter({
     .input(wrap(PostItemInputSchema))
     .mutation(({ input: { id, path, data }, ctx: { redis, ajv } }) => {
       // Check if id is valid and unique
+      if (!id) {
+        throw new Error('Invalid id')
+      }
 
       // Check if path is valid
       const { namespace, schemaId, key } = parsePath(path)

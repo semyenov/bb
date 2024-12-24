@@ -10,8 +10,8 @@ import type {
 import type { KeyStoreInstance } from './key-store'
 import type { Manifest } from './manifest-store'
 import type { StorageInstance } from './storage'
+import type { OrbitDBHeliaInstance, PeerId } from './vendor.d'
 
-import type { OrbitDBHeliaInstance, PeerId } from './vendor'
 import {
   getAccessController,
 } from './access-controllers'
@@ -30,9 +30,9 @@ export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
   type?: D
 
   meta?: any
-  sync?: boolean
   address?: string
   referencesCount?: number
+  syncAutomatically?: boolean
 
   Database?: (...args: any[]) => DatabaseTypeMap<T>[D]
   AccessController?: (
@@ -45,17 +45,17 @@ export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
 }
 
 export interface OrbitDBOptions {
-  id?: string
   ipfs: OrbitDBHeliaInstance
   identity?: IdentityInstance
   identities?: IdentitiesInstance
-  directory?: string
+  dir?: string
+  id?: string
 }
 
 export interface OrbitDBInstance {
   id: string
+  dir: string
   ipfs: OrbitDBHeliaInstance
-  directory: string
   keystore: KeyStoreInstance
   identity: IdentityInstance
   peerId: PeerId
@@ -72,8 +72,8 @@ const DEFAULT_ACCESS_CONTROLLER = IPFSAccessController.create
 
 export class OrbitDB implements OrbitDBInstance {
   public id: string
+  public dir: string
   public ipfs: OrbitDBHeliaInstance
-  public directory: string
   public keystore: KeyStoreInstance
   public identity: IdentityInstance
   public peerId: PeerId
@@ -87,8 +87,8 @@ export class OrbitDB implements OrbitDBInstance {
 
   private constructor(
     id: string,
-    ipfs: OrbitDBHeliaInstance,
     directory: string,
+    ipfs: OrbitDBHeliaInstance,
     keystore: KeyStoreInstance,
     identity: IdentityInstance,
     identities: IdentitiesInstance,
@@ -96,7 +96,7 @@ export class OrbitDB implements OrbitDBInstance {
   ) {
     this.id = id
     this.ipfs = ipfs
-    this.directory = directory
+    this.dir = directory
     this.keystore = keystore
     this.identity = identity
     this.peerId = ipfs.libp2p.peerId
@@ -111,7 +111,7 @@ export class OrbitDB implements OrbitDBInstance {
 
     const id = options.id || (await createId())
     const { ipfs } = options
-    const directory = options.directory || './orbitdb'
+    const dir = options.dir || './orbitdb'
 
     let keystore: KeyStoreInstance
     let identities: IdentitiesInstance
@@ -124,7 +124,7 @@ export class OrbitDB implements OrbitDBInstance {
     }
     else {
       keystore = await KeyStore.create({
-        path: join(directory, './keystore'),
+        path: join(dir, './keystore'),
       })
       identities = await Identities.create({
         ipfs,
@@ -152,8 +152,8 @@ export class OrbitDB implements OrbitDBInstance {
 
     return new OrbitDB(
       id,
+      dir,
       ipfs,
-      directory,
       keystore,
       identity,
       identities,
@@ -166,7 +166,13 @@ export class OrbitDB implements OrbitDBInstance {
     address: string,
     options: OrbitDBOpenOptions<T, D> = {},
   ): Promise<DatabaseTypeMap<T>[D]> {
-    const { sync, headsStorage, entryStorage, indexStorage, referencesCount } = options
+    const {
+      syncAutomatically,
+      headsStorage,
+      entryStorage,
+      indexStorage,
+      referencesCount,
+    } = options
 
     let { meta } = options
 
@@ -181,7 +187,7 @@ export class OrbitDB implements OrbitDBInstance {
       return this.databases[address_!] as DatabaseTypeMap<T>[D]
     }
 
-    if (OrbitDBAddress.isValidAddress(address_)) {
+    if (OrbitDBAddress.isValid(address_)) {
       const addr = OrbitDBAddress.create(address_)
       manifest = await this.manifestStore.get(addr.hash)
       if (!manifest) {
@@ -252,8 +258,8 @@ export class OrbitDB implements OrbitDBInstance {
       name,
       meta,
       accessController,
-      directory: this.directory,
-      sync,
+      dir: this.dir,
+      syncAutomatically,
       headsStorage,
       entryStorage,
       indexStorage,

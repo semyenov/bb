@@ -26,7 +26,7 @@
   ],
   "scripts": {
     "build": "pkgroll --minify",
-    "dev": "yarn esno src/index.ts",
+    "dev": "yarn tsx src/index.ts",
     "typecheck": "yarn tsc --noEmit",
     "release": "yarn npm publish"
   },
@@ -34,7 +34,7 @@
     "@libp2p/crypto": "^5.0.8",
     "@regioni/lib-logger": "workspace:^",
     "@regioni/orbit": "workspace:^",
-    "consola": "^3.3.0",
+    "consola": "^3.3.1",
     "libp2p": "^2.4.2",
     "unstorage": "^1.14.1"
   },

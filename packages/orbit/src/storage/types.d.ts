@@ -1,3 +1,8 @@
+export type StorageIteratorOptions = {
+  amount: number
+  reverse: boolean
+}
+
 export interface StorageInstance<T> {
   put: (hash: string, data: T) => Promise<void>
   get: (hash: string) => Promise<T | null>
@@ -8,8 +13,5 @@ export interface StorageInstance<T> {
   close: () => Promise<void>
   clear: () => Promise<void>
 
-  iterator: (options?: {
-    amount: number
-    reverse: boolean
-  }) => AsyncIterable<[string, T]>
+  iterator: (options?: StorageIteratorOptions) => AsyncIterable<[string, T]>
 }

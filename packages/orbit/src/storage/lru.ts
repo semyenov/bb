@@ -1,4 +1,5 @@
-import type { StorageInstance } from './types'
+import type { StorageInstance } from './types.d'
+
 import { LRUCache } from 'lru-cache'
 import { STORAGE_LRU_SIZE } from '../constants'
 

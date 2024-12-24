@@ -1,5 +1,6 @@
 import process from 'node:process'
 
+import { faker } from '@faker-js/faker'
 import { createLogger } from '@regioni/lib-logger'
 
 import { startOrbitDB, stopOrbitDB } from './orbit'
@@ -43,25 +44,25 @@ async function main() {
   logger.log('info', { address: db.address })
 
   // Listen for updates
-  db.events.on(
+  db.events.addEventListener(
     'update',
-    ({ id, hash, payload: { key, op } }) => {
-      return logger.info('onupdate', { id, hash, op, key })
+    ({ detail: { entry: { id, hash, payload } } }) => {
+      return logger.info('onupdate', { id, hash, payload })
     },
   )
-  db.events.on('join', (peerId, _heads) => {
-    return logger.info('join', peerId)
+  db.events.addEventListener('join', ({ detail: { peerId, heads } }) => {
+    return logger.info('join', peerId, heads)
   })
-  db.events.on('drop', () => {
+  db.events.addEventListener('drop', () => {
     return logger.info('drop')
   })
 
-  db.sync.events.on('join', (arg) => {
-    console.log('sync join', arg)
+  db.sync.events.addEventListener('join', ({ detail: { peerId, heads } }) => {
+    return logger.info('sync join', peerId, heads)
   })
 
   // Add some data
-  // await generate(100)
+  await generate(100)
 
   // Get some data
   const value = await db.get('12')
@@ -69,12 +70,12 @@ async function main() {
   logger.info('value', value)
 
   // Iterate over records
-  // for await (const record of db.iterator({ amount: 1 })) {
-  //   logger.info('record', record)
-  // }
+  for await (const record of db.iterator({ amount: 1 })) {
+    logger.info('record', record)
+  }
 
   // Stop OrbitDB
-  // await stopOrbitDB(orbitdb)
+  await stopOrbitDB(orbitdb)
 
   async function generate(size: number, chunkSize = 1000) {
     let time = 0
@@ -83,12 +84,9 @@ async function main() {
       const chunk = Array.from({ length }, (_, j) => {
         return {
           _id: (i + (j + 1)).toString(),
-        // firstName: faker.person.firstName(),
-        // lastName: faker.person.lastName(),
-        // email: faker.internet.email(),
-        // company: faker.company.name(),
-        // phone: faker.phone.number(),
-        // value: faker.lorem.paragraphs({ min: 2, max: 5 }),
+          firstName: faker.person.firstName(),
+          lastName: faker.person.lastName(),
+          email: faker.internet.email(),
         }
       })
 

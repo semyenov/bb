@@ -23,18 +23,15 @@ const hasher = sha256
 const hashStringEncoding = base58btc
 
 async function AccessControlList({
-  storage,
   type,
   params,
+  storage,
 }: {
-  storage: StorageInstance<any>
   type: string
   params: Record<string, any>
+  storage: StorageInstance<Uint8Array>
 }) {
-  const manifest = {
-    type,
-    ...params,
-  }
+  const manifest = { ...params, type }
   const { cid, bytes } = await Block.encode({ value: manifest, codec, hasher })
   const hash = cid.toString(hashStringEncoding)
   await storage.put(hash, bytes)
@@ -62,22 +59,22 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     return ACCESS_CONTROLLER_IPFS_TYPE
   }
 
-  private storage: StorageInstance<any>
+  private storage: StorageInstance<Uint8Array>
   private orbitdb: OrbitDBInstance
   private identities: IdentitiesInstance
 
-  private constructor(
-    orbitdb: OrbitDBInstance,
-    identities: IdentitiesInstance,
-    address: string,
-    write: string[],
-    storage: StorageInstance<any>,
-  ) {
-    this.orbitdb = orbitdb
-    this.identities = identities
-    this.address = address
-    this.write = write
-    this.storage = storage
+  private constructor(options: {
+    orbitdb: OrbitDBInstance
+    identities: IdentitiesInstance
+    address: string
+    write: string[]
+    storage: StorageInstance<Uint8Array>
+  }) {
+    this.orbitdb = options.orbitdb
+    this.identities = options.identities
+    this.address = options.address
+    this.write = options.write
+    this.storage = options.storage
   }
 
   static async create(options: {
@@ -85,7 +82,7 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     identities: IdentitiesInstance
     address?: string
     write?: string[]
-    storage?: StorageInstance<any>
+    storage?: StorageInstance<Uint8Array>
   }): Promise<IPFSAccessControllerInstance> {
     const { orbitdb, identities } = options
     const { ipfs, identity: { id: identityId } } = orbitdb
@@ -121,16 +118,21 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
         storage,
         params: { write },
       })
-      address = join('/', ACCESS_CONTROLLER_IPFS_TYPE, address)
+
+      address = join(
+        '/',
+        ACCESS_CONTROLLER_IPFS_TYPE,
+        address,
+      )
     }
 
-    const controller = new IPFSAccessController(
-      options.orbitdb,
+    const controller = new IPFSAccessController({
+      orbitdb,
       identities,
       address,
       write,
       storage,
-    )
+    })
 
     return controller
   }

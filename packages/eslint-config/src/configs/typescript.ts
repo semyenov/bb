@@ -28,6 +28,6 @@ const typescript = {
     'ts/prefer-function-type': 'error',
     'ts/prefer-namespace-keyword': 'error',
   },
-} satisfies Linter.FlatConfig
+} as const satisfies Linter.Config
 
 export default typescript

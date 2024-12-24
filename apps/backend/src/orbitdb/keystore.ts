@@ -1,4 +1,5 @@
 import { bitswap } from '@helia/block-brokers'
+import { createLogger } from '@regioni/lib-logger'
 import {
   createOrbitDB,
   Identities,
@@ -15,6 +16,12 @@ const keysPath = './.out/keys'
 const levelPath = './.out/level'
 const options = DefaultLibp2pOptions
 
+const logger = createLogger({
+  defaultMeta: {
+    service: 'orbitdb',
+  },
+})
+
 async function main() {
   const ipfs = await createHelia({
     libp2p: await createLibp2p({ ...options }),
@@ -26,13 +33,8 @@ async function main() {
 
   const keystore = await KeyStore.create({ path: keysPath })
   const identities = await Identities.create({ keystore, ipfs })
-
   const provider = new PublicKeyIdentityProvider({ keystore })
-
   const identity = await identities.createIdentity({ id, provider })
-
-  console.log('privateKey', await keystore.getKey(identity.id))
-
   const orbit = await createOrbitDB({
     id: 'orbitdb-AAA',
     ipfs,
@@ -42,11 +44,14 @@ async function main() {
   })
 
   const db = await orbit.open('events', 'test')
+  logger.info('opened', { db })
+
   for (let i = 0; i < 10; i++) {
     await db.add({ message: `Hello, world! ${i}` })
-
-    console.log('db', db.address)
+    logger.info('added', { message: `Hello, world! ${i}` })
   }
+
+  logger.info('done')
 
   await ipfs.stop()
 }

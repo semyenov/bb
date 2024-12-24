@@ -319,7 +319,11 @@ export class Log<T extends object> implements LogInstance<T> {
           .reduce(
             (acc, cur) => {
               return Array.from(
-                new Set([...acc, ...cur.next!, ...(useRefs ? cur.refs! : []).values()]),
+                new Set([
+                  ...acc,
+                  ...cur.next!,
+                  ...(useRefs ? cur.refs! : []).values(),
+                ]),
               )
             },
             [] as string[],

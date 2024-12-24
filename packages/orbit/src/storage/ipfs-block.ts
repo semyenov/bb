@@ -1,11 +1,10 @@
 /* eslint-disable unused-imports/no-unused-vars */
 import type { OrbitDBHeliaInstance } from '../vendor'
 import type { StorageInstance } from './types'
+
 import drain from 'it-drain'
 import { base58btc } from 'multiformats/bases/base58'
-
 import { CID } from 'multiformats/cid'
-
 import { TimeoutController } from 'timeout-abort-controller'
 import { STORAGE_IPFS_BLOCKSTORAGE_TIMEOUT } from '../constants'
 
@@ -15,8 +14,7 @@ export interface IPFSBlockStorageOptions {
   timeout?: number
 }
 
-export class IPFSBlockStorage<T extends Uint8Array>
-implements StorageInstance<T> {
+export class IPFSBlockStorage<T extends Uint8Array> implements StorageInstance<T> {
   private ipfs: OrbitDBHeliaInstance
   private readonly pin: boolean
   private readonly timeout: number

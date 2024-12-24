@@ -1,4 +1,5 @@
 import { Queue } from 'bullmq'
+
 export * from './events'
 
 export const bullmq = new Queue<{ message: string }, { status: number }>(

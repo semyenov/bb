@@ -1,8 +1,4 @@
 import getConfig from '@regioni/eslint-config'
-
+/** @type {import('eslint').Linter.Config[]} */
 const config = await getConfig()
-
-// /** @type {import('eslint').Linter.FlatConfig} */
-// const schema = [...config]
-
 export default config

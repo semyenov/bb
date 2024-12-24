@@ -111,15 +111,19 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
   async capabilities(): Promise<Record<string, Set<string>>> {
     const caps: Record<string, Set<string>> = {}
     for await (const { key, value } of this.database.iterator()) {
-      caps[key!] = new Set(value)
+      if (!key) {
+        continue
+      }
+
+      caps[key] = new Set(value)
     }
 
     const toSet = (e: [string, Set<string>]) => {
-      const key = e[0]
-      caps[key!] = new Set([...(caps[key!] || []), ...e[1]])
+      const [key, value] = e
+      caps[key] = new Set([...(caps[key] || []), ...value])
     }
 
-    Object.entries({
+    for (const e of Object.entries({
       ...caps,
       ...{
         admin: new Set([
@@ -127,8 +131,9 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
           ...this.database.accessController.write,
         ]),
       },
-    })
-      .forEach(toSet)
+    })) {
+      toSet(e)
+    }
 
     return caps
   }

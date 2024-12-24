@@ -1,7 +1,6 @@
-import type { KeyPair } from './types'
+import type { KeyPair } from './vendor.d'
 
 import { readFile } from 'node:fs/promises'
-
 import { createLocalJWKSet, importJWK } from 'jose'
 
 async function main() {

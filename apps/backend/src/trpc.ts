@@ -4,7 +4,12 @@ import { transformer } from '@regioni/lib-superjson'
 
 import { initTRPC } from '@trpc/server'
 
-const logger = createLogger()
+const logger = createLogger({
+  defaultMeta: {
+    service: 'trpc',
+  },
+})
+
 const t = initTRPC.meta()
   .context<Context>()
   .create({

@@ -1,24 +1,24 @@
-import process from 'node:process'
+import type { CID } from 'multiformats/cid'
 
+import type { BlockDecoder, BlockEncoder } from 'multiformats/codecs/interface'
+import process from 'node:process'
 import { createLogger } from '@regioni/lib-logger'
 import { randomBytes } from '@stablelib/random'
 import { generateKeyPairFromSeed } from '@stablelib/x25519'
 import * as dagJose from 'dag-jose'
 import { decodeCleartext, prepareCleartext } from 'dag-jose-utils'
 import {
-  type JWE,
   createJWE,
   decryptJWE,
-  x25519Decrypter,
-  x25519Encrypter,
+  type JWE,
+  xc20pAuthDecrypterEcdh1PuV3x25519WithXc20PkwV2 as x25519Decrypter,
+  xc20pAuthEncrypterEcdh1PuV3x25519WithXc20PkwV2 as x25519Encrypter,
   xc20pDirDecrypter,
   xc20pDirEncrypter,
 } from 'did-jwt'
+
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
-
-import type { CID } from 'multiformats/cid'
-import type { BlockDecoder, BlockEncoder } from 'multiformats/codecs/interface'
 
 const store = new Map<string, Uint8Array>()
 // const dagJoseIpldFormat = toLegacyIpld(dagJose)
@@ -89,18 +89,20 @@ async function asymmetric() {
   const storeEncrypted = async (
     payload: Record<string, any>,
     pubkey: Uint8Array,
+    senderSecret: Uint8Array,
   ) => {
-    const asymEncrypter = x25519Encrypter(pubkey)
+    const encrypters = [x25519Encrypter(pubkey, senderSecret)]
     // prepares a cleartext object to be encrypted in a JWE
     const cleartext = await prepareCleartext(payload)
     // encrypt into JWE container layout using public key
-    const jwe = await createJWE(cleartext, [asymEncrypter])
+    const value = await createJWE(cleartext, encrypters)
     // create an IPLD Block that has the CID:Bytes:Value triple
     const block = await Block.encode({
-      value: jwe,
+      value,
       codec: dagJose as unknown as BlockEncoder<133, JWE>,
       hasher: sha256,
     })
+
     logger.info(`Encrypted block CID: \u001B[32m${block.cid}\u001B[39m`)
     logger.info('Encrypted block contents:\n', block.value)
     // store the block, this could be in IPFS or any other CID:Bytes block store
@@ -109,17 +111,19 @@ async function asymmetric() {
     return block.cid
   }
 
-  const privkey = randomBytes(32)
+  const senderSecret = randomBytes(32)
   // generate a public key from the existing private key
-  const pubkey = generateKeyPairFromSeed(privkey).publicKey
-  const secretz = { my: 'secret message' }
+  const pubkey = generateKeyPairFromSeed(senderSecret).publicKey
+  const payload = {
+    my: 'secret message',
+  }
   logger.info(
     'Encrypting and storing secret with public key:\u001B[1m',
-    secretz,
+    payload,
     '\u001B[22m',
   )
-  const cid = await storeEncrypted(secretz, pubkey)
-  const decoded = await loadEncrypted(cid, privkey)
+  const cid = await storeEncrypted(payload, pubkey, senderSecret)
+  const decoded = await loadEncrypted(cid, senderSecret, pubkey)
   logger.info(
     'Loaded and decrypted block content with private key:\u001B[1m',
     decoded,
@@ -128,13 +132,22 @@ async function asymmetric() {
 }
 
 // Load an encrypted block from a CID and decrypt the payload using a secret key
-async function loadEncrypted(cid: CID, privkey: Uint8Array) {
-  const asymDecrypter = x25519Decrypter(privkey)
-  const bytes = store.get(cid.toString())!
+async function loadEncrypted(
+  cid: CID,
+  recipientSecret: Uint8Array,
+  senderPublicKey: Uint8Array,
+) {
+  const asymDecrypter = x25519Decrypter(recipientSecret, senderPublicKey)
+  const key = cid.toString()
+  const bytes = store.get(key)
+  if (!bytes) {
+    throw new Error('Block not found')
+  }
+
   // decode the DAG-JOSE envelope
   const block = await Block.create({
-    bytes,
     cid,
+    bytes,
     codec: dagJose as unknown as BlockDecoder<133, JWE>,
     hasher: sha256,
   })

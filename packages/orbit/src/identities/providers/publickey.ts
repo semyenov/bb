@@ -1,59 +1,69 @@
-import type { IdentityInstance } from '../identity'
+import type { KeyStoreInstance } from '../../key-store'
+import type { IdentityProvider, IdentityProviderGetIdOptions, IdentityProviderInstance, IdentityProviderOptions } from './types.d'
 
-import type {
-  IdentityProviderInstance,
-  IdentityProviderOptions,
-  // IdentityProviderStatic,
-} from '../providers'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-
 import { IDENTITIES_PROVIDER_PUBLICKEY } from '../../constants'
-import { signMessage, verifyMessage } from '../../key-store'
+import { signMessage } from '../../key-store'
 
 export class PublicKeyIdentityProvider implements IdentityProviderInstance {
-  static type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
-  private keystore: IdentityProviderOptions['keystore']
+  type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
+  private keystore: KeyStoreInstance
 
-  public type: 'publickey' = IDENTITIES_PROVIDER_PUBLICKEY
-
-  constructor({ keystore }: IdentityProviderOptions) {
-    if (!keystore) {
-      throw new Error('PublicKeyIdentityProvider requires a keystore parameter')
-    }
+  private constructor({ keystore }: IdentityProviderOptions) {
     this.keystore = keystore
   }
 
-  async getId({ id }: { id: string }): Promise<string> {
+  static create(options: IdentityProviderOptions): IdentityProviderInstance {
+    PublicKeyIdentityProvider.verifyOptions(options)
+
+    return new PublicKeyIdentityProvider(options)
+  }
+
+  static verifyOptions(options: IdentityProviderOptions): boolean {
+    if (!options.keystore) {
+      throw new Error('PublicKeyIdentityProvider requires a keystore parameter')
+    }
+
+    return true
+  }
+
+  async getId({ id }: IdentityProviderGetIdOptions): Promise<string> {
     if (!id) {
       throw new Error('id is required')
     }
 
     const key
-      = (await this.keystore.getKey(id)) || (await this.keystore.createKey(id))
+      = await this.keystore.getKey(id)
+      || await this.keystore.createKey(id)
 
-    return uint8ArrayToString(key.publicKey.raw, 'base16')
+    return uint8ArrayToString(
+      key.publicKey.raw,
+      'base16',
+    )
   }
 
-  async signIdentity(data: string, { id }: { id: string }): Promise<string> {
+  async signIdentity(data: string | Uint8Array, { id }: IdentityProviderGetIdOptions): Promise<string> {
     if (!id) {
-      throw new Error('id is required')
+      throw new Error(
+        'PublicKey identity provider requires an id to sign identity',
+      )
     }
 
-    const key = await this.keystore.getKey(id)
-    if (!key) {
-      throw new Error(`Signing key for '${id}' not found`)
+    const privateKey = await this.keystore.getKey(id)
+    if (!privateKey) {
+      throw new Error(
+        `Signing key for '${id}' not found`,
+      )
     }
 
-    return signMessage(key, data)
-  }
-
-  static async verifyIdentity(identity: IdentityInstance): Promise<boolean> {
-    const { id, publicKey, signatures } = identity
-
-    return verifyMessage(signatures.publicKey, id, publicKey + signatures.id)
+    return signMessage(
+      privateKey,
+      data,
+    )
   }
 }
 
-// Type assertion to ensure PublicKeyIdentityProvider conforms to IdentityProviderStatic
-// const _: IdentityProviderStatic<'publickey', PublicKeyIdentityProvider> =
-// PublicKeyIdentityProvider
+export const PublicKeyIdentity: IdentityProvider = {
+  type: IDENTITIES_PROVIDER_PUBLICKEY,
+  create: PublicKeyIdentityProvider.create,
+}

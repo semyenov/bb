@@ -1,26 +1,13 @@
-import {
-  Documents,
-  DocumentsDatabase,
-  type DocumentsInstance,
-  type DocumentsOptions,
-} from './documents'
-import {
-  Events,
-  EventsDatabase,
-  type EventsInstance,
-  type EventsOptions,
-} from './events'
-import {
-  KeyValue,
-  KeyValueDatabase,
-  type KeyValueInstance,
-} from './keyvalue'
-import {
-  KeyValueIndexed,
-  KeyValueIndexedDatabase,
-  type KeyValueIndexedInstance,
-  type KeyValueIndexedOptions,
-} from './keyvalue-indexed'
+import type { DatabaseOptions } from '../database'
+import type { DocumentsDatabase } from './documents'
+import type { EventsDatabase } from './events'
+import type { KeyValueDatabase } from './keyvalue'
+
+import type { KeyValueIndexedDatabase } from './keyvalue-indexed'
+import { Documents } from './documents'
+import { Events } from './events'
+import { KeyValue } from './keyvalue'
+import { KeyValueIndexed } from './keyvalue-indexed'
 
 export interface DatabaseOperation<T> {
   op: 'PUT' | 'DEL' | 'ADD'
@@ -37,12 +24,12 @@ export interface DatabaseTypeMap<T = unknown> {
 
 export interface DatabaseType<T, D extends keyof DatabaseTypeMap<T>> {
   type: D
-  create: (...args: any[]) => Promise<DatabaseTypeMap<T>[D]>
+  create: (options: DatabaseOptions<T>) => Promise<DatabaseTypeMap<T>[D]>
 }
 
 const databaseTypes: Record<
   string,
-  () => Promise<DatabaseTypeMap<any>[keyof DatabaseTypeMap<any>]>
+  (options: DatabaseOptions<any>) => Promise<DatabaseTypeMap<any>[keyof DatabaseTypeMap<any>]>
 > = {}
 
 export function useDatabaseType<T, D extends keyof DatabaseTypeMap<T>>(database: DatabaseType<T, D>) {
@@ -68,18 +55,12 @@ export function getDatabaseType<
   return databaseTypes[type!]
 }
 
-useDatabaseType(EventsDatabase)
-useDatabaseType(DocumentsDatabase)
-useDatabaseType(KeyValueDatabase)
-useDatabaseType(KeyValueIndexedDatabase)
+useDatabaseType(Events)
+useDatabaseType(Documents)
+useDatabaseType(KeyValue)
+useDatabaseType(KeyValueIndexed)
 
-export { Documents, Events, KeyValue, KeyValueIndexed }
-export type {
-  DocumentsInstance,
-  DocumentsOptions,
-  EventsInstance,
-  EventsOptions,
-  KeyValueIndexedInstance,
-  KeyValueIndexedOptions,
-  KeyValueInstance,
-}
+export * from './documents'
+export * from './events'
+export * from './keyvalue'
+export * from './keyvalue-indexed'

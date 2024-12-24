@@ -3,7 +3,7 @@
   "name": "@regioni/lib-ws",
   "type": "module",
   "version": "0.0.2",
-  "description": "Rollup lib script",
+  "description": "WebSocket lib",
   "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
   "homepage": "https://gitea.local/regioni/lib#readme",
@@ -31,7 +31,7 @@
   ],
   "scripts": {
     "build": "pkgroll --minify",
-    "dev": "yarn esno src/index.ts",
+    "dev": "yarn tsx src/index.ts",
     "typecheck": "yarn tsc --noEmit",
     "release": "yarn npm publish"
   },
@@ -39,7 +39,6 @@
     "@regioni/lib-jose": "workspace:^",
     "@regioni/lib-logger": "workspace:^",
     "@types/ws": "^8.5.13",
-    "consola": "^3.3.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

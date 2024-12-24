@@ -143,7 +143,7 @@ export class EventsDatabase<T = unknown> implements EventsInstance<T> {
   }
 }
 
-export const Events: DatabaseType<any, 'events'> = {
-  create: EventsDatabase.create,
+export const Events: DatabaseType<unknown, 'events'> = {
   type: DATABASE_EVENTS_TYPE,
+  create: EventsDatabase.create,
 }

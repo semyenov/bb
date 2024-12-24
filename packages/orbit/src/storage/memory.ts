@@ -1,4 +1,4 @@
-import type { StorageInstance } from './types'
+import type { StorageInstance } from './types.d'
 
 export class MemoryStorage<T = unknown> implements StorageInstance<T> {
   private memory: Map<string, T>

@@ -1,10 +1,9 @@
 import type { DatabaseTypeMap } from './databases'
-import type { OrbitDBHeliaInstance } from './vendor'
+import type { OrbitDBHeliaInstance } from './vendor.d'
+
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
-
 import * as Block from 'multiformats/block'
-
 import { sha256 } from 'multiformats/hashes/sha2'
 import {
   ComposedStorage,

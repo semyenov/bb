@@ -1,5 +1,4 @@
-import type { KeyStoreInstance } from '@regioni/orbit'
-import type { StorageInstance } from 'unstorage'
+import type { KeyStoreInstance, Secp256k1PrivateKey, StorageInstance } from '@regioni/orbit'
 import type { User } from './schema'
 import { secp256k1ToJWK } from '@regioni/lib-jose'
 
@@ -25,7 +24,7 @@ import {
 
 export interface UserStoreInstance {
   keystore: KeyStoreInstance
-  storage: ReturnType<typeof createStorage>
+  storage: ReturnType<typeof createStorage<User>>
 
   getUser: (id: string) => Promise<User>
   createUser: (id: string, data: Omit<User, 'keys' | 'jwk'>) => Promise<User>
@@ -49,7 +48,7 @@ const logger = createLogger({
 export async function UsersStore(
   options?: FSStorageOptions,
 ): Promise<UserStoreInstance> {
-  const storage = createStorage<Uint8Array>({
+  const storage = createStorage<User>({
     driver: fsDriver({
       base: `${options?.base}/users` || './.out/users',
       ...options,
@@ -58,29 +57,40 @@ export async function UsersStore(
 
   const s: StorageInstance<Uint8Array> = {
     get: async (id: string) => {
-      return await storage.getItem(id)
+      const user = await storage.getItem(id)
+      if (!user) {
+        throw ErrorUserNotFound
+      }
+
+      return uint8ArrayFromString(JSON.stringify(user))
     },
-    put: async (id: string, value: User) => {
-      const data = uint8ArrayFromString(JSON.stringify(value))
+    put: async (id: string, value: Uint8Array) => {
+      const data = JSON.parse(uint8ArrayToString(value))
 
       return await storage.setItem(id, data)
     },
     del: async (id: string) => {
       return await storage.removeItem(id)
     },
-    has: async (id: string) => {
-      return await storage.hasItem(id)
+    merge: async (other: StorageInstance<Uint8Array>) => {
+      for await (const [id, value] of other.iterator()) {
+        const data = JSON.parse(uint8ArrayToString(value))
+        const current = await storage.getItem(id) || {}
+        await storage.setItem(id, Object.assign(current, data))
+      }
     },
-    keys: async () => {
-      return await storage.getKeys()
-    },
-    merge: async (id: string, value: User) => {
-      const data = uint8ArrayFromString(JSON.stringify(value))
-
-      return await storage.setItem(id, data)
+    async *iterator() {
+      const keys = await storage.keys()
+      for (const key of keys) {
+        const value = await storage.getItem(key)
+        yield [key, uint8ArrayFromString(JSON.stringify(value))]
+      }
     },
     close: async () => {
       return await storage.dispose()
+    },
+    clear: async () => {
+      return await storage.clear()
     },
   }
 
@@ -90,7 +100,7 @@ export async function UsersStore(
   })
 
   const getUser = async (id: string) => {
-    const user = await s.get(id)
+    const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
     }
@@ -109,7 +119,7 @@ export async function UsersStore(
     id: string,
     payload: Omit<User, 'keys' | 'jwk'>,
   ) => {
-    if (await s.has(id)) {
+    if (await storage.hasItem(id)) {
       throw ErrorUserExists
     }
 
@@ -136,7 +146,7 @@ export async function UsersStore(
   }
 
   const updateUser = async (id: string, payload: User) => {
-    const existingUser = await s.get(id)
+    const existingUser = await storage.getItem(id)
     if (!existingUser) {
       throw ErrorUserNotFound
     }
@@ -146,6 +156,9 @@ export async function UsersStore(
 
     const kid = existingUser.keys[0] || 'unknown'
     const key = await keystore.getKey(kid)
+    if (!key) {
+      throw ErrorUserKeyNotFound
+    }
     const jwk = await secp256k1ToJWK(key)
     const user = Object.assign(Object.create(null), existingUser, payload, {
       jwk,
@@ -158,7 +171,7 @@ export async function UsersStore(
   }
 
   const removeUser = async (id: string) => {
-    const user = await s.get(id)
+    const user = await storage.getItem(id)
     if (!user) {
       throw ErrorUserNotFound
     }
@@ -171,14 +184,14 @@ export async function UsersStore(
       logger.debug('Key deleted', { userId: user.id, kid })
     }
 
-    await s.del(id)
+    await storage.removeItem(id)
     logger.debug('User deleted', { user })
   }
 
   const getJWKSet = async () => {
     const keys: JWK[] = []
-    for (const id of await s.keys()) {
-      const user = await s.get(id)
+    for (const id of await storage.keys()) {
+      const user = await storage.getItem(id)
       if (!user || !user.jwk) {
         continue
       }
@@ -191,7 +204,7 @@ export async function UsersStore(
 
   return {
     keystore,
-    storage: s,
+    storage,
 
     getUser,
     createUser,

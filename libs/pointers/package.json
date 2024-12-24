@@ -1,33 +1,32 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@regioni/lib-pointers",
-  "version": "0.0.2",
-  "packageManager": "yarn@4.0.1",
-  "description": "Rollup lib script",
   "type": "module",
-  "keywords": [],
+  "version": "0.0.2",
+  "description": "Pointers lib for parsing and generating pointers",
+  "author": "Alexander Semyenov <semyenov@hotmail.com>",
   "license": "MIT",
   "homepage": "https://gitea.local/regioni/lib#readme",
-  "bugs": "https://gitea.local/regioni/lib/issues",
   "repository": {
     "type": "git",
     "url": "git+https://gitea.local/regioni/lib.git"
   },
-  "author": "Alexander Semyenov <semyenov@hotmail.com>",
-  "files": [
-    "dist"
-  ],
+  "bugs": "https://gitea.local/regioni/lib/issues",
+  "keywords": [],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     }
   },
-  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "pkgroll --minify",
-    "dev": "yarn esno src/index.ts",
+    "dev": "yarn tsx src/index.ts",
     "typecheck": "yarn tsc --noEmit"
   },
   "dependencies": {

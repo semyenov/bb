@@ -1,12 +1,16 @@
 import type { IJoseVerify } from '@regioni/lib-jose'
 import type { ServerOptions, WebSocket } from 'ws'
 
-import consola from 'consola'
+import { createLogger } from '@regioni/lib-logger'
 
 import { WebSocketServer } from 'ws'
 import { wrapSocket } from './wrapper'
 
-const logger = consola.withTag('wss')
+const logger = createLogger({
+  defaultMeta: {
+    module: 'wss',
+  },
+})
 
 export class WebSocketServerProxy extends WebSocketServer {
   jose?: IJoseVerify

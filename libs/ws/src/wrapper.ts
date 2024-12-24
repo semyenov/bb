@@ -1,9 +1,9 @@
 import type { IJoseVerify } from '@regioni/lib-jose'
-import type Buffer from 'node:buffer'
+import type { Buffer } from 'node:buffer'
 
 import type { WebSocketProxy } from './ws'
 import { sign, verify } from '@regioni/lib-jose'
-import consola from 'consola'
+import { createLogger } from '@regioni/lib-logger'
 
 type BufferLike =
   | string
@@ -23,7 +23,12 @@ type BufferLike =
   | { valueOf: () => string }
   | { [Symbol.toPrimitive]: (hint: string) => string }
 
-const logger = consola.withTag('ws')
+const logger = createLogger({
+  defaultMeta: {
+    module: 'ws',
+  },
+})
+
 export function wrapSocket<T>(ws: WebSocketProxy, jose?: IJoseVerify) {
   ws.jose = jose
 

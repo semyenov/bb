@@ -1,21 +1,15 @@
+import type { KeyStoreInstance } from '../key-store'
+import type { StorageInstance } from '../storage'
 import type { OrbitDBHeliaInstance } from '../vendor'
-import {
-  KeyStore,
-  type KeyStoreInstance,
-  signMessage,
-  verifyMessage,
-} from '../key-store'
-import {
-  ComposedStorage,
-  IPFSBlockStorage,
-  LRUStorage,
-  type StorageInstance,
-} from '../storage'
+import type { IdentityInstance } from './identity'
+import type { IdentityProviderInstance } from './providers'
 
+import { toString as uint8ArrayToString } from 'uint8arrays'
+import { KeyStore, signMessage, verifyMessage } from '../key-store'
+import { ComposedStorage, IPFSBlockStorage, LRUStorage } from '../storage'
 import { join } from '../utils'
-import { Identity, type IdentityInstance } from './identity'
-
-import { type IdentityProviderInstance, IdentityProviders } from './providers'
+import { Identity } from './identity'
+import { IdentityProviderRegistry as IdentityProviders } from './providers/registry'
 
 interface IdentitiesCreateIdentityOptions {
   id?: string
@@ -30,18 +24,13 @@ export interface IdentitiesOptions {
 }
 
 export interface IdentitiesInstance {
-  createIdentity: (
-    options?: IdentitiesCreateIdentityOptions,
-  ) => Promise<IdentityInstance>
+  keystore: KeyStoreInstance
+
+  createIdentity: (options?: IdentitiesCreateIdentityOptions) => Promise<IdentityInstance>
   getIdentity: (id: string) => Promise<IdentityInstance | null>
   verifyIdentity: (identity: IdentityInstance) => Promise<boolean>
-  keystore: KeyStoreInstance
   sign: (identity: IdentityInstance, data: string) => Promise<string>
-  verify: (
-    signature: string,
-    publickey: string,
-    data: string,
-  ) => Promise<boolean>
+  verify: (signature: string, publickey: string, data: string) => Promise<boolean>
 }
 
 const DEFAULT_KEYS_PATH = join('./orbitdb', 'identities')
@@ -49,26 +38,26 @@ const DEFAULT_KEYS_PATH = join('./orbitdb', 'identities')
 export class Identities implements IdentitiesInstance {
   keystore: KeyStoreInstance
   private storage: StorageInstance<Uint8Array>
-  private verifiedIdentitiesCache: LRUStorage<
+  private cache: LRUStorage<
     Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
   >
 
-  private constructor(
-    keystore: KeyStoreInstance,
-    storage: StorageInstance<Uint8Array>,
-    verifiedIdentitiesCache: LRUStorage<
+  private constructor(options: {
+    keystore: KeyStoreInstance
+    storage: StorageInstance<Uint8Array>
+    cache: LRUStorage<
       Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
-    >,
-  ) {
-    this.keystore = keystore
-    this.storage = storage
-    this.verifiedIdentitiesCache = verifiedIdentitiesCache
+    >
+  }) {
+    this.keystore = options.keystore
+    this.storage = options.storage
+    this.cache = options.cache
   }
 
   static async create(
     options: IdentitiesOptions = { path: DEFAULT_KEYS_PATH },
   ): Promise<Identities> {
-    const keys
+    const keystore
       = options.keystore
       || (await KeyStore.create({ path: options.path || DEFAULT_KEYS_PATH }))
 
@@ -82,41 +71,62 @@ export class Identities implements IdentitiesInstance {
           }),
         })
 
-    const verifiedIdentitiesCache = await LRUStorage.create<
+    const cache = await LRUStorage.create<
       Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
     >({
       size: 1000,
     })
 
-    return new Identities(keys, storage, verifiedIdentitiesCache)
+    return new Identities({
+      keystore,
+      storage,
+      cache,
+    })
   }
 
   async createIdentity(
     options: IdentitiesCreateIdentityOptions = {},
-  ): Promise<Identity> {
-    const DefaultIdentityProvider
-      = IdentityProviders.getIdentityProvider('publickey')
-    const identityProvider: IdentityProviderInstance
-      = options.provider
-      || new DefaultIdentityProvider({ keystore: this.keystore })
+  ): Promise<IdentityInstance> {
+    const {
+      id,
+      provider = { type: 'publickey' },
+    } = options
 
-    if (!IdentityProviders.getIdentityProvider(identityProvider.type)) {
+    if (!id) {
+      throw new Error('Identity id is required')
+    }
+
+    const IdentityProvider = IdentityProviders.getIdentityProvider(provider.type)
+    if (!IdentityProvider) {
       throw new Error(
-        'Identity provider is unknown. Use useIdentityProvider(provider) to register the identity provider',
+        `Identity provider type '${provider.type}' is not supported`,
       )
     }
 
-    const id = await identityProvider.getId({ id: options.id! })
+    const identityProvider: IdentityProviderInstance
+      = IdentityProvider({
+        keystore: this.keystore,
+      })
+    const identityId = await identityProvider.getId({ id })
+
     const privateKey
-      = (await this.keystore.getKey(id)) || (await this.keystore.createKey(id))
-    const publicKey = this.keystore.getPublic(privateKey)
-    const idSignature = await signMessage(privateKey, id)
+      = await this.keystore.getKey(identityId)
+      || await this.keystore.createKey(identityId)
+
+    const identityIdSignature = await signMessage(
+      privateKey,
+      identityId,
+    )
+    const publicKey = uint8ArrayToString(
+      privateKey.publicKey.raw,
+      'base16',
+    )
     const publicKeyAndIdSignature = await identityProvider.signIdentity(
-      publicKey + idSignature,
-      { id: options.id! },
+      publicKey + identityIdSignature,
+      { id },
     )
     const signatures = {
-      id: idSignature,
+      id: identityIdSignature,
       publicKey: publicKeyAndIdSignature,
     }
 
@@ -126,11 +136,22 @@ export class Identities implements IdentitiesInstance {
       signatures,
       type: identityProvider.type,
       provider: identityProvider,
-      sign: signFactory(this.keystore, id),
       verify: verifyFactory(),
+      sign: signFactory(
+        this.keystore,
+        identityId,
+      ),
     })
 
-    await this.storage.put(identity.hash, identity.bytes)
+    const {
+      hash,
+      bytes: data,
+    } = identity
+
+    await this.storage.put(
+      hash,
+      data,
+    )
 
     return identity
   }
@@ -140,35 +161,39 @@ export class Identities implements IdentitiesInstance {
       return false
     }
 
-    const { id, publicKey, signatures, provider } = identity
-    const idSignatureVerified = await verifyMessage(
-      signatures.id,
+    const {
+      id,
+      publicKey,
+      provider,
+      signatures: {
+        id: signatureId,
+      },
+    } = identity
+
+    if (!await verifyMessage(
+      signatureId,
       publicKey,
       id,
-    )
-
-    if (!idSignatureVerified) {
+    )) {
       return false
     }
 
-    const cachedIdentity = await this.verifiedIdentitiesCache.get(id)
-    const verifiedIdentity
-      = cachedIdentity
-      && (await Identity.create({
-        ...cachedIdentity,
+    const cached = await this.cache.get(id)
+    if (cached) {
+      return Identity.isEqual(identity, await Identity.create({
+        ...cached,
         sign: signFactory(this.keystore, id),
+        verify: verifyFactory(),
         provider,
       }))
-
-    if (verifiedIdentity) {
-      return Identity.isEqual(identity, verifiedIdentity)
     }
 
-    const Provider = IdentityProviders.getIdentityProvider(identity.type)
-
-    const identityVerified = await Provider.verifyIdentity(identity)
+    const identityVerified = await identity.verifyIdentity()
     if (identityVerified) {
-      await this.verifiedIdentitiesCache.put(signatures.id, identity)
+      await this.cache.put(
+        id,
+        identity,
+      )
     }
 
     return identityVerified
@@ -183,7 +208,7 @@ export class Identities implements IdentitiesInstance {
     return null
   }
 
-  async sign(identity: IdentityInstance, data: string): Promise<string> {
+  async sign(identity: IdentityInstance, data: string | Uint8Array): Promise<string> {
     const privateKey = await this.keystore.getKey(identity.id)
     if (!privateKey) {
       throw new Error('Private signing key not found from KeyStore')
@@ -195,14 +220,14 @@ export class Identities implements IdentitiesInstance {
   async verify(
     signature: string,
     publicKey: string,
-    data: string,
+    data: string | Uint8Array,
   ): Promise<boolean> {
-    return await verifyMessage(signature, publicKey, data)
+    return verifyMessage(signature, publicKey, data)
   }
 }
 
 function signFactory(keystore: KeyStoreInstance, id: string) {
-  return async (data: Uint8Array): Promise<string> => {
+  return async (data: string | Uint8Array): Promise<string> => {
     const privateKey = await keystore.getKey(id)
     if (!privateKey) {
       throw new Error('Private signing key not found from KeyStore')
@@ -218,6 +243,6 @@ function verifyFactory() {
     publicKey: string,
     data: string | Uint8Array,
   ): Promise<boolean> => {
-    return await verifyMessage(signature, publicKey, data)
+    return verifyMessage(signature, publicKey, data)
   }
 }

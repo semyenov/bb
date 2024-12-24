@@ -1,16 +1,15 @@
-import type { PrivateKey } from '@libp2p/interface'
+import type { Secp256k1PrivateKey } from '@regioni/orbit'
 import type BN from 'bn.js'
-
 import type {
   JWK_EC_Private,
-  JWK_EC_Public,
   JWTHeaderParameters,
   JWTPayload,
   JWTVerifyGetKey,
   VerifyOptions,
 } from 'jose'
-import { Buffer } from 'node:buffer'
-import { ec as EC } from 'elliptic'
+import type { KeyPair } from './vendor.d'
+
+import elliptic from 'elliptic'
 import {
   importJWK,
   jwtVerify,
@@ -24,12 +23,10 @@ const headerParams = {
   b64: true,
 } as const satisfies JWTHeaderParameters
 
+const EC = elliptic.ec
 const ec = new EC('secp256k1')
 
-export async function secp256k1ToJWK(keyPair: PrivateKey): Promise<{
-  privateKey: JWK_EC_Private
-  publicKey: JWK_EC_Public
-}> {
+export async function secp256k1ToJWK(keyPair: Secp256k1PrivateKey): Promise<KeyPair> {
   if (!keyPair) {
     throw new Error('No key pair provided')
   }
@@ -66,7 +63,7 @@ export async function sign(jwk: JWK_EC_Private, payload: JWTPayload) {
     .setIssuer('io:regioni:tula')
     .setAudience('io:regioni:tula:users')
     .setProtectedHeader({ ...headerParams, kid: jwk.kid })
-    .setExpirationTime('10m')
+    .setExpirationTime('10 minutes')
     .setIssuedAt()
     .sign(signKey)
 }
@@ -80,6 +77,6 @@ export function verify(
 }
 
 function encodeBase64Url(data: BN) {
-  return Buffer.from(data.toString('hex'), 'hex')
+  return data.toBuffer()
     .toString('base64url')
 }

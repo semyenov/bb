@@ -195,7 +195,7 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
   }
 }
 
-export const Documents: DatabaseType<any, 'documents'> = {
-  create: DocumentsDatabase.create,
+export const Documents: DatabaseType<unknown, 'documents'> = {
   type: DATABASE_DOCUMENTS_TYPE,
+  create: DocumentsDatabase.create,
 }

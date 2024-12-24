@@ -49,10 +49,10 @@ class Index<T> {
     const toBeIndexed = new Set()
     const latest = entry.hash
 
-    const isIndexed = async (hash: string) => {
+    const isIndexed = async (hash: string): Promise<boolean> => {
       return (await this.indexedEntries.get(hash)) === true
     }
-    const isNotIndexed = async (hash: string) => {
+    const isNotIndexed = async (hash: string): Promise<boolean> => {
       return !(await isIndexed(hash))
     }
 
@@ -68,9 +68,12 @@ class Index<T> {
       return (await isIndexed(latest!)) && toBeIndexed.size === 0
     }
 
-    for await (const entry of log.traverse(null, shoudStopTraverse)) {
+    for await (const entry of log.traverse(
+      null,
+      shoudStopTraverse,
+    )) {
       const { hash, payload } = entry
-      if (await isNotIndexed(hash!)) {
+      if (hash && (await isNotIndexed(hash))) {
         const { op, key } = payload
         if (op === 'PUT' && !keys.has(key)) {
           keys.add(key)
@@ -102,9 +105,12 @@ class Index<T> {
   }
 
   iterator(
-    options: any,
+    options: any = {},
   ): AsyncIterable<[string, EntryInstance<DatabaseOperation<T>>]> {
-    return this.index.iterator({ ...options, limit: options.amount || -1 })
+    return this.index.iterator({
+      limit: options.amount || -1,
+      ...options,
+    })
   }
 }
 
@@ -144,7 +150,7 @@ implements KeyValueIndexedInstance<T> {
       address,
       name,
       accessController,
-      directory,
+      dir: directory,
       meta,
       headsStorage,
       entryStorage,
@@ -165,7 +171,7 @@ implements KeyValueIndexedInstance<T> {
       address,
       name,
       accessController,
-      directory,
+      dir: directory,
       meta,
       headsStorage,
       entryStorage,
@@ -230,20 +236,33 @@ implements KeyValueIndexedInstance<T> {
     return null
   }
 
+  put(key: string, value: T): Promise<string> {
+    return this.keyValueStore.put(key, value)
+  }
+
+  del(key: string): Promise<string> {
+    return this.keyValueStore.del(key)
+  }
+
   async *iterator({ amount = -1 }: { amount?: number } = {}): AsyncIterable<{
     hash: string
     key: string
     value: T | null
   }> {
-    const it = this.index.iterator({ amount, reverse: true })
-    for await (const record of it) {
-      const entry = record[1]
-      const { key, value } = entry.payload
-      const hash = entry.hash!
+    for await (const [key, entry] of this.index.iterator({
+      amount,
+      reverse: true,
+    })) {
+      const { value } = entry.payload
+      const { hash } = entry
+      if (!hash) {
+        continue
+      }
+
       yield {
+        key,
         hash,
-        key: key!,
-        value: value || null,
+        value,
       }
     }
   }
@@ -257,20 +276,9 @@ implements KeyValueIndexedInstance<T> {
     await this.keyValueStore.drop()
     await this.index.drop()
   }
-
-  // Delegate other methods to keyValueStore
-  put(key: string, value: T): Promise<string> {
-    return this.keyValueStore.put(key, value)
-  }
-
-  del(key: string): Promise<string> {
-    return this.keyValueStore.del(key)
-  }
-
-  // Add any other methods from KeyValueInstance that need to be implemented
 }
 
-export const KeyValueIndexed: DatabaseType<any, 'keyvalue-indexed'> = {
-  create: KeyValueIndexedDatabase.create,
+export const KeyValueIndexed: DatabaseType<unknown, 'keyvalue-indexed'> = {
   type: DATABASE_KEYVALUE_INDEXED_TYPE,
+  create: KeyValueIndexedDatabase.create,
 }

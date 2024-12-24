@@ -1,7 +1,7 @@
 import { base58btc } from 'multiformats/bases/base58'
 import { CID } from 'multiformats/cid'
 
-import { posixJoin } from './utils/path-join'
+import { join } from './utils'
 
 export interface OrbitDBAddressInstance {
   protocol: string
@@ -15,7 +15,7 @@ export class OrbitDBAddress implements OrbitDBAddressInstance {
   readonly hash: string
   readonly address: string
 
-  constructor(address: string) {
+  private constructor(address: string) {
     this.address = address
     this.hash = address
       .replace('/orbitdb/', '')
@@ -32,34 +32,42 @@ export class OrbitDBAddress implements OrbitDBAddressInstance {
     return new OrbitDBAddress(address)
   }
 
-  toString(): string {
-    return posixJoin('/', this.protocol, this.hash)
-  }
-
-  static isValidAddress(address: string): boolean {
-    let address_ = address.toString()
-
+  static isValid(address: string): boolean {
     if (
-      !address_.startsWith('/orbitdb')
-      && !address_.startsWith(String.raw`\orbitdb`)
+      !address.startsWith(`\/orbitdb`)
+      && !address.startsWith(`orbitdb`)
     ) {
       return false
     }
 
-    address_ = address_.replaceAll('/orbitdb/', '')
-    address_ = address_.replaceAll('\\orbitdb\\', '')
-    address_ = address_.replaceAll('/', '')
-    address_ = address_.replaceAll('\\', '')
+    let localAddress = address.replaceAll(
+      `/orbitdb/`,
+      '',
+    )
+    localAddress = localAddress.replaceAll(
+      `\\orbitdb\\`,
+      '',
+    )
+    localAddress = localAddress.replaceAll(
+      `/`,
+      '',
+    )
+    localAddress = localAddress.replaceAll(
+      `\\`,
+      '',
+    )
 
-    let cid
     try {
-      cid = CID.parse(address_, base58btc)
+      const cid = CID.parse(
+        localAddress,
+        base58btc,
+      )
+
+      return Boolean(cid)
     }
     catch {
       return false
     }
-
-    return cid !== undefined
   }
 
   static parseAddress(address: string): OrbitDBAddressInstance {
@@ -67,10 +75,14 @@ export class OrbitDBAddress implements OrbitDBAddressInstance {
       throw new Error(`Not a valid OrbitDB address: ${address}`)
     }
 
-    if (!OrbitDBAddress.isValidAddress(address)) {
+    if (!OrbitDBAddress.isValid(address)) {
       throw new Error(`Not a valid OrbitDB address: ${address}`)
     }
 
     return OrbitDBAddress.create(address)
+  }
+
+  toString(): string {
+    return join('/', this.protocol, this.hash)
   }
 }

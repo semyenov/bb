@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "build": "pkgroll --minify",
-    "dev": "yarn esno src/index.ts",
+    "dev": "yarn tsx src/index.ts",
     "typecheck": "yarn tsc --noEmit",
     "release": "yarn npm publish"
   },

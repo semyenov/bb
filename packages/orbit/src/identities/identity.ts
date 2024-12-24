@@ -1,9 +1,10 @@
-import type { IdentityProviderInstance } from './providers'
+import type { IdentityProviderInstance } from './providers/types'
+
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
-
 import { sha256 } from 'multiformats/hashes/sha2'
+import { verifyMessage } from '..'
 
 export interface IdentitySignatures {
   id: string
@@ -16,13 +17,21 @@ export interface IdentityOptions {
   publicKey: string
   signatures: IdentitySignatures
   provider?: IdentityProviderInstance
-  sign?: (data: any) => Promise<string>
-  verify?: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
+  sign: (data: string | Uint8Array) => Promise<string>
+  verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 }
 
-export interface IdentityInstance extends IdentityOptions {
+export interface IdentityInstance {
+  id: string
+  type: string
   hash: string
   bytes: Uint8Array
+  publicKey: string
+  signatures: IdentitySignatures
+  provider?: IdentityProviderInstance
+
+  sign: (data: string | Uint8Array) => Promise<string>
+  verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 }
 
 const codec = dagCbor
@@ -32,13 +41,14 @@ const hashStringEncoding = base58btc
 export class Identity implements IdentityInstance {
   id: string
   type: string
-  publicKey: string
-  signatures: IdentitySignatures
-  provider?: IdentityProviderInstance
-  sign?: (data: any) => Promise<string>
-  verify?: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
   hash: string
   bytes: Uint8Array
+  publicKey: string
+  signatures: IdentitySignatures
+  sign: (data: string | Uint8Array) => Promise<string>
+  verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
+
+  provider?: IdentityProviderInstance
 
   private constructor(
     options: IdentityOptions & { hash: string, bytes: Uint8Array },
@@ -56,9 +66,12 @@ export class Identity implements IdentityInstance {
 
   static async create(options: IdentityOptions): Promise<Identity> {
     Identity.validateOptions(options)
-    const { hash, bytes } = await Identity.encodeIdentity(options)
+    const identity = await Identity.encodeIdentity(options)
 
-    return new Identity({ ...options, hash, bytes })
+    return new Identity({
+      ...identity,
+      ...options,
+    })
   }
 
   private static validateOptions(options: IdentityOptions): void {
@@ -86,11 +99,21 @@ export class Identity implements IdentityInstance {
     identity: IdentityOptions,
   ): Promise<{ hash: string, bytes: Uint8Array }> {
     const { id, publicKey, signatures, type } = identity
-    const value = { id, publicKey, signatures, type }
-    const { cid, bytes } = await Block.encode({ value, codec, hasher })
-    const hash = cid.toString(hashStringEncoding)
+    const { cid, bytes } = await Block.encode({
+      codec,
+      hasher,
+      value: {
+        id,
+        publicKey,
+        signatures,
+        type,
+      },
+    })
 
-    return { hash, bytes: Uint8Array.from(bytes) }
+    return {
+      hash: cid.toString(hashStringEncoding),
+      bytes: Uint8Array.from(bytes),
+    }
   }
 
   static async decode(bytes: Uint8Array): Promise<Identity> {
@@ -100,10 +123,10 @@ export class Identity implements IdentityInstance {
       hasher,
     })
 
-    return Identity.create(value)
+    return Identity.create({ ...value })
   }
 
-  static isIdentity(identity: any): identity is Identity {
+  static isIdentity(identity: unknown): identity is Identity {
     return identity instanceof Identity
   }
 
@@ -115,6 +138,20 @@ export class Identity implements IdentityInstance {
       && a.publicKey === b.publicKey
       && a.signatures.id === b.signatures.id
       && a.signatures.publicKey === b.signatures.publicKey
+    )
+  }
+
+  async verifyIdentity(): Promise<boolean> {
+    const {
+      publicKey,
+      id,
+      signatures,
+    } = this
+
+    return verifyMessage(
+      signatures.publicKey,
+      id,
+      publicKey + signatures.id,
     )
   }
 }

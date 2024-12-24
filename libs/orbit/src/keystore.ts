@@ -1,9 +1,9 @@
-import type { KeyStoreInstance } from '@regioni/orbit'
+import type { KeyStoreInstance, Secp256k1PrivateKey } from '@regioni/orbit'
 import type { CreateStorageOptions } from 'unstorage'
 
 import {
   generateKeyPair,
-  privateKeyFromRaw as importKey,
+  privateKeyFromRaw,
 } from '@libp2p/crypto/keys'
 import {
   fromString as uint8ArrayFromString,
@@ -43,7 +43,7 @@ export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreI
         throw ErrorKeyNotFound
       }
 
-      return importKey(uint8ArrayFromString(keyString))
+      return privateKeyFromRaw(uint8ArrayFromString(keyString)) as Secp256k1PrivateKey
     },
   }
 

@@ -1,2 +1,51 @@
-export const ErrorKeyNotFound = new Error('Key not found')
-export const ErrorNoAccess = new Error('No access')
+export const ErrorKeyNotFound = new Error(
+  'Key not found',
+)
+export const ErrorNoAccess = new Error(
+  'No access',
+)
+export const ErrorNoCapability = new Error(
+  'No capability',
+)
+export const ErrorNoIdentity = new Error(
+  'No identity',
+)
+export const ErrorNoKey = new Error(
+  'No key',
+)
+export const ErrorNoPermission = new Error(
+  'No permission',
+)
+export const ErrorNoStorage = new Error(
+  'No storage',
+)
+export const ErrorNoStorageInstance = new Error(
+  'No storage instance',
+)
+export const ErrorNoStorageOptions = new Error(
+  'No storage options',
+)
+export const ErrorNoStorageProvider = new Error(
+  'No storage provider',
+)
+export const ErrorNoStorageProviderInstance = new Error(
+  'No storage provider instance',
+)
+export const ErrorNoStorageProviderOptions = new Error(
+  'No storage provider options',
+)
+export const ErrorNoWriterIdentity = new Error(
+  'No writer identity',
+)
+export const ErrorNoWriterIdentityId = new Error(
+  'No writer identity id',
+)
+export const ErrorNoWriterIdentityKey = new Error(
+  'No writer identity key',
+)
+export const ErrorNoWriterIdentityKeyId = new Error(
+  'No writer identity key id',
+)
+export const ErrorNoWriterIdentityKeyKey = new Error(
+  'No writer identity key key',
+)

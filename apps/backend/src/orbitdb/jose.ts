@@ -1,11 +1,11 @@
 import { bitswap } from '@helia/block-brokers'
+import { secp256k1ToJWK } from '@regioni/lib-jose'
 import { KeyStore } from '@regioni/orbit'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import * as jose from 'jose'
-import { createLibp2p } from 'libp2p'
 
-import { secp256k1ToJWK } from 'libs/jose/dist'
+import { createLibp2p } from 'libp2p'
 import { DefaultLibp2pOptions } from './config'
 
 const keysPath = './.out/keys'
@@ -25,9 +25,6 @@ async function main() {
 
   const keystore = await KeyStore.create({ path: keysPath })
   const keyPair = await keystore.createKey('userA')
-
-  const marshal = keyPair.raw
-  console.log('marshal', marshal)
 
   const privateJWK = await secp256k1ToJWK(keyPair)
   console.log('privateJWK', privateJWK)

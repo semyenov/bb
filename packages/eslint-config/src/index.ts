@@ -1,52 +1,116 @@
-import type { Linter } from 'eslint'
-
 import antfu from '@antfu/eslint-config'
-import typescriptRules from './configs/typescript'
 
-import unicornRules from './configs/unicorn'
+// import typescriptRules from './configs/typescript'
+// import unicornRules from './configs/unicorn'
 
-async function config(): Promise<Linter.FlatConfig[]> {
-  return await antfu({
-    type: 'lib',
+async function config() {
+  return antfu({
     stylistic: true,
     rules: {
       'antfu/if-newline': ['error'],
-      'style/max-statements-per-line': ['off'],
-      'style/array-bracket-newline': ['error', { multiline: true }],
-      'eol-last': ['error', 'always'],
+      'antfu/import-dedupe': ['error'],
+      'antfu/consistent-chaining': ['error'],
 
       // Eslint rules
-      'no-else-return': 'warn',
-      'logical-assignment-operators': 'warn',
-      'no-implicit-coercion': 'warn',
-      'operator-assignment': 'warn',
-      'prefer-destructuring': 'warn',
-      'prefer-object-has-own': 'warn',
-
-      // Style rules
-      'style/no-confusing-arrow': 'error',
-      'style/newline-per-chained-call': 'error',
-      'style/wrap-regex': 'error',
-      'style/type-named-tuple-spacing': 'error',
-
-      // General
+      'no-else-return': ['warn'],
+      'eol-last': ['error', 'always'],
+      'logical-assignment-operators': ['warn'],
+      'no-implicit-coercion': ['warn'],
+      'operator-assignment': ['warn'],
+      'prefer-destructuring': ['warn'],
+      'prefer-object-has-own': ['warn'],
+      'no-empty-function': ['off', { allow: ['arrowFunctions'] }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': ['warn', { args: 'none' }],
       'no-use-before-define': ['error', { functions: false }],
       'no-param-reassign': ['error', { props: false }],
       'no-underscore-dangle': ['off', { allow: ['_id', '_count'] }],
-      'no-shadow': ['off', { allow: ['_id', '_count', 'T'] }],
+      'no-shadow': [
+        'off',
+        { allow: [
+          '_id',
+          '_count',
+          'T',
+        ] },
+      ],
       'no-unused-expressions': ['error', { allowShortCircuit: true }],
       'no-shadow-restricted-names': ['error'],
-
-      // Stylistic
-      'curly': ['error', 'multi-line', 'consistent'],
+      'curly': [
+        'error',
+        'multi-line',
+        'consistent',
+      ],
       'newline-before-return': ['error'],
       'newline-per-chained-call': ['error', { ignoreChainWithDepth: 1 }],
       'multiline-ternary': ['error', 'always-multiline'],
       'brace-style': ['error', 'stroustrup'],
       'arrow-body-style': ['error', 'always'],
       'eqeqeq': ['error', 'smart'],
+
+      // Style rules
+      'style/no-confusing-arrow': ['error'],
+      'style/newline-per-chained-call': ['error'],
+      'style/wrap-regex': ['error'],
+      'style/type-named-tuple-spacing': ['error'],
+      'style/max-statements-per-line': ['off'],
+      'style/array-bracket-newline': [
+        'error',
+        {
+          minItems: 3,
+          multiline: true,
+        },
+      ],
+
+      // Unicorn rules
+      'unicorn/better-regex': ['error'],
+      'unicorn/filename-case': [
+        'error',
+        {
+          cases: {
+            kebabCase: true,
+          },
+        },
+      ],
+      'unicorn/no-array-for-each': ['error'],
+      'unicorn/no-array-method-this-argument': ['error'],
+      'unicorn/no-array-push-push': ['error'],
+      'unicorn/no-for-loop': ['error'],
+      'unicorn/no-invalid-remove-event-listener': ['error'],
+      'unicorn/no-lonely-if': ['error'],
+      'unicorn/no-negation-in-equality-check': ['error'],
+      'unicorn/no-nested-ternary': ['error'],
+      'unicorn/no-static-only-class': ['error'],
+      'unicorn/no-unreadable-array-destructuring': ['error'],
+      'unicorn/prefer-number-properties': ['error'],
+      'unicorn/prefer-optional-catch-binding': ['error'],
+      'unicorn/template-indent': ['warn', { indent: 2 }],
+      'unicorn/text-encoding-identifier-case': ['error'],
+      'unicorn/catch-error-name': ['error'],
+      'unicorn/consistent-destructuring': ['error'],
+      'unicorn/consistent-function-scoping': ['error'],
+      'unicorn/empty-brace-spaces': ['error'],
+      'unicorn/expiring-todo-comments': ['error'],
+      'unicorn/no-unnecessary-await': ['error'],
+      'unicorn/no-useless-undefined': ['error'],
+
+      // TypeScript rules
+      'ts/explicit-function-return-type': ['off'],
+      'ts/array-type': ['error'],
+
+      'ts/adjacent-overload-signatures': ['error'],
+      'ts/ban-tslint-comment': ['error'],
+      'ts/class-literal-property-style': ['error'],
+      'ts/consistent-generic-constructors': ['error'],
+      'ts/consistent-indexed-object-style': ['error'],
+      'ts/consistent-type-assertions': ['error'],
+      'ts/consistent-type-definitions': ['off'],
+      'ts/no-confusing-non-null-assertion': ['error'],
+      'ts/no-empty-function': ['error'],
+      'ts/no-empty-interface': ['error'],
+      'ts/no-inferrable-types': ['error'],
+      'ts/prefer-for-of': ['error'],
+      'ts/prefer-function-type': ['error'],
+      'ts/prefer-namespace-keyword': ['error'],
 
       // // Import rules
       // 'import/order': [
@@ -86,12 +150,8 @@ async function config(): Promise<Linter.FlatConfig[]> {
       //     },
       //   },
       // ],
-
     },
-  }, [
-    typescriptRules,
-    unicornRules,
-  ])
+  })
 }
 
 export default config
