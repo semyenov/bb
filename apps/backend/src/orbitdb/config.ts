@@ -1,16 +1,17 @@
 import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
+import type { Identify } from '@libp2p/identify'
 import type { PubSub } from '@libp2p/interface'
 import type { Libp2pOptions } from 'libp2p'
+
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
-import { type Identify, identify } from '@libp2p/identify'
+import { identify } from '@libp2p/identify'
 import { mdns } from '@libp2p/mdns'
 import { tcp } from '@libp2p/tcp'
-import { webRTC } from '@libp2p/webrtc'
-
 import { webSockets } from '@libp2p/websockets'
 import { all } from '@libp2p/websockets/filters'
+// import { webRTC } from '@libp2p/webrtc'
 
 export const DefaultLibp2pOptions: Libp2pOptions<{
   identify: Identify
@@ -22,7 +23,7 @@ export const DefaultLibp2pOptions: Libp2pOptions<{
   peerDiscovery: [mdns()],
   transports: [
     tcp(),
-    webRTC(),
+    // webRTC(),
     webSockets({
       filter: all,
     }),
@@ -48,11 +49,11 @@ export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
   pubsub: PubSub<GossipsubEvents>
 }> = {
   addresses: {
-    listen: ['/webrtc'],
+    listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
   transports: [
     tcp(),
-    webRTC(),
+    // webRTC(),
     webSockets({ filter: all }),
   ],
   connectionEncrypters: [noise()],

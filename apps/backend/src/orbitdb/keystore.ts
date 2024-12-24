@@ -44,7 +44,7 @@ async function main() {
   })
 
   const db = await orbit.open('events', 'test')
-  logger.info('opened', { db })
+  logger.info('opened', { data: db.address })
 
   for (let i = 0; i < 10; i++) {
     await db.add({ message: `Hello, world! ${i}` })
