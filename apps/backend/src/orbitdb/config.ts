@@ -52,9 +52,8 @@ export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
   },
   transports: [
     tcp(),
-    // webRTC(),
+    webRTC(),
     webSockets({ filter: all }),
-
   ],
   connectionEncrypters: [noise()],
   streamMuxers: [yamux()],
