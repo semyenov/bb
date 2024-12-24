@@ -1,8 +1,8 @@
+import type { RedisJSON } from 'libs/redis/src/types'
+
 import { createLogger } from '@regioni/lib-logger'
 import { parsePath } from '@regioni/lib-pointers'
-
 import { wrap } from '@typeschema/typebox'
-
 import { publicProcedure, rootRouter } from '../../trpc'
 import { GetItemInputSchema, PostItemInputSchema } from './schema'
 
@@ -40,6 +40,14 @@ export const dataRouter = rootRouter({
         throw new Error('Invalid id')
       }
 
+      if (!data) {
+        throw new Error('Invalid data')
+      }
+
+      if (!path) {
+        throw new Error('Invalid path')
+      }
+
       const {
         namespace,
         schemaId,
@@ -62,8 +70,11 @@ export const dataRouter = rootRouter({
       )
 
       return redis.data.insertOne(
-        id,
-        data,
+        {
+          key,
+          path,
+          value: data as RedisJSON,
+        },
       )
     }),
 })

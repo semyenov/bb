@@ -1,5 +1,5 @@
-import type { OrbitDBHeliaInstance } from '../vendor'
-import type { StorageInstance } from './types'
+import type { OrbitDBHeliaInstance } from '../vendor.d'
+import type { StorageInstance } from './types.d'
 
 import drain from 'it-drain'
 import { base58btc } from 'multiformats/bases/base58'

@@ -1,114 +1,144 @@
-import type { Meta, User } from '@regioni/backend'
+import type {
+  Meta,
+  User,
+} from '@regioni/backend'
 
 import type {
-  RedisClientOptions,
-  RedisFunctions,
-  RedisModules,
-  RedisScripts,
-} from './vendor.d'
+  JsonMSetItem,
+  RedisCRUDInstance,
+  RedisCRUDOptions,
+  RedisJSON,
+  RedisStore,
+  RedisStoreOptions,
+} from './types.d'
+
 import { createClient } from 'redis'
 
-export async function createRedisStore(
-  options: RedisClientOptions<
-    RedisModules,
-    RedisFunctions,
-    RedisScripts
-  >,
-) {
+export async function createRedisStore(options: RedisStoreOptions): Promise<RedisStore> {
   const connection = createClient(options)
   await connection.connect()
 
-  function createCRUD<T = unknown>(prefix = '') {
-    const formatPattern = (...args: string[]) => {
-      return [prefix, ...args].join(':')
+  return {
+    data: createCRUD({ prefix: 'data', connection }),
+    meta: createCRUD<Meta>({ prefix: 'meta', connection }),
+    users: createCRUD<User>({ prefix: 'users', connection }),
+    schemas: createCRUD({ prefix: 'schemas', connection }),
+
+    disconnect: connection.disconnect,
+  }
+}
+
+export function createCRUD<T extends RedisJSON>({ prefix = '', connection }: RedisCRUDOptions): RedisCRUDInstance<T> {
+  const formatPattern = (...args: string[]) => {
+    return [prefix, ...args].join(':')
+  }
+
+  const keyExists = async (id: string) => {
+    const pattern = formatPattern(id)
+    const exists = await connection.exists(pattern)
+
+    return exists === 1
+  }
+
+  const getKeys = async () => {
+    const pattern = formatPattern('*')
+
+    return await connection.keys(pattern)
+  }
+
+  const getAll = async () => {
+    const userKeys = await getKeys()
+    if (userKeys.length === 0) {
+      return []
     }
 
-    const keyExists = async (id: string) => {
-      const pattern = formatPattern(id)
-      const exists = await connection.exists(pattern)
+    const items = await connection.json.mGet(userKeys, '$')
 
-      return exists === 1
-    }
+    return items.flat() as T[]
+  }
 
-    const getKeys = async () => {
-      const pattern = formatPattern('*')
+  const insertOne = async ({
+    key,
+    path,
+    value,
+  }: JsonMSetItem) => {
+    const pattern = formatPattern(String(key))
+    await connection.json.set(
+      pattern,
+      String(path),
+      value,
+    )
 
-      return await connection.keys(pattern)
-    }
+    return value as T
+  }
 
-    const getAll = async () => {
-      const userKeys = await getKeys()
-      if (userKeys.length === 0) {
-        return []
+  const insertMany = async (items: JsonMSetItem[]): Promise<T[]> => {
+    const pattern = items.map(({
+      key,
+      path,
+      value,
+    }) => {
+      return {
+        key: formatPattern(String(key)),
+        path: String(path),
+        value,
       }
+    })
 
-      const items = await connection.json.mGet(userKeys, '$')
+    await connection.json.mSet(pattern)
 
-      return items.flat() as T[]
+    return items.map(({
+      value,
+    }) => {
+      return value
+    }) as T[]
+  }
+
+  const findOne = async (id: string) => {
+    const pattern = formatPattern(id)
+    const item = (await connection.json.get(pattern)) as T
+    if (!item) {
+      return
     }
 
-    const insertOne = async (id: string, data: T) => {
-      const pattern = formatPattern(id)
-      const item = { ...data, _id: id }
-      await connection.json.set(pattern, '$', item)
+    return item as T
+  }
+  const findMany = async (...ids: string[]) => {
+    const pattern = ids.map((id) => {
+      return formatPattern(id)
+    })
+    const items = await connection.json.mGet(pattern, '$')
 
-      return item as T
-    }
+    return items as T[]
+  }
 
-    const findOne = async (id: string) => {
-      const pattern = formatPattern(id)
-      const item = (await connection.json.get(pattern)) as T
-      if (!item) {
-        return
-      }
+  const deleteOne = async (id: string) => {
+    const pattern = formatPattern(id)
+    await connection.del(pattern)
 
-      return item as T
-    }
-    const findMany = async (...ids: string[]) => {
-      const pattern = ids.map((id) => {
-        return formatPattern(id)
-      })
-      const items = await connection.json.mGet(pattern, '$')
+    return true
+  }
+  const deleteMany = async (...ids: string[]) => {
+    const pattern = ids.map((id) => {
+      return formatPattern(id)
+    })
+    await connection.del(pattern)
 
-      return items as T[]
-    }
-
-    const deleteOne = async (id: string) => {
-      const pattern = formatPattern(id)
-      await connection.del(pattern)
-
-      return true
-    }
-    const deleteMany = async (...ids: string[]) => {
-      const pattern = ids.map((id) => {
-        return formatPattern(id)
-      })
-      await connection.del(pattern)
-
-      return true
-    }
-
-    return {
-      keyExists,
-      getKeys,
-
-      getAll,
-
-      insertOne,
-
-      findOne,
-      findMany,
-
-      deleteOne,
-      deleteMany,
-    }
+    return true
   }
 
   return {
-    data: createCRUD('data'),
-    meta: createCRUD<Meta>('meta'),
-    users: createCRUD<User>('users'),
-    schemas: createCRUD('schemas'),
-    disconnect: connection.disconnect,
+    keyExists,
+    getKeys,
+    getAll,
+
+    findOne,
+    findMany,
+
+    insertOne,
+    insertMany,
+
+    deleteOne,
+    deleteMany,
   }
 }

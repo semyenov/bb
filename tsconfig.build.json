@@ -3,7 +3,6 @@
     "composite": true,
     "target": "ESNext",
     "baseUrl": ".",
-    "rootDir": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowJs": true,
@@ -20,14 +19,5 @@
     "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
-  },
-  "include": [
-    "./packages/**/*.{ts,tsx,d.ts}",
-    "./apps/**/*.{ts,tsx,d.ts}",
-    "./libs/**/*.{ts,tsx,d.ts}"
-  ],
-  "exclude": [
-    "./**/node_modules",
-    "./**/dist"
-  ]
+  }
 }

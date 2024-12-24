@@ -46,9 +46,10 @@ export const usersRouter = rootRouter({
         id,
       })
 
-      await redis.users.insertOne(id, {
-        ...user,
-        id,
+      await redis.users.insertOne({
+        key: id,
+        path: '$',
+        value: user,
       })
     }),
 })

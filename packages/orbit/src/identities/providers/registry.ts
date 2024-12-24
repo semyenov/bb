@@ -1,6 +1,6 @@
 import type {
   IdentityProvider,
-} from './types'
+} from './types.d'
 
 import { PublicKeyIdentity } from './publickey'
 

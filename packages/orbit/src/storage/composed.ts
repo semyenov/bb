@@ -1,4 +1,4 @@
-import type { StorageInstance } from './types'
+import type { StorageInstance } from './types.d'
 
 export interface ComposedStorageOptions<T> {
   storage1: StorageInstance<T>
