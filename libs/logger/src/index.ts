@@ -95,7 +95,7 @@ export function createLogger(options: LoggerOptions = {}) {
                 stack
                   ? `\\ ${stack.slice(stack.indexOf('\n') + 1)}`
                   : undefined,
-                data
+                Object.keys(data).length > 0
                   ? inspect(data, {
                       breakLength: 80,
                       compact: true,
@@ -107,6 +107,7 @@ export function createLogger(options: LoggerOptions = {}) {
               ]
                 .filter(Boolean)
                 .join('\n')
+                .concat('\n')
             }),
           ],
         ),
