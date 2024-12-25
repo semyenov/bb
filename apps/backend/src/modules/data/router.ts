@@ -1,4 +1,4 @@
-import type { RedisJSON } from 'libs/redis/src/types'
+import type { RedisJSON } from '@regioni/lib-redis'
 
 import { createLogger } from '@regioni/lib-logger'
 import { parsePath } from '@regioni/lib-pointers'

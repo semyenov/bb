@@ -30,6 +30,8 @@
     "typecheck": "yarn tsc --noEmit"
   },
   "dependencies": {
+    "@redis/client": "^1.6.0",
+    "@redis/json": "^1.0.7",
     "@regioni/backend": "workspace:^",
     "redis": "^4.7.0"
   },
