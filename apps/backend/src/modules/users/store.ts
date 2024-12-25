@@ -90,7 +90,10 @@ export class UsersStore implements UserStoreInstance {
     return user
   }
 
-  async createUser(id: string, payload: Omit<User, 'keys' | 'jwk'>): Promise<User> {
+  async createUser(
+    id: string,
+    payload: Omit<User, 'keys' | 'jwk'>,
+  ): Promise<User> {
     if (await this.storage.hasItem(id)) {
       throw ErrorUserExists
     }
@@ -113,7 +116,10 @@ export class UsersStore implements UserStoreInstance {
     return user
   }
 
-  async updateUser(id: string, payload: User): Promise<User> {
+  async updateUser(
+    id: string,
+    payload: User,
+  ): Promise<User> {
     const existingUser = await this.storage.getItem(id)
     if (!existingUser) {
       throw ErrorUserNotFound
@@ -129,12 +135,20 @@ export class UsersStore implements UserStoreInstance {
     }
 
     const jwk = await secp256k1ToJWK(key)
-    const user = Object.assign(Object.create(null), existingUser, payload, {
-      jwk,
-      keys: [kid],
-    })
+    const user = Object.assign(
+      Object.create(null),
+      existingUser,
+      payload,
+      {
+        jwk,
+        keys: [kid],
+      },
+    )
 
-    await this.storage.setItem(id, user)
+    await this.storage.setItem(
+      id,
+      user,
+    )
 
     return user
   }
@@ -148,13 +162,13 @@ export class UsersStore implements UserStoreInstance {
       throw ErrorUserKeyNotFound
     }
 
-    for (const kid of user.keys) {
-      await this.keystore.removeKey(kid)
-      logger.debug('Key deleted', { userId: user.id, kid })
-    }
+    await Promise.all(user.keys.map(
+      (kid) => {
+        return this.keystore.removeKey(kid)
+      },
+    ))
 
     await this.storage.removeItem(id)
-    logger.debug('User deleted', { user })
   }
 
   async getJWKSet(): Promise<(protectedHeader?: JWSHeaderParameters, token?: FlattenedJWSInput) => Promise<KeyLike>> {
@@ -168,6 +182,8 @@ export class UsersStore implements UserStoreInstance {
       keys.push(user.jwk.publicKey)
     }
 
-    return createLocalJWKSet({ keys })
+    return createLocalJWKSet({
+      keys,
+    })
   }
 }

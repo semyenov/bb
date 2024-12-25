@@ -28,7 +28,10 @@ export async function createRedisStore(options: RedisStoreOptions): Promise<Redi
   }
 }
 
-export function createCRUD<T extends RedisJSON>({ prefix = '', connection }: RedisCRUDOptions): RedisCRUDInstance<T> {
+export function createCRUD<T extends RedisJSON>({
+  prefix = '',
+  connection,
+}: RedisCRUDOptions): RedisCRUDInstance<T> {
   const formatPattern = (...args: string[]) => {
     return [prefix, ...args].join(':')
   }

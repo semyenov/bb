@@ -8,7 +8,7 @@ import { consola } from 'consola'
 import { ErrorUserKeyNotFound, ErrorUserNotFound } from './modules/users/errors'
 import { UsersStore, type UserStoreInstance } from './modules/users/store'
 
-const ID_ARGUMENT_DESCRIPTION = 'user id'
+const USERS_PATH = './.out/users'
 
 const logger = createLogger({
   defaultMeta: {
@@ -18,9 +18,10 @@ const logger = createLogger({
   },
 })
 
-const usersPath = './.out/users'
-
-async function createUser(userStore: UserStoreInstance, id: string) {
+async function createUser(
+  userStore: UserStoreInstance,
+  id: string,
+) {
   const user = await userStore.createUser(id, {
     id,
     hash: '',
@@ -41,10 +42,16 @@ async function createUser(userStore: UserStoreInstance, id: string) {
     updatedAt: new Date(),
   })
 
-  logger.info('User created:', user)
+  logger.info(
+    'User created:',
+    user,
+  )
 }
 
-async function deleteUser(userStore: UserStoreInstance, id: string) {
+async function deleteUser(
+  userStore: UserStoreInstance,
+  id: string,
+) {
   const user = await userStore.getUser(id)
   if (!user) {
     throw ErrorUserNotFound
@@ -60,11 +67,23 @@ async function deleteUser(userStore: UserStoreInstance, id: string) {
   }
 
   await userStore.removeUser(id)
+
+  logger.info(
+    'User deleted:',
+    id,
+  )
 }
 
-async function getUser(userStore: UserStoreInstance, id: string) {
+async function getUser(
+  userStore: UserStoreInstance,
+  id: string,
+) {
   const user = await userStore.getUser(id)
-  logger.info('getUser:', { user })
+
+  logger.info(
+    'getUser:',
+    { user },
+  )
 }
 
 async function signData(
@@ -81,22 +100,36 @@ async function signData(
   }
 
   const jwt = await sign(user.jwk.privateKey, { data })
-  logger.info('signData:', { jwt })
+
+  logger.info(
+    'signData:',
+    { jwt },
+  )
 }
 
-async function verifyData(userStore: UserStoreInstance, data: string) {
+async function verifyData(
+  userStore: UserStoreInstance,
+  data: string,
+) {
   const keyset = await userStore.getJWKSet()
   const { payload, protectedHeader, key } = await verify(data, keyset)
 
-  logger.info('verifyData:', { payload, protectedHeader, key })
+  logger.info(
+    'verifyData:',
+    { payload, protectedHeader, key },
+  )
 }
 
 async function run() {
   const userStore = await UsersStore.create({
-    base: usersPath,
+    base: USERS_PATH,
   })
 
   const program = new Command()
+  const idArgument = new Argument(
+    'id',
+    'user id',
+  )
 
   program
     .name('user-management-cli')
@@ -110,7 +143,7 @@ async function run() {
   userCommand
     .command('create')
     .aliases(['add', 'new'])
-    .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
+    .addArgument(idArgument)
     .description('Create a new user')
     .action((id: string) => {
       return createUser(userStore, id)
@@ -123,7 +156,7 @@ async function run() {
       'rm',
       'del',
     ])
-    .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
+    .addArgument(idArgument)
     .description('Delete a user')
     .action((id: string) => {
       return deleteUser(userStore, id)
@@ -132,7 +165,7 @@ async function run() {
   userCommand
     .command('get')
     .aliases(['show'])
-    .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
+    .addArgument(idArgument)
     .description('Get user information')
     .action((id: string) => {
       return getUser(userStore, id)
@@ -141,7 +174,7 @@ async function run() {
   userCommand
     .command('sign')
     .aliases(['use', 'sign-data'])
-    .addArgument(new Argument('id', ID_ARGUMENT_DESCRIPTION))
+    .addArgument(idArgument)
     .addArgument(new Argument('data', 'data to sign'))
     .description('Sign data')
     .action((id: string, data: string) => {
