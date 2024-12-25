@@ -1,6 +1,6 @@
 {
   "editor.tabCompletion": "off",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.formatOnSave": true,
   "editor.wrappingStrategy": "advanced",
   "editor.wordWrap": "bounded",
@@ -10,17 +10,20 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
   },
+
   "npm.packageManager": "yarn",
-  "vitest.workspaceConfig": "vitest.workspace.ts",
+
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.inlayHints.parameterNames.enabled": "all",
   "typescript.inlayHints.parameterTypes.enabled": true,
+
   "where-am-i.icon": "home",
   "where-am-i.template": "{icon} {project-name}",
   "where-am-i.colorful": true,
   "where-am-i.color": "#fff",
+
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
   "eslint.useFlatConfig": true,
@@ -46,17 +49,41 @@
     "pcss",
     "postcss"
   ],
+
   "browse-lite.startUrl": "http://localhost:3000",
   "browse-lite.chromeExecutable": "/usr/bin/chromium",
+
   "fileNestingUpdater.autoUpdate": true,
   "fileNestingUpdater.autoUpdateInterval": 720,
   "fileNestingUpdater.promptOnAutoUpdate": true,
   "fileNestingUpdater.upstreamRepo": "antfu/vscode-file-nesting-config",
   "fileNestingUpdater.upstreamBranch": "main",
+  "errorLens.codeLensEnabled": true,
+  "errorLens.statusBarColorsEnabled": true,
+  "errorLens.statusBarIconsEnabled": true,
+  "errorLens.followCursor": "allLinesExceptActive",
+  "errorLens.fontStyleItalic": true,
+  "errorLens.gutterIconsEnabled": true,
+  "errorLens.multilineMessage": {
+    "decorationMaxNumberOfLines": 6,
+    "preferFittingMessageMultiplier": 2,
+    "maxColumnForCalculation": 130,
+    "alignStart": 0,
+    "alignEnd": 0,
+    "margin": 4,
+    "padding": 1
+  },
+
+  "errorLens.codeLensLength": {
+    "min": 0,
+    "max": 80
+  },
+
   "search.exclude": {
     "**/.yarn": true,
     "**/.pnp.*": true
   },
+
   "[vue]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
@@ -83,5 +110,8 @@
   },
   "[json]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
   }
 }

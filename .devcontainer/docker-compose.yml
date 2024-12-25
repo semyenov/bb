@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:dragonfly
+    depends_on:
+      - dragonfly
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    ulimits:
+      memlock: -1
+    volumes:
+      - dragonfly-data:/data
+    ports:
+      - '6379:6379'
+
+volumes:
+  dragonfly-data:
