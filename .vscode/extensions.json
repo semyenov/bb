@@ -63,6 +63,7 @@
     "zardoy.ts-essential-plugins",
     "ietxaniz.fold-ninja",
     "vunguyentuan.vscode-postcss",
-    "romanpeshkov.tailwind-nested"
+    "romanpeshkov.tailwind-nested",
+    "alberto-varela.monorepo-focus-workspace"
   ]
 }
