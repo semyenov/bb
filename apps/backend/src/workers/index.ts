@@ -2,7 +2,13 @@ import { sleep } from '@antfu/utils'
 import { createLogger } from '@regioni/lib-logger'
 import { Worker } from 'bullmq'
 
-const logger = createLogger()
+const logger = createLogger({
+  defaultMeta: {
+    service: 'backend',
+    label: 'worker',
+    version: '1.0.0',
+  },
+})
 
 const worker = new Worker<{ message: string }, { status: number }>(
   'appQueue',
