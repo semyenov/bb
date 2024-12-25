@@ -45,6 +45,7 @@ const logger = createLogger({
   defaultMeta: {
     service: 'users',
     label: 'store',
+    version: '1.0.0',
   },
 })
 

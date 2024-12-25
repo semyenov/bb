@@ -1,3 +1,5 @@
-import { app } from './trpc'
-
-app.listen(4000)
+export * from './config'
+export * from './modules'
+export * from './orbitdb'
+export * from './trpc'
+export * from './workers'

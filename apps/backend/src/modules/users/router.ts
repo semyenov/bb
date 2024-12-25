@@ -3,7 +3,7 @@ import { createLogger } from '@regioni/lib-logger'
 import { Type } from '@sinclair/typebox'
 
 import { wrap } from '@typeschema/typebox'
-import { publicProcedure, rootRouter } from '../../trpc/trpc'
+import { publicProcedure, rootRouter } from '../../trpc/init'
 import { UserSchema } from './schema'
 
 const logger = createLogger({

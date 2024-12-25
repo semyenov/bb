@@ -19,6 +19,8 @@ const options = DefaultLibp2pOptions
 const logger = createLogger({
   defaultMeta: {
     service: 'orbitdb',
+    label: 'keystore',
+    version: '1.0.0',
   },
 })
 
