@@ -1,7 +1,7 @@
 import type { TransformableInfo } from 'logform'
-import type { LoggerOptions } from 'winston'
-import { inspect } from 'node:util'
+import type { LoggerMeta, LoggerOptions } from './types'
 
+import { inspect } from 'node:util'
 import {
   config as c,
   createLogger as createWinstonLogger,
@@ -16,11 +16,7 @@ const {
 
 export function createLogger({
   levels = defaultLevels,
-  defaultMeta = {
-    service: 'service',
-    label: 'root',
-    version: '0.0.1',
-  },
+  defaultMeta,
   ...options
 }: LoggerOptions) {
   return createWinstonLogger({
@@ -45,11 +41,13 @@ export function createLogger({
           key: 'data',
           fillExcept: [
             'service',
-            'stack',
-            'version',
-            'message',
+            'module',
             'label',
+            'version',
+
             'level',
+            'message',
+            'stack',
             'timestamp',
           ],
         }),
@@ -69,18 +67,12 @@ export function createLogger({
               level = 'debug',
               label = 'label',
               service = 'service',
-              version = '0.0.1',
+              module = 'module',
+              version = '0.0.0',
               timestamp = new Date()
-                .getTime() / 1000,
+                .toISOString(),
               stack,
-            } = log as TransformableInfo & {
-              level: string
-              label: string
-              service: string
-              version: string
-              timestamp: number
-              stack: string
-            }
+            } = log as LoggerMeta
 
             let {
               message,
@@ -96,7 +88,11 @@ export function createLogger({
             }
 
             return [
-              `. ${[label, level]
+              `. ${[
+                level,
+                module,
+                label,
+              ]
                 .filter(Boolean)
                 .join(':')}`,
               `\\ ${[service, version]
@@ -105,16 +101,16 @@ export function createLogger({
               `> ${timestamp}`,
 
               message
-                ? `\\ ${message}`
+                ? `/ ${message}`
                 : undefined,
               stack
-                ? `\\ ${stack.slice(
+                ? `/ ${stack.slice(
                   stack.indexOf('\n') + 1,
                 )}`
                 : undefined,
               Object.keys(data).length > 0
                 ? inspect(data, {
-                    breakLength: 40,
+                    breakLength: 80,
                     compact: true,
                     colors: true,
                     showHidden: true,
