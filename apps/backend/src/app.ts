@@ -4,9 +4,9 @@ import { WebSocketServerProxy } from '@regioni/lib-ws'
 import { createHTTPServer } from '@trpc/server/adapters/standalone'
 import { applyWSSHandler } from '@trpc/server/adapters/ws'
 
-import { createContext } from './lib/context'
-import { logger } from './lib/logger'
-import { router } from './lib/router'
+import { createContext } from './libs/context'
+import { logger } from './libs/logger'
+import { router } from './libs/router'
 
 function errorHandler({ error }: { error: TRPCError }) {
   if (error.code === 'INTERNAL_SERVER_ERROR') {

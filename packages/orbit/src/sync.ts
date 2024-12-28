@@ -46,13 +46,13 @@ export interface SyncInstance<T, E extends SyncEvents<T>> extends Startable {
 export class Sync<T, E extends SyncEvents<T> = SyncEvents<T>> implements SyncInstance<T, E> {
   public events: TypedEventEmitter<E>
   public peers: PeerSet
+
   private address: string
   private headsSyncAddress: string
   private ipfs: OrbitDBHeliaInstance
   private log: LogInstance<T>
   private onSynced?: (bytes: Uint8Array) => Promise<void>
   private queue: PQueue
-
   private started: boolean
   private timeout: number
 

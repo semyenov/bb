@@ -1,9 +1,6 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": [
-    "./packages/**/*.ts",
-    "./apps/**/*.ts",
-    "./libs/**/*.ts",
-    "./vitest.workspace.ts"
-  ]
+  "compilerOptions": {
+    "noEmit": true
+  }
 }

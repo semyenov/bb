@@ -4,7 +4,7 @@ import { createLogger } from '@regioni/lib-logger'
 import { parsePath } from '@regioni/lib-pointers'
 import { wrap } from '@typeschema/typebox'
 
-import { publicProcedure, rootRouter } from '../../lib/trpc'
+import { publicProcedure, rootRouter } from '../../libs/trpc'
 import { GetItemInputSchema, PostItemInputSchema } from './schema'
 
 const logger = createLogger({

@@ -34,10 +34,9 @@ export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
   Database?: (...args: any[]) => DatabaseTypeMap<T>[D]
   entryStorage?: StorageInstance<Uint8Array>
   headsStorage?: StorageInstance<Uint8Array>
-
+  indexBy?: string
   indexStorage?: StorageInstance<boolean>
   meta?: any
-
   referencesCount?: number
   syncAutomatically?: boolean
   type?: D
