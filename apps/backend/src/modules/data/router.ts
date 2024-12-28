@@ -1,10 +1,11 @@
-import type { RedisJSON } from '@regioni/lib-redis'
-
-import { createLogger } from '@regioni/lib-logger'
-import { parsePath } from '@regioni/lib-pointers'
 import { wrap } from '@typeschema/typebox'
 
-import { publicProcedure, rootRouter } from '../../libs/trpc'
+import type { RedisJSON } from '@/libs/redis'
+
+import { createLogger } from '@/libs/logger'
+import { parsePath } from '@/libs/pointers'
+
+import { publicProcedure, rootRouter } from '../../trpc/trpc'
 import { GetItemInputSchema, PostItemInputSchema } from './schema'
 
 const logger = createLogger({

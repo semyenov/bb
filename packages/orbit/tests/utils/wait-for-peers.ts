@@ -3,7 +3,7 @@
 import type { PeerId } from '@libp2p/interface'
 import type { OrbitDBHeliaInstance } from '@regioni/orbit'
 
-import { createLogger } from '@regioni/lib-logger'
+import { createLogger } from '@/libs/logger'
 
 const logger = createLogger({
   defaultMeta: {

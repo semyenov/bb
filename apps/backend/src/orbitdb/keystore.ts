@@ -1,5 +1,4 @@
 import { bitswap } from '@helia/block-brokers'
-import { createLogger } from '@regioni/lib-logger'
 import {
   createOrbitDB,
   Identities,
@@ -9,6 +8,8 @@ import {
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
+
+import { createLogger } from '@/libs/logger'
 
 import { DefaultLibp2pOptions } from './config'
 

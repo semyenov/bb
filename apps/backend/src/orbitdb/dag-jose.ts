@@ -1,7 +1,6 @@
 import type { CID } from 'multiformats/cid'
 import type { BlockDecoder, BlockEncoder } from 'multiformats/codecs/interface'
 
-import { createLogger } from '@regioni/lib-logger'
 import { randomBytes } from '@stablelib/random'
 import { generateKeyPairFromSeed } from '@stablelib/x25519'
 import * as dagJose from 'dag-jose'
@@ -18,6 +17,8 @@ import {
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
 import process from 'node:process'
+
+import { createLogger } from '@/libs/logger'
 
 const store = new Map<string, Uint8Array>()
 // const dagJoseIpldFormat = toLegacyIpld(dagJose)

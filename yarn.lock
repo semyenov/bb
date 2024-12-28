@@ -4706,7 +4706,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@regioni/backend@workspace:^, @regioni/backend@workspace:apps/backend":
+"@regioni/backend@workspace:apps/backend":
   version: 0.0.0-use.local
   resolution: "@regioni/backend@workspace:apps/backend"
   dependencies:
@@ -4734,27 +4734,21 @@ __metadata:
     "@libp2p/webrtc": "npm:^5.0.22"
     "@libp2p/websockets": "npm:^9.1.0"
     "@msgpack/msgpack": "npm:^3.0.0-beta2"
-    "@regioni/lib-ajv": "workspace:^"
-    "@regioni/lib-bullmq": "workspace:^"
-    "@regioni/lib-jose": "workspace:^"
-    "@regioni/lib-logger": "workspace:^"
-    "@regioni/lib-mongodb": "workspace:^"
-    "@regioni/lib-orbit": "workspace:^"
-    "@regioni/lib-pointers": "workspace:^"
-    "@regioni/lib-redis": "workspace:^"
-    "@regioni/lib-superjson": "workspace:^"
-    "@regioni/lib-ws": "workspace:^"
     "@regioni/orbit": "workspace:^"
     "@sinclair/typebox": "npm:^0.33.7"
     "@stablelib/random": "npm:^2.0.0"
     "@stablelib/x25519": "npm:^2.0.0"
     "@trpc/client": "npm:^10.45.2"
     "@trpc/server": "npm:^10.45.2"
+    "@types/async": "npm:^3"
     "@types/elliptic": "npm:^6.4.18"
+    "@types/readable-stream": "npm:^4.0.18"
+    "@types/ws": "npm:^8.5.13"
     "@typeschema/typebox": "npm:^0.14.0"
+    async: "npm:^3.2.6"
     blockcodec-to-ipld-format: "npm:^2.0.0"
     blockstore-level: "npm:^2.0.1"
-    bullmq: "npm:^5.34.4"
+    bullmq: "npm:^5.34.5"
     c12: "npm:^2.0.1"
     cborg: "npm:^4.2.7"
     chalk: "npm:^5.4.1"
@@ -4778,11 +4772,14 @@ __metadata:
     multiformats: "npm:^13.3.1"
     nanoid: "npm:^5.0.9"
     pkgroll: "npm:^2.5.1"
+    readable-stream: "npm:^4.6.0"
     remeda: "npm:^2.19.0"
+    trpc-cli: "npm:^0.5.1"
     ts-pattern: "npm:^5.6.0"
     tsx: "npm:^4.19.2"
     uint8arrays: "npm:^5.1.0"
     unstorage: "npm:^1.14.1"
+    winston: "npm:^3.17.0"
   bin:
     backend: ./dist/cli.mjs
   languageName: unknown
@@ -4844,164 +4841,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@regioni/lib-ajv@workspace:^, @regioni/lib-ajv@workspace:libs/ajv":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-ajv@workspace:libs/ajv"
-  dependencies:
-    "@regioni/lib-logger": "workspace:^"
-    "@trpc/server": "npm:^10.45.2"
-    "@types/events": "npm:^3.0.3"
-    ajv: "npm:^8.17.1"
-    ajv-errors: "npm:^3.0.0"
-    ajv-formats: "npm:^3.0.1"
-    ajv-i18n: "npm:^4.2.0"
-    ajv-keywords: "npm:^5.1.0"
-    consola: "npm:^3.3.1"
-    fast-glob: "npm:^3.3.2"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-    typescript-json-schema: "npm:0.65.1"
-    winston: "npm:^3.17.0"
-    zod: "npm:^3.24.1"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-bullmq@workspace:^, @regioni/lib-bullmq@workspace:libs/bullmq":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-bullmq@workspace:libs/bullmq"
-  dependencies:
-    bullmq: "npm:^5.34.4"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-jose@workspace:^, @regioni/lib-jose@workspace:libs/jose":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-jose@workspace:libs/jose"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.0.8"
-    "@regioni/lib-jose": "workspace:^"
-    "@regioni/lib-logger": "workspace:^"
-    "@regioni/orbit": "workspace:^"
-    bn: "npm:^1.0.5"
-    bn.js: "npm:^5.2.1"
-    consola: "npm:^3.3.1"
-    elliptic: "npm:^6.6.1"
-    jose: "npm:^5.9.6"
-    pkgroll: "npm:^2.5.1"
-    tsx: "npm:^4.19.2"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-logger@workspace:^, @regioni/lib-logger@workspace:libs/logger":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-logger@workspace:libs/logger"
-  dependencies:
-    date-fns: "npm:^4.1.0"
-    logform: "npm:^2.7.0"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-    winston: "npm:^3.17.0"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-mongodb@workspace:^, @regioni/lib-mongodb@workspace:libs/mongodb":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-mongodb@workspace:libs/mongodb"
-  dependencies:
-    mongodb: "npm:^6.12.0"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-orbit@workspace:^, @regioni/lib-orbit@workspace:libs/orbit":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-orbit@workspace:libs/orbit"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.0.8"
-    "@regioni/lib-logger": "workspace:^"
-    "@regioni/orbit": "workspace:^"
-    consola: "npm:^3.3.1"
-    libp2p: "npm:^2.4.2"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-    uint8arrays: "npm:^5.1.0"
-    unstorage: "npm:^1.14.1"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-pointers@workspace:^, @regioni/lib-pointers@workspace:libs/pointers":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-pointers@workspace:libs/pointers"
-  dependencies:
-    "@types/node": "npm:^22.10.2"
-    pkgroll: "npm:^2.5.1"
-    remeda: "npm:^2.19.0"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-quicktype@workspace:libs/quicktype":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-quicktype@workspace:libs/quicktype"
-  dependencies:
-    pkgroll: "npm:^2.5.1"
-    quicktype-core: "npm:^23.0.170"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-redis@workspace:^, @regioni/lib-redis@workspace:libs/redis":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-redis@workspace:libs/redis"
-  dependencies:
-    "@redis/client": "npm:^1.6.0"
-    "@redis/json": "npm:^1.0.7"
-    "@regioni/backend": "workspace:^"
-    pkgroll: "npm:^2.5.1"
-    redis: "npm:^4.7.0"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-superjson@workspace:^, @regioni/lib-superjson@workspace:libs/superjson":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-superjson@workspace:libs/superjson"
-  dependencies:
-    "@trpc/server": "npm:^10.45.2"
-    pkgroll: "npm:^2.5.1"
-    superjson: "npm:^2.2.2"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-transformer@workspace:libs/transformer":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-transformer@workspace:libs/transformer"
-  dependencies:
-    "@msgpack/msgpack": "npm:^3.0.0-beta2"
-    "@trpc/server": "npm:^10.45.2"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@regioni/lib-ws@workspace:^, @regioni/lib-ws@workspace:libs/ws":
-  version: 0.0.0-use.local
-  resolution: "@regioni/lib-ws@workspace:libs/ws"
-  dependencies:
-    "@regioni/lib-jose": "workspace:^"
-    "@regioni/lib-logger": "workspace:^"
-    "@types/ws": "npm:^8.5.13"
-    pkgroll: "npm:^2.5.1"
-    typescript: "npm:^5.7.2"
-    ws: "npm:^8.18.0"
-  languageName: unknown
-  linkType: soft
-
 "@regioni/orbit@workspace:*, @regioni/orbit@workspace:^, @regioni/orbit@workspace:packages/orbit":
   version: 0.0.0-use.local
   resolution: "@regioni/orbit@workspace:packages/orbit"
@@ -5045,6 +4884,8 @@ __metadata:
     "@multiformats/multiaddr": "npm:^12.3.4"
     "@multiformats/multiaddr-matcher": "npm:^1.6.0"
     "@orbitdb/core": "npm:^2.4.3"
+    "@redis/client": "npm:^1.6.0"
+    "@redis/json": "npm:^1.0.7"
     "@sinclair/typebox": "npm:^0.33.7"
     "@stablelib/random": "npm:^2.0.0"
     "@stablelib/x25519": "npm:^2.0.0"
@@ -5054,6 +4895,11 @@ __metadata:
     "@types/events": "npm:^3.0.3"
     "@types/fs-extra": "npm:^11.0.4"
     "@typeschema/typebox": "npm:^0.14.0"
+    ajv: "npm:^8.17.1"
+    ajv-errors: "npm:^3.0.0"
+    ajv-formats: "npm:^3.0.1"
+    ajv-i18n: "npm:^4.2.0"
+    ajv-keywords: "npm:^5.1.0"
     blockcodec-to-ipld-format: "npm:^2.0.0"
     blockstore-core: "npm:^5.0.2"
     blockstore-level: "npm:^2.0.1"
@@ -5069,6 +4915,7 @@ __metadata:
     denque: "npm:^2.1.0"
     did-jwt: "npm:^8.0.4"
     dotenv: "npm:^16.4.7"
+    elliptic: "npm:^6.6.1"
     events: "npm:^3.3.0"
     fast-glob: "npm:^3.3.2"
     fast-uri: "npm:^3.0.3"
@@ -5088,15 +4935,20 @@ __metadata:
     level: "npm:^9.0.0"
     libp2p: "npm:^2.4.2"
     listhen: "npm:^1.9.0"
+    logform: "npm:^2.7.0"
     lru-cache: "npm:^11.0.2"
+    mongodb: "npm:^6.12.0"
     multiformats: "npm:^13.3.1"
     nanoid: "npm:^5.0.9"
     p-queue: "npm:^8.0.1"
     pkgroll: "npm:^2.5.1"
     printf-ts: "npm:^2.0.1"
     protons-runtime: "npm:5.5.0"
+    quicktype-core: "npm:^23.0.170"
+    redis: "npm:^4.7.0"
     remeda: "npm:^2.19.0"
     rimraf: "npm:^6.0.1"
+    superjson: "npm:^2.2.2"
     timeout-abort-controller: "npm:^3.0.0"
     ts-pattern: "npm:^5.6.0"
     tsx: "npm:^4.19.2"
@@ -5104,6 +4956,7 @@ __metadata:
     uint8arrays: "npm:^5.1.0"
     unstorage: "npm:^1.14.1"
     vitest: "npm:^2.1.8"
+    winston: "npm:^3.17.0"
   languageName: unknown
   linkType: soft
 
@@ -5639,6 +5492,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/async@npm:^3":
+  version: 3.2.24
+  resolution: "@types/async@npm:3.2.24"
+  checksum: 10/9f330a2fbaa93672a343e456cb81ddd8e5034056116afeafaa04019d20643c4443b4bb03801a24d265c0bc89ffacf1fb8301f2ed62f8f3331682c317fa75d6a5
+  languageName: node
+  linkType: hard
+
 "@types/bn.js@npm:*":
   version: 5.1.6
   resolution: "@types/bn.js@npm:5.1.6"
@@ -5863,6 +5723,16 @@ __metadata:
   version: 7.0.3
   resolution: "@types/parse-path@npm:7.0.3"
   checksum: 10/21a12c228d38f5a75659dfd7cb127dc2001ed3f6acbd1b2e0575d1348c735594c0bab06a97fe849c151438384829f20ea5971cb045f7ecd37d53c76a9fcb9de3
+  languageName: node
+  linkType: hard
+
+"@types/readable-stream@npm:^4.0.18":
+  version: 4.0.18
+  resolution: "@types/readable-stream@npm:4.0.18"
+  dependencies:
+    "@types/node": "npm:*"
+    safe-buffer: "npm:~5.1.1"
+  checksum: 10/930d05ec58f03c0a2041fa827ac3274c3d433276576521408be0a4677d9e74d87db073a3ee80904d98b9b4541260615e7ec60bb2e44c03425ed178f81ff4ed5c
   languageName: node
   linkType: hard
 
@@ -7266,7 +7136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"async@npm:^3.2.3":
+"async@npm:^3.2.3, async@npm:^3.2.6":
   version: 3.2.6
   resolution: "async@npm:3.2.6"
   checksum: 10/cb6e0561a3c01c4b56a799cc8bab6ea5fef45f069ab32500b6e19508db270ef2dffa55e5aed5865c5526e9907b1f8be61b27530823b411ffafb5e1538c86c368
@@ -7432,20 +7302,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bn.js@npm:^5.2.1":
-  version: 5.2.1
-  resolution: "bn.js@npm:5.2.1"
-  checksum: 10/7a7e8764d7a6e9708b8b9841b2b3d6019cc154d2fc23716d0efecfe1e16921b7533c6f7361fb05471eab47986c4aa310c270f88e3507172104632ac8df2cfd84
-  languageName: node
-  linkType: hard
-
-"bn@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "bn@npm:1.0.5"
-  checksum: 10/6087f2f3e5527d78d89d0e02ccf928e84c72a84b6731f30adede5f01231b44dc272b08c8c526ef6ce9e6f6e8d82897d2805d0dbbf585c3da5f36719d92ab8c37
-  languageName: node
-  linkType: hard
-
 "boolbase@npm:^1.0.0":
   version: 1.0.0
   resolution: "boolbase@npm:1.0.0"
@@ -7571,18 +7427,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bullmq@npm:^5.34.4":
-  version: 5.34.4
-  resolution: "bullmq@npm:5.34.4"
+"bullmq@npm:^5.34.5":
+  version: 5.34.5
+  resolution: "bullmq@npm:5.34.5"
   dependencies:
-    cron-parser: "npm:^4.6.0"
+    cron-parser: "npm:^4.9.0"
     ioredis: "npm:^5.4.1"
     msgpackr: "npm:^1.11.2"
     node-abort-controller: "npm:^3.1.1"
     semver: "npm:^7.5.4"
     tslib: "npm:^2.0.0"
     uuid: "npm:^9.0.0"
-  checksum: 10/869a7e08e054b0c852bcc12f80930cbdc5ad710b05b3acc54e8996bfaf1d650c4f1988b2aeb3d8139670416f2f0617a506ff9f6a67c95ee8f65e3684aa533860
+  checksum: 10/1cc50cd36cdddf1c7201141ed14688ea807d4aa1f0624dd0f3e9d602f153264cc10962624c5500f6913f1b103dab0346aac6f8a6f7dc7ccc4d9d4158d7408264
   languageName: node
   linkType: hard
 
@@ -7988,6 +7844,16 @@ __metadata:
   version: 2.2.0
   resolution: "clean-stack@npm:2.2.0"
   checksum: 10/2ac8cd2b2f5ec986a3c743935ec85b07bc174d5421a5efc8017e1f146a1cf5f781ae962618f416352103b32c9cd7e203276e8c28241bbe946160cab16149fb68
+  languageName: node
+  linkType: hard
+
+"cleye@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "cleye@npm:1.3.2"
+  dependencies:
+    terminal-columns: "npm:^1.4.1"
+    type-flag: "npm:^3.0.0"
+  checksum: 10/9e94d9caef1f09d61a87663bf55bbe9ebe1261af523414ebf1ef188d3275d02df74bc5f301a830658582a4f6ee2ae5342bd4cb2444a1da39243e49d4002db32c
   languageName: node
   linkType: hard
 
@@ -8470,7 +8336,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:^4.6.0":
+"cron-parser@npm:^4.9.0":
   version: 4.9.0
   resolution: "cron-parser@npm:4.9.0"
   dependencies:
@@ -8612,13 +8478,6 @@ __metadata:
     it-sort: "npm:^3.0.6"
     it-take: "npm:^3.0.6"
   checksum: 10/6e758c5498d6ac85512c306289e1401f77c98c085c4d2e6bd005153802c8ca42ec456da46efe944d83a2145b86daf457defa17eb3759ca4cea2d504c0825b2bf
-  languageName: node
-  linkType: hard
-
-"date-fns@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "date-fns@npm:4.1.0"
-  checksum: 10/d5f6e9de5bbc52310f786099e18609289ed5e30af60a71e0646784c8185ddd1d0eebcf7c96b7faaaefc4a8366f3a3a4244d099b6d0866ee2bec80d1361e64342
   languageName: node
   linkType: hard
 
@@ -14985,7 +14844,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picocolors@npm:^1.0.0, picocolors@npm:^1.1.0, picocolors@npm:^1.1.1":
+"picocolors@npm:^1.0.0, picocolors@npm:^1.0.1, picocolors@npm:^1.1.0, picocolors@npm:^1.1.1":
   version: 1.1.1
   resolution: "picocolors@npm:1.1.1"
   checksum: 10/e1cf46bf84886c79055fdfa9dcb3e4711ad259949e3565154b004b260cd356c5d54b31a1437ce9782624bf766272fe6b0154f5f0c744fb7af5d454d2b60db045
@@ -15494,6 +15353,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"readable-stream@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "readable-stream@npm:4.6.0"
+  dependencies:
+    abort-controller: "npm:^3.0.0"
+    buffer: "npm:^6.0.3"
+    events: "npm:^3.3.0"
+    process: "npm:^0.11.10"
+    string_decoder: "npm:^1.3.0"
+  checksum: 10/ae6faa02c2513b0314711cf4901105fc9cc9c4d8324b39fda23c9055392f83916ce747bdf3b98e67e34b23040d048f7c3e1180dd4f7ffb5e9d6223170f496954
+  languageName: node
+  linkType: hard
+
 "readdirp@npm:^4.0.1":
   version: 4.0.2
   resolution: "readdirp@npm:4.0.2"
@@ -15962,6 +15834,13 @@ __metadata:
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: 10/32872cd0ff68a3ddade7a7617b8f4c2ae8764d8b7d884c651b74457967a9e0e886267d3ecc781220629c44a865167b61c375d2da6c720c840ecd73f45d5d9451
+  languageName: node
+  linkType: hard
+
+"safe-buffer@npm:~5.1.1":
+  version: 5.1.2
+  resolution: "safe-buffer@npm:5.1.2"
+  checksum: 10/7eb5b48f2ed9a594a4795677d5a150faa7eb54483b2318b568dc0c4fc94092a6cce5be02c7288a0500a156282f5276d5688bce7259299568d1053b2150ef374a
   languageName: node
   linkType: hard
 
@@ -16778,6 +16657,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"terminal-columns@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "terminal-columns@npm:1.4.1"
+  checksum: 10/15596222280c3624c239d4daee08b936c9f7ffa9241ee8be6a181bc8e2c981f3f1f286f53acf3d58a0a1c6fb6b6cd4edc478366d44c0103106418f9e29635bf6
+  languageName: node
+  linkType: hard
+
 "test-exclude@npm:^7.0.1":
   version: 7.0.1
   resolution: "test-exclude@npm:7.0.1"
@@ -16963,6 +16849,23 @@ __metadata:
   version: 1.4.1
   resolution: "triple-beam@npm:1.4.1"
   checksum: 10/2e881a3e8e076b6f2b85b9ec9dd4a900d3f5016e6d21183ed98e78f9abcc0149e7d54d79a3f432b23afde46b0885bdcdcbff789f39bc75de796316961ec07f61
+  languageName: node
+  linkType: hard
+
+"trpc-cli@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "trpc-cli@npm:0.5.1"
+  dependencies:
+    "@trpc/server": "npm:^10.45.2"
+    cleye: "npm:^1.3.2"
+    picocolors: "npm:^1.0.1"
+    zod: "npm:^3.23.8"
+    zod-to-json-schema: "npm:^3.23.0"
+    zod-validation-error: "npm:^3.3.0"
+  peerDependencies:
+    "@trpc/server": ">=10"
+    zod: ">=3"
+  checksum: 10/f254cd3841c13a819c92ee51a85432948310d415e183cfb091f0172495b5bfc2dd5d5613074d669e0298cccec8c55ce7dffd0e8211d4e684c2e7abb0727bc8a7
   languageName: node
   linkType: hard
 
@@ -17183,6 +17086,13 @@ __metadata:
   version: 4.30.2
   resolution: "type-fest@npm:4.30.2"
   checksum: 10/c5168b159c366e4fd5b74c7f7b786bed9248c03f67e6e07d52dd5d51354447468fa7c92b9f2142c7fe9279814031f783959370242c3520de848931b65ddb48bb
+  languageName: node
+  linkType: hard
+
+"type-flag@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "type-flag@npm:3.0.0"
+  checksum: 10/1a9ddaba06355666ca5d26725604dd707d31dadf7536eb6e7e3c2520d84d773944b4e53f94da8b08bf9064be721a6b9ebbff65d524e5f03767a729966087fd32
   languageName: node
   linkType: hard
 
@@ -18384,7 +18294,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.24.1":
+"zod-to-json-schema@npm:^3.23.0":
+  version: 3.24.1
+  resolution: "zod-to-json-schema@npm:3.24.1"
+  peerDependencies:
+    zod: ^3.24.1
+  checksum: 10/d31fd05b67b428d8e0d5ecad2c3e80a1c2fc370e4c22f9111ffd11cbe05cfcab00f3228f84295830952649d15ea4494ef42c2ee1cbe723c865b13f4cf2b80c09
+  languageName: node
+  linkType: hard
+
+"zod-validation-error@npm:^3.3.0":
+  version: 3.4.0
+  resolution: "zod-validation-error@npm:3.4.0"
+  peerDependencies:
+    zod: ^3.18.0
+  checksum: 10/b98b1bbba14a3bb31649a1566c8c5a5213ec70dcaa2cbb1e89db00d56648a446225b35a8f6768471730d7013f4f141cd70c2b9740d69e6433ebfa148aecdac2f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.23.8":
   version: 3.24.1
   resolution: "zod@npm:3.24.1"
   checksum: 10/54e25956495dec22acb9399c168c6ba657ff279801a7fcd0530c414d867f1dcca279335e160af9b138dd70c332e17d548be4bc4d2f7eaf627dead50d914fec27

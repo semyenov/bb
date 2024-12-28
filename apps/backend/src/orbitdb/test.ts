@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
-import { createLogger } from '@regioni/lib-logger'
 import process from 'node:process'
+
+import { createLogger } from '@/libs/logger'
 
 import { startOrbitDB, stopOrbitDB } from './orbit'
 

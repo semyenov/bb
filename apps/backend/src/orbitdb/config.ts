@@ -27,7 +27,6 @@ export const DefaultLibp2pOptions: Libp2pOptions<{
       return false
     },
   },
-
   peerDiscovery: [mdns()],
   services: {
     identify: identify(),

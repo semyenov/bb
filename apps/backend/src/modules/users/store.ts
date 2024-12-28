@@ -8,14 +8,15 @@ import type {
 import type { Storage } from 'unstorage'
 import type { FSStorageOptions } from 'unstorage/drivers/fs'
 
-import { secp256k1ToJWK } from '@regioni/lib-jose'
-import { createLogger } from '@regioni/lib-logger'
-import { KeyStore } from '@regioni/lib-orbit'
 import {
   createLocalJWKSet,
 } from 'jose'
 import { createStorage } from 'unstorage'
 import fsDriver from 'unstorage/drivers/fs'
+
+import { secp256k1ToJWK } from '@/libs/jose'
+import { createLogger } from '@/libs/logger'
+import { KeyStore } from '@/libs/orbit'
 
 import type { User } from './schema'
 

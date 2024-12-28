@@ -1,11 +1,12 @@
 import { bitswap } from '@helia/block-brokers'
-import { secp256k1ToJWK } from '@regioni/lib-jose'
-import { createLogger } from '@regioni/lib-logger'
 import { KeyStore } from '@regioni/orbit'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import * as jose from 'jose'
 import { createLibp2p } from 'libp2p'
+
+import { secp256k1ToJWK } from '@/libs/jose'
+import { createLogger } from '@/libs/logger'
 
 import { DefaultLibp2pOptions } from './config'
 

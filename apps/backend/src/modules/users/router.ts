@@ -1,8 +1,9 @@
-import { createLogger } from '@regioni/lib-logger'
 import { Type } from '@sinclair/typebox'
 import { wrap } from '@typeschema/typebox'
 
-import { publicProcedure, rootRouter } from '../../libs/trpc'
+import { createLogger } from '@/libs/logger'
+
+import { publicProcedure, rootRouter } from '../../trpc/trpc'
 import { UserSchema } from './schema'
 
 const logger = createLogger({

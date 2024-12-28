@@ -6,9 +6,10 @@ import { privateKeyFromRaw } from '@libp2p/crypto/keys'
 import { identify } from '@libp2p/identify'
 import { webSockets } from '@libp2p/websockets'
 import * as filters from '@libp2p/websockets/filters'
-import { createLogger } from '@regioni/lib-logger'
 import { createLibp2p } from 'libp2p'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+
+import { createLogger } from '@/libs/logger'
 
 const unmarshalPrivateKey = privateKeyFromRaw
 

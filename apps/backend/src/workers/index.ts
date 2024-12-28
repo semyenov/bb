@@ -1,20 +1,9 @@
 import { sleep } from '@antfu/utils'
-import { createLogger } from '@regioni/lib-logger'
 import { Worker } from 'bullmq'
 
-const logger = createLogger({
-  defaultMeta: {
-    label: 'worker',
-    service: 'backend',
-    version: '1.0.0',
-  },
-})
-
-const worker = new Worker<{ message: string }, { status: number }>(
+export const worker = new Worker<{ message: string }, { status: number }>(
   'appQueue',
   async (job) => {
-    logger.info('Job received', job.data)
-
     if (job.data.message === 'error') {
       throw new Error(`No one likes ${job.data.message}s`)
     }
@@ -33,11 +22,3 @@ const worker = new Worker<{ message: string }, { status: number }>(
     },
   },
 )
-
-worker.on('completed', (job) => {
-  logger.info('Job completed', job.returnvalue)
-})
-
-worker.on('failed', (job, err) => {
-  logger.error(err.message, job?.data)
-})

@@ -1,34 +1,3 @@
-import { createLogger } from '@regioni/lib-logger'
-import { validate } from '@typeschema/typebox'
-import { loadConfig as c12LoadConfig } from 'c12'
-
-import { ErrorConfigNotFound, ErrorConfigNotValid } from './errors'
-import { type Config, ConfigSchema } from './schema'
-
-const logger = createLogger({
-  defaultMeta: {
-    label: 'config',
-    module: 'config',
-    service: 'backend',
-    version: '1.0.0',
-  },
-})
-
-export async function loadConfig() {
-  const { config, configFile } = await c12LoadConfig<Config>({
-    name: 'regioni',
-  })
-
-  if (!configFile) {
-    throw ErrorConfigNotFound
-  }
-
-  const c = await validate(ConfigSchema, config)
-  if (!c.success) {
-    throw ErrorConfigNotValid
-  }
-
-  logger.info('Config successfully loaded', { res: c.data })
-
-  return c.data
-}
+export * from './errors'
+export * from './load'
+export * from './schema'

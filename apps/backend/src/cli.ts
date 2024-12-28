@@ -1,8 +1,9 @@
-import { sign, verify } from '@regioni/lib-jose'
-import { createLogger } from '@regioni/lib-logger'
 import { Argument, Command } from 'commander'
 import { consola } from 'consola'
 import process from 'node:process'
+
+import { sign, verify } from '@/libs/jose'
+import { createLogger } from '@/libs/logger'
 
 import { ErrorUserKeyNotFound, ErrorUserNotFound } from './modules/users/errors'
 import { UsersStore, type UserStoreInstance } from './modules/users/store'
