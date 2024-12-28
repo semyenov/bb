@@ -1,7 +1,6 @@
 import type { CID } from 'multiformats/cid'
-
 import type { BlockDecoder, BlockEncoder } from 'multiformats/codecs/interface'
-import process from 'node:process'
+
 import { createLogger } from '@regioni/lib-logger'
 import { randomBytes } from '@stablelib/random'
 import { generateKeyPairFromSeed } from '@stablelib/x25519'
@@ -16,9 +15,9 @@ import {
   xc20pDirDecrypter,
   xc20pDirEncrypter,
 } from 'did-jwt'
-
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
+import process from 'node:process'
 
 const store = new Map<string, Uint8Array>()
 // const dagJoseIpldFormat = toLegacyIpld(dagJose)
@@ -43,9 +42,9 @@ async function symmetric() {
     const jwe = await createJWE(cleartext, [dirEncrypter])
     // create an IPLD Block that has the CID:Bytes:Value triple
     const block = await Block.encode({
-      value: jwe,
       codec: dagJose as unknown as BlockEncoder<133, JWE>,
       hasher: sha256,
+      value: jwe,
     })
     logger.info(`Encrypted block CID: \u001B[32m${block.cid}\u001B[39m`)
     logger.info('Encrypted block contents:\n', block.value)
@@ -98,9 +97,9 @@ async function asymmetric() {
     const value = await createJWE(cleartext, encrypters)
     // create an IPLD Block that has the CID:Bytes:Value triple
     const block = await Block.encode({
-      value,
       codec: dagJose as unknown as BlockEncoder<133, JWE>,
       hasher: sha256,
+      value,
     })
 
     logger.info(`Encrypted block CID: \u001B[32m${block.cid}\u001B[39m`)
@@ -146,8 +145,8 @@ async function loadEncrypted(
 
   // decode the DAG-JOSE envelope
   const block = await Block.create({
-    cid,
     bytes,
+    cid,
     codec: dagJose as unknown as BlockDecoder<133, JWE>,
     hasher: sha256,
   })

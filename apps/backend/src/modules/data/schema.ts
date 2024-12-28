@@ -1,10 +1,11 @@
 import type { Infer } from '@typeschema/typebox'
+
 import { Type } from '@sinclair/typebox'
 
 export const PostItemInputSchema = Type.Object({
+  data: Type.Unknown(),
   id: Type.String(),
   path: Type.String(),
-  data: Type.Unknown(),
 })
 export type PostItemInput = Infer<typeof PostItemInputSchema>
 

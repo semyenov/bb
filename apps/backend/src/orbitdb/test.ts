@@ -1,7 +1,6 @@
-import process from 'node:process'
-
 import { faker } from '@faker-js/faker'
 import { createLogger } from '@regioni/lib-logger'
+import process from 'node:process'
 
 import { startOrbitDB, stopOrbitDB } from './orbit'
 
@@ -20,8 +19,8 @@ const dbId = process.argv[4]
 async function main() {
 // Create OrbitDB instance
   const orbitdb = await startOrbitDB({
-    id: dbId,
     dir: dbDir,
+    id: dbId,
   })
   const { libp2p } = orbitdb.ipfs
   // libp2p.
@@ -31,15 +30,15 @@ async function main() {
   // logger.log('info', { lib2p2: JSON.stringify(orbitdb.ipfs.libp2p) })
   interface IUser {
     _id: string
+    email: string
     firstName: string
     lastName: string
-    email: string
   }
 
   // Open a database
   const db = await orbitdb.open<IUser, 'documents'>('documents', dbName, {
-    type: 'documents',
     indexBy: 'email',
+    type: 'documents',
   })
 
   logger.log('info', { address: db.address })
@@ -47,23 +46,23 @@ async function main() {
   // Listen for updates
   db.events.addEventListener(
     'update',
-    ({ detail: { entry: { id, hash, payload } } }) => {
-      return logger.info('onupdate', { id, hash, payload })
+    ({ detail: { entry: { hash, id, payload } } }) => {
+      return logger.info('onupdate', { hash, id, payload })
     },
   )
-  db.events.addEventListener('join', ({ detail: { peerId, heads } }) => {
+  db.events.addEventListener('join', ({ detail: { heads, peerId } }) => {
     return logger.info('join', peerId, heads)
   })
   db.events.addEventListener('drop', () => {
     return logger.info('drop')
   })
 
-  db.sync.events.addEventListener('join', ({ detail: { peerId, heads } }) => {
+  db.sync.events.addEventListener('join', ({ detail: { heads, peerId } }) => {
     return logger.info('sync join', peerId, heads)
   })
 
   // Add some data
-  // await generate(100)
+  await generate(100)
   await db.put({ _id: '12', email: 'test@test.com', firstName: 'test', lastName: 'test' })
 
   // Get some data
@@ -86,9 +85,9 @@ async function main() {
       const chunk = Array.from({ length }, (_, j) => {
         return {
           _id: (i + (j + 1)).toString(),
+          email: faker.internet.email(),
           firstName: faker.person.firstName(),
           lastName: faker.person.lastName(),
-          email: faker.internet.email(),
         }
       })
 

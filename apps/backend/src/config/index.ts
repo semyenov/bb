@@ -7,8 +7,9 @@ import { type Config, ConfigSchema } from './schema'
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'backend',
     label: 'config',
+    module: 'config',
+    service: 'backend',
     version: '1.0.0',
   },
 })

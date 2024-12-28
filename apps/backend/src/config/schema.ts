@@ -1,4 +1,5 @@
 import type { Infer } from '@typeschema/typebox'
+
 import { Type } from '@sinclair/typebox'
 
 export const ConfigSchema = Type.Object({

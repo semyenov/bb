@@ -9,6 +9,7 @@ import {
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p } from 'libp2p'
+
 import { DefaultLibp2pOptions } from './config'
 
 const id = 'userA'
@@ -18,31 +19,32 @@ const options = DefaultLibp2pOptions
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'orbitdb',
     label: 'keystore',
+    module: 'keystore',
+    service: 'orbitdb',
     version: '1.0.0',
   },
 })
 
 async function main() {
   const ipfs = await createHelia({
-    libp2p: await createLibp2p({ ...options }),
-    blockstore: new LevelBlockstore(levelPath),
     blockBrokers: [bitswap()],
+    blockstore: new LevelBlockstore(levelPath),
+    libp2p: await createLibp2p({ ...options }),
   })
 
   await ipfs.start()
 
   const keystore = await KeyStore.create({ path: keysPath })
-  const identities = await Identities.create({ keystore, ipfs })
+  const identities = await Identities.create({ ipfs, keystore })
   const provider = PublicKeyIdentityProvider.create({ keystore })
   const identity = await identities.createIdentity({ id, provider })
   const orbit = await createOrbitDB({
+    dir: './.out/orbitdb',
     id: 'orbitdb-AAA',
-    ipfs,
     identities,
     identity,
-    dir: './.out/orbitdb',
+    ipfs,
   })
 
   const db = await orbit.open('events', 'test')

@@ -14,31 +14,31 @@ const logger = createLogger({
 async function createLinkedData() {
   // Create first object
   const person = {
-    name: 'Alice',
     age: 30,
+    name: 'Alice',
   }
 
   // Encode and create block for first object
   const personBlock = await Block.encode({
-    value: person,
     codec: dagCbor,
     hasher: sha256,
+    value: person,
   })
 
   const personCid = personBlock.cid
 
   // Create second object that references the first
   const post = {
-    title: 'My first post',
-    content: 'Hello, world!',
     author: personCid, // Reference to first object through CID
+    content: 'Hello, world!',
+    title: 'My first post',
   }
 
   // Encode and create block for second object
   const postBlock = await Block.encode({
-    value: post,
     codec: dagCbor,
     hasher: sha256,
+    value: post,
   })
   const postCid = postBlock.cid
 

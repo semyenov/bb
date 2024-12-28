@@ -3,14 +3,15 @@ import type { RedisJSON } from '@regioni/lib-redis'
 import { createLogger } from '@regioni/lib-logger'
 import { parsePath } from '@regioni/lib-pointers'
 import { wrap } from '@typeschema/typebox'
-import { publicProcedure, rootRouter } from '../../trpc/init'
+
+import { publicProcedure, rootRouter } from '../../lib/trpc'
 import { GetItemInputSchema, PostItemInputSchema } from './schema'
 
 const logger = createLogger({
   defaultMeta: {
+    label: 'data',
     service: 'backend',
     version: '0.0.1',
-    label: 'data',
   },
 })
 
@@ -22,8 +23,8 @@ export const dataRouter = rootRouter({
   getItem: publicProcedure
     .input(wrap(GetItemInputSchema))
     .query(({
-      input: { id },
       ctx: { redis },
+      input: { id },
     }) => {
       return redis.data.findOne(
         id,
@@ -33,22 +34,22 @@ export const dataRouter = rootRouter({
   postItem: publicProcedure
     .input(wrap(PostItemInputSchema))
     .mutation(({
-      input: { id, path, data },
-      ctx: { redis, ajv },
+      ctx: { ajv, redis },
+      input: { data, id, path },
     }) => {
       const {
+        key,
         namespace,
         schemaId,
-        key,
       } = parsePath(path)
 
       logger.info(
         `postItem: ${id} -> ${namespace}/${schemaId}/${key}`,
         {
           id,
+          key,
           namespace,
           schemaId,
-          key,
         },
       )
 

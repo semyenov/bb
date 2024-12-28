@@ -1,9 +1,8 @@
-import process from 'node:process'
-
 import { sign, verify } from '@regioni/lib-jose'
 import { createLogger } from '@regioni/lib-logger'
 import { Argument, Command } from 'commander'
 import { consola } from 'consola'
+import process from 'node:process'
 
 import { ErrorUserKeyNotFound, ErrorUserNotFound } from './modules/users/errors'
 import { UsersStore, type UserStoreInstance } from './modules/users/store'
@@ -13,8 +12,8 @@ const USERS_PATH = './.out/users'
 const logger = createLogger({
   defaultMeta: {
     app: 'regioni',
-    service: 'root',
     label: 'cli',
+    service: 'root',
   },
 })
 
@@ -23,23 +22,23 @@ async function createUser(
   id: string,
 ) {
   const user = await userStore.createUser(id, {
-    id,
+    createdAt: new Date(),
     hash: '',
-    namespace: 'users',
-    schemaId: 'user',
-    version: '1',
-
+    id,
     info: {
-      name: `User #${id}`,
       description: 'User description',
       legend: `${id}@regioni.io`,
+      name: `User #${id}`,
     },
+    namespace: 'users',
 
-    status: 'active',
     roles: ['admin'],
 
-    createdAt: new Date(),
+    schemaId: 'user',
+    status: 'active',
+
     updatedAt: new Date(),
+    version: '1',
   })
 
   logger.info(
@@ -59,7 +58,7 @@ async function deleteUser(
 
   const confirmation = await consola.prompt(
     `Are you sure you want to delete user ${id}? (yes/no)`,
-    { type: 'confirm', initial: true },
+    { initial: true, type: 'confirm' },
   )
 
   if (!confirmation) {
@@ -112,11 +111,11 @@ async function verifyData(
   data: string,
 ) {
   const keyset = await userStore.getJWKSet()
-  const { payload, protectedHeader, key } = await verify(data, keyset)
+  const { key, payload, protectedHeader } = await verify(data, keyset)
 
   logger.info(
     'verifyData:',
-    { payload, protectedHeader, key },
+    { key, payload, protectedHeader },
   )
 }
 

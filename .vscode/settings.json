@@ -58,6 +58,10 @@
   "fileNestingUpdater.promptOnAutoUpdate": true,
   "fileNestingUpdater.upstreamRepo": "antfu/vscode-file-nesting-config",
   "fileNestingUpdater.upstreamBranch": "main",
+
+  "codemetrics.basics.OverviewRulerModeEnabled": false,
+
+  "errorLens.messageEnabled": false,
   "errorLens.codeLensEnabled": true,
   "errorLens.statusBarColorsEnabled": true,
   "errorLens.statusBarIconsEnabled": true,

@@ -4,9 +4,9 @@ import { createLogger } from '@regioni/lib-logger'
 import { KeyStore } from '@regioni/orbit'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
-
 import * as jose from 'jose'
 import { createLibp2p } from 'libp2p'
+
 import { DefaultLibp2pOptions } from './config'
 
 const keysPath = './.out/keys'
@@ -16,20 +16,20 @@ const algorithm = 'ES256K'
 const options = DefaultLibp2pOptions
 
 const logger = createLogger({
-  handleExceptions: true,
-  handleRejections: true,
   defaultMeta: {
-    service: 'backend',
     label: 'orbitdb',
+    service: 'backend',
     version: '0.0.1',
   },
+  handleExceptions: true,
+  handleRejections: true,
 })
 
 async function main() {
   const ipfs = await createHelia({
-    libp2p: await createLibp2p({ ...options }),
-    blockstore: new LevelBlockstore(levelPath),
     blockBrokers: [bitswap()],
+    blockstore: new LevelBlockstore(levelPath),
+    libp2p: await createLibp2p({ ...options }),
   })
 
   await ipfs.start()

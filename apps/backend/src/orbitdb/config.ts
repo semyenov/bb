@@ -21,7 +21,21 @@ export const DefaultLibp2pOptions: Libp2pOptions<{
   addresses: {
     listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
+  connectionEncrypters: [noise()],
+  connectionGater: {
+    denyDialMultiaddr: () => {
+      return false
+    },
+  },
+
   peerDiscovery: [mdns()],
+  services: {
+    identify: identify(),
+    pubsub: gossipsub({
+      allowPublishToZeroTopicPeers: true,
+    }),
+  },
+  streamMuxers: [yamux()],
   transports: [
     tcp(),
     webRTC(),
@@ -30,20 +44,6 @@ export const DefaultLibp2pOptions: Libp2pOptions<{
     }),
     circuitRelayTransport(),
   ],
-
-  connectionEncrypters: [noise()],
-  streamMuxers: [yamux()],
-  connectionGater: {
-    denyDialMultiaddr: () => {
-      return false
-    },
-  },
-  services: {
-    identify: identify(),
-    pubsub: gossipsub({
-      allowPublishToZeroTopicPeers: true,
-    }),
-  },
 } as const
 
 export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
@@ -53,14 +53,7 @@ export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
   addresses: {
     listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
-  transports: [
-    tcp(),
-    webRTC(),
-    webSockets({ filter: all }),
-    circuitRelayTransport(),
-  ],
   connectionEncrypters: [noise()],
-  streamMuxers: [yamux()],
   connectionGater: {
     denyDialMultiaddr: () => {
       return false
@@ -72,4 +65,11 @@ export const DefaultLibp2pBrowserOptions: Libp2pOptions<{
       allowPublishToZeroTopicPeers: true,
     }),
   },
+  streamMuxers: [yamux()],
+  transports: [
+    tcp(),
+    webRTC(),
+    webSockets({ filter: all }),
+    circuitRelayTransport(),
+  ],
 } as const
