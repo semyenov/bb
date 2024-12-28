@@ -90,19 +90,31 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     const updatedCaps = caps.includes(ACL_ALL_CAP)
       ? [ACL_ALL_CAP]
       : (currentCaps.includes(ACL_ALL_CAP)
-          ? [ACL_PUT_CAP, ACL_DEL_CAP].filter((op) => {
-              return !caps.includes(op as ACLCap)
-            })
-          : currentCaps.filter((op) => {
-              return !caps.includes(op as ACLCap)
-            }))
+          ? [
+              ACL_PUT_CAP,
+              ACL_DEL_CAP,
+            ]
+              .filter((op) => {
+                return !caps.includes(op as ACLCap)
+              })
+          : currentCaps
+              .filter((op) => {
+                return !caps.includes(op as ACLCap)
+              }))
 
-    await this.db.put(aclKey, {
-      caps: updatedCaps,
-    })
+    await this.db.put(
+      aclKey,
+      {
+        caps: updatedCaps,
+      },
+    )
   }
 
-  private async hasCapability(id: string, key: string, cap: ACLCap): Promise<boolean> {
+  private async hasCapability(
+    id: string,
+    key: string,
+    cap: ACLCap,
+  ): Promise<boolean> {
     const aclKey = formatKey(id, key)
     const aclData = await this.db.get(aclKey)
     if (!aclData) {
@@ -138,7 +150,13 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return false
     }
 
-    const { key, op: cap } = payload as { key: string, op: ACLCap }
+    const {
+      key,
+      op: cap,
+    } = payload as {
+      key: string
+      op: ACLCap
+    }
     const hasCapability = await this.hasCapability(
       writerIdentity.id,
       key,

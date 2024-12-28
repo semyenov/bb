@@ -3,6 +3,7 @@
   "include": [
     "./packages/**/*.ts",
     "./apps/**/*.ts",
-    "./libs/**/*.ts"
+    "./libs/**/*.ts",
+    "./vitest.workspace.ts"
   ]
 }

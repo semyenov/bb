@@ -1,27 +1,49 @@
 'use strict'
 
-function waitForPeers(ipfs, peersToWait, topic) {
-  return new Promise((resolve, reject) => {
+import type { PeerId } from '@libp2p/interface'
+import type { OrbitDBHeliaInstance } from '@regioni/orbit'
+import { createLogger } from '@regioni/lib-logger'
+
+const logger = createLogger({
+  defaultMeta: {
+    service: 'orbit',
+    label: 'wait-for-peers',
+    version: '0.0.1',
+  },
+})
+
+function waitForPeers(ipfs: OrbitDBHeliaInstance, peersToWait: PeerId[]) {
+  return new Promise((
+    resolve,
+    reject,
+  ) => {
     const interval = setInterval(async () => {
       try {
-        const peers = await ipfs.libp2p.services.pubsub.getPeers(topic)
-        const peerIds = peers.map(peer => peer.toString())
-        const peerIdsToWait = peersToWait.map(peer => peer.toString())
+        const peers = await ipfs.libp2p.services.pubsub.getPeers()
+        const peerIds = peers.map((peer) => {
+          return peer.toString()
+        })
+        const peerIdsToWait = peersToWait.map((peer) => {
+          return peer.toString()
+        })
 
-        const hasAllPeers = peerIdsToWait.map(e =>
-          peerIds.includes(e),
-        ).filter(e => e === false).length === 0
+        const hasAllPeers = peerIdsToWait
+          .map((e) => {
+            return peerIds.includes(e)
+          })
+          .filter(Boolean)
+          .length === 0
 
         // FIXME: Does not fail on timeout, not easily fixable
         if (hasAllPeers) {
-          console.log('Found peers!')
+          logger.info('Found peers!')
           clearInterval(interval)
           resolve(true)
         }
       }
-      catch (e) {
+      catch (error) {
         clearInterval(interval)
-        reject(e)
+        reject(error)
       }
     }, 200)
   })

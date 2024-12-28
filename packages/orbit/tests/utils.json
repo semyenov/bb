@@ -1,0 +1,7 @@
+import { Multiaddr } from '@multiformats/multiaddr'
+
+export const connectNodes = {
+  address1: Multiaddr,
+  address2: Multiaddr,
+}
+

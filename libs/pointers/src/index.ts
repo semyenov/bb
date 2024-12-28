@@ -2,10 +2,24 @@ import { URL } from 'node:url'
 import { split } from 'remeda'
 
 export function parsePath(path: string) {
-  const parsed = new URL(path, '')
-  const [namespace, schema, key] = split(parsed.pathname, '/')
+  const parsed = new URL(
+    path,
+    '',
+  )
+  const [
+    namespace,
+    schemaId,
+    key,
+  ] = split(
+    parsed.pathname,
+    '/',
+  )
 
-  return { namespace, schemaId: schema, key }
+  return {
+    namespace,
+    schemaId,
+    key,
+  }
 }
 
 export function isString(value: unknown): value is string {
@@ -13,7 +27,9 @@ export function isString(value: unknown): value is string {
 }
 
 export function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every(isString)
+  return Array
+    .isArray(value) && value
+    .every(isString)
 }
 
 export function isUint8Array(value: unknown): value is Uint8Array {

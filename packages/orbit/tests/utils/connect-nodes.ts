@@ -1,6 +1,8 @@
+import type { Multiaddr } from '@multiformats/multiaddr'
+import type { OrbitDBHeliaInstance } from '@regioni/orbit'
 import { multiaddr } from '@multiformats/multiaddr'
-import { WebRTC } from '@multiformats/multiaddr-matcher'
 
+import { WebRTC } from '@multiformats/multiaddr-matcher'
 import waitFor from './wait-for'
 
 function defaultFilter() {
@@ -11,9 +13,11 @@ function isBrowser() {
   return typeof window !== 'undefined'
 }
 
-async function connectIpfsNodes(ipfs1, ipfs2, options = {
-  filter: defaultFilter,
-}) {
+export async function connectIpfsNodes(
+  ipfs1: OrbitDBHeliaInstance,
+  ipfs2: OrbitDBHeliaInstance,
+  options = { filter: defaultFilter, address1: undefined, address2: undefined },
+) {
   if (isBrowser()) {
     const relayId = '12D3KooWAJjbRkp8FPF5MKgMU53aUTxWkqvDrs4zc1VMbwRwfsbE'
 
@@ -21,29 +25,47 @@ async function connectIpfsNodes(ipfs1, ipfs2, options = {
       multiaddr(`/ip4/127.0.0.1/tcp/12345/ws/p2p/${relayId}`),
     )
 
-    let address1
+    let address1: Multiaddr | undefined
+    let address2: Multiaddr | undefined
 
-    await waitFor(() => {
-      address1 = ipfs1.libp2p.getMultiaddrs()
-        .filter((ma) => {
-          return WebRTC.matches(ma)
-        })
-        .pop()
+    await waitFor(
+      async () => { }
+        address1 = await ipfs2.libp2p.getMultiaddrs()
+          .filter((ma) => {
+            return WebRTC.matches(ma)
+          })
+          .pop()
+      },
+      async () => {
+        address2 = await ipfs1.libp2p.getMultiaddrs()
+          .filter((ma) => {
+            return WebRTC.matches(ma)
+          })
+          .pop()
+      }
 
-      return address1 !== null
-    }, () => {
-      return true
-    })
+    await ipfs2.libp2p
+      .dial(multiaddr(options.address1 ?? address1))
 
-    await ipfs2.libp2p.dial(address1)
+    await ipfs1.libp2p
+      .dial(multiaddr(options.address2 ?? address2))
+
+    return {
+      address1,
+      address2,
+    }
   }
-  else {
-    await ipfs2.libp2p.peerStore.save(ipfs1.libp2p.peerId, {
-      multiaddrs: ipfs1.libp2p.getMultiaddrs()
+
+  await ipfs2.libp2p.peerStore.save(
+    ipfs1.libp2p.peerId,
+    {
+      publicKey: ipfs1.libp2p.peerId.publicKey,
+      multiaddrs: ipfs1.libp2p
+        .getMultiaddrs()
         .filter(options.filter),
-    })
-    await ipfs2.libp2p.dial(ipfs1.libp2p.peerId)
-  }
+    },
+  )
+  await ipfs2.libp2p.dial(
+    ipfs1.libp2p.peerId,
+  )
 }
-
-export default connectIpfsNodes

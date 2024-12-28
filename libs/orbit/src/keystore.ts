@@ -40,7 +40,9 @@ export async function KeyStore(options: CreateStorageOptions): Promise<KeyStoreI
         throw ErrorKeyNotFound
       }
 
-      return privateKeyFromRaw(uint8ArrayFromString(keyString)) as Secp256k1PrivateKey
+      return privateKeyFromRaw(
+        uint8ArrayFromString(keyString),
+      ) as Secp256k1PrivateKey
     },
   }
 

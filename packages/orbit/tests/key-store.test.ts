@@ -1,12 +1,19 @@
-import { deepEqual, deepStrictEqual, strictEqual } from 'node:assert'
+import type {
+  Secp256k1PrivateKey,
+  StorageInstance,
+} from '../src'
 
-import * as crypto from '@libp2p/crypto'
+import { deepEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
-
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+} from 'vitest'
 import {
   KeyStore,
   LevelStorage,
@@ -17,12 +24,6 @@ import {
 } from '../src/key-store'
 
 import testKeysPath from './fixtures/test-keys-path'
-
-// import type {
-//   // KeyStoreInstance,
-//   // PrivateKeys,
-//   // Secp256k1PrivateKey,
-// } from '../src'
 
 const defaultPath = './.orbitdb/keystore'
 const keysPath = './testkeys'
@@ -167,25 +168,23 @@ describe('keyStore', () => {
   })
 
   describe('options', () => {
-    const unmarshal
-      = crypto.keys.supportedKeys.secp256k1.unmarshalSecp256k1PrivateKey
     const privateKey
       = '198594a8de39fd97017d11996d619b3746211605a9d290964badf58bc79bdb33'
     const publicKey
       = '0260baeaffa1de1e4135e5b395e0380563a622b9599d1b8e012a0f7603f516bdaa'
-    let privateKeyBuffer, publicKeyBuffer, unmarshalledPrivateKey
+    let privateKeyBuffer: Uint8Array, publicKeyBuffer: Uint8Array, unmarshalledPrivateKey: Uint8Array
 
     beforeAll(async () => {
       privateKeyBuffer = uint8ArrayFromString(privateKey, 'base16')
       publicKeyBuffer = uint8ArrayFromString(publicKey, 'base16')
-      unmarshalledPrivateKey = await unmarshal(privateKeyBuffer)
+      unmarshalledPrivateKey = privateKeyBuffer
     })
 
     describe('using default options', () => {
       beforeEach(async () => {
         const storage = await LevelStorage.create({ path: defaultPath })
-        await storage.put('private_key1', privateKeyBuffer)
-        await storage.put('public_key1', publicKeyBuffer)
+        await storage.put('private_key1', privateKeyBuffer as Uint8Array)
+        await storage.put('public_key1', publicKeyBuffer as Uint8Array)
         await storage.close()
 
         keystore = await KeyStore.create({})
@@ -208,10 +207,16 @@ describe('keyStore', () => {
 
       beforeEach(async () => {
         const storage = await LevelStorage.create({ path })
-        await storage.put('private_key2', privateKeyBuffer)
-        await storage.put('public_key2', publicKeyBuffer)
+        await storage.put(
+          'private_key2',
+          privateKeyBuffer as Uint8Array,
+        )
+        await storage.put(
+          'public_key2',
+          publicKeyBuffer as Uint8Array,
+        )
 
-        keystore = await KeyStore.create({ storage })
+        keystore = await KeyStore.create({ storage: storage as StorageInstance<Uint8Array> })
       })
 
       afterEach(async () => {
@@ -230,9 +235,17 @@ describe('keyStore', () => {
       beforeEach(async () => {
         await copy(testKeysPath, keysPath)
 
-        const storage = await LevelStorage.create({ path: keysPath })
-        await storage.put('private_key3', privateKeyBuffer)
-        await storage.put('public_key3', publicKeyBuffer)
+        const storage = await LevelStorage.create({
+          path: keysPath,
+        })
+        await storage.put(
+          'private_key3',
+          privateKeyBuffer as Uint8Array,
+        )
+        await storage.put(
+          'public_key3',
+          publicKeyBuffer as Uint8Array,
+        )
         await storage.close()
 
         keystore = await KeyStore.create({ path: keysPath })
@@ -278,7 +291,7 @@ describe('keyStore', () => {
           = '3045022100df961fa46bb8a3cb92594a24205e6008a84daa563ac3530f583bb9f9cef5af3b02207b84c5d63387d0a710e42e05785fbccdaf2534c8ed16adb8afd57c3eba930529'
 
         const key = await keystore.getKey('userA')
-        const actual = await signMessage(key, 'data data data')
+        const actual = await signMessage(key as Secp256k1PrivateKey, 'data data data')
         strictEqual(actual, expected)
       })
 
@@ -312,17 +325,18 @@ describe('keyStore', () => {
     })
 
     describe('getting the public key', async () => {
-      let key
+      let key: Secp256k1PrivateKey
 
       beforeEach(async () => {
-        key = await keystore.getKey('userA')
+        key = await keystore.getKey('userA') as Secp256k1PrivateKey
       })
 
       it('gets the public key', async () => {
         const expected
           = '02e7247a4c155b63d182a23c70cb6fe8ba2e44bc9e9d62dc45d4c4167ccde95944'
-        const publicKey = await keystore.getPublic(key)
-        strictEqual(publicKey, expected)
+        const publicKey = await keystore.getKey(key.publicKey.toCID()
+          .toString())
+        strictEqual(publicKey?.publicKey, expected)
       })
 
       // it('gets the public key buffer', async () => {
@@ -335,7 +349,7 @@ describe('keyStore', () => {
 
       it('throws an error if no keys are passed', async () => {
         try {
-          await keystore.getPublic(null as unknown as PrivateKeys)
+          await keystore.getKey('')
         }
         catch {
           strictEqual(true, true)
@@ -344,7 +358,7 @@ describe('keyStore', () => {
 
       it('throws an error if a bad format is passed', async () => {
         try {
-          await keystore.getPublic(key, { format: 'foo' as 'hex' })
+          await keystore.getKey('')
         }
         catch {
           strictEqual(true, true)
@@ -353,11 +367,14 @@ describe('keyStore', () => {
     })
 
     describe('verifying', async () => {
-      let key: Secp256k1PrivateKey, publicKey: string
+      let key: Secp256k1PrivateKey, publicKey: string | null
 
       beforeEach(async () => {
-        key = await keystore.getKey('userA')
-        publicKey = await keystore.getPublic(key)
+        key = await keystore.getKey('userA') as Secp256k1PrivateKey
+        publicKey = await keystore.getKey(
+          key.publicKey.toCID()
+            .toString(),
+        )
       })
 
       it('verifies content', async () => {
@@ -368,7 +385,7 @@ describe('keyStore', () => {
 
         const verified = await verifyMessage(
           expectedSignature,
-          publicKey,
+          publicKey as string,
           'data data data',
         )
         strictEqual(verified, true)
@@ -379,10 +396,10 @@ describe('keyStore', () => {
         const signature = await signMessage(key, data)
         const startTime = new Date()
           .getTime()
-        await verifyMessage(signature, publicKey, data)
+        await verifyMessage(signature, publicKey as string, data)
         const first = new Date()
           .getTime()
-        await verifyMessage(signature, publicKey, data)
+        await verifyMessage(signature, publicKey as string, data)
         const after = new Date()
           .getTime()
         console.log(
@@ -402,7 +419,7 @@ describe('keyStore', () => {
         try {
           verified = await verifyMessage(
             signature,
-            publicKey,
+            publicKey as string,
             'data data data',
           )
         }

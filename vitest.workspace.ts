@@ -8,23 +8,22 @@ export default defineWorkspace([
       poolOptions: {
         threads: {
           singleThread: true,
+          isolate: true,
         },
       },
       sequence: {
         setupFiles: 'list',
         concurrent: false,
-        hooks: 'list',
+        hooks: 'stack',
       },
       sequencer: {
         setupFiles: 'list',
-        hooks: 'list',
+        hooks: 'stack',
       },
       name: 'orbit',
       environment: 'node',
       testTimeout: 5000,
       maxConcurrency: 1,
-
     },
-
   },
 ])

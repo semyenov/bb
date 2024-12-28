@@ -1,12 +1,22 @@
-async function waitFor(valueA, toBeValueB, pollInterval = 100) {
-  return new Promise((resolve) => {
-    const interval = setInterval(async () => {
-      if (await valueA() === await toBeValueB()) {
-        clearInterval(interval)
-        resolve(true)
-      }
-    }, pollInterval)
-  })
+async function waitFor(
+  toBeValueB: () => Promise<boolean>,
+  toBeValueA: () => Promise<boolean>,
+  pollInterval = 100,
+) {
+  const interval = setInterval(async () => {
+    const [valueB, valueA] = await Promise.all([
+      toBeValueB(),
+      toBeValueA(),
+    ])
+
+    if (valueB === valueA) {
+      clearInterval(interval)
+
+      return true
+    }
+  }, pollInterval)
+
+  return false
 }
 
 export default waitFor

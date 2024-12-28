@@ -31,7 +31,7 @@ import { Sync } from './sync'
 import { join } from './utils'
 
 export interface DatabaseOptions<T> {
-  meta: any
+  meta?: any
   name?: string
   address?: string
   dir: string

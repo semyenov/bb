@@ -1,5 +1,6 @@
 export * from './access-controllers'
 export * from './address'
+export * from './database'
 export * from './databases'
 export * from './identities'
 export * from './key-store'
