@@ -1,6 +1,6 @@
 {
   "editor.tabCompletion": "off",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.formatOnSave": true,
   "editor.wrappingStrategy": "advanced",
   "editor.wordWrap": "bounded",
@@ -10,17 +10,20 @@
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
   },
+
   "npm.packageManager": "yarn",
-  "vitest.workspaceConfig": "vitest.workspace.ts",
+
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.inlayHints.parameterNames.enabled": "all",
   "typescript.inlayHints.parameterTypes.enabled": true,
+
   "where-am-i.icon": "home",
   "where-am-i.template": "{icon} {project-name}",
   "where-am-i.colorful": true,
   "where-am-i.color": "#fff",
+
   "eslint.format.enable": true,
   "eslint.lintTask.enable": true,
   "eslint.useFlatConfig": true,
@@ -46,17 +49,41 @@
     "pcss",
     "postcss"
   ],
+
   "browse-lite.startUrl": "http://localhost:3000",
   "browse-lite.chromeExecutable": "/usr/bin/chromium",
+
   "fileNestingUpdater.autoUpdate": true,
   "fileNestingUpdater.autoUpdateInterval": 720,
   "fileNestingUpdater.promptOnAutoUpdate": true,
   "fileNestingUpdater.upstreamRepo": "antfu/vscode-file-nesting-config",
   "fileNestingUpdater.upstreamBranch": "main",
+  "errorLens.codeLensEnabled": true,
+  "errorLens.statusBarColorsEnabled": true,
+  "errorLens.statusBarIconsEnabled": true,
+  "errorLens.followCursor": "allLinesExceptActive",
+  "errorLens.fontStyleItalic": true,
+  "errorLens.gutterIconsEnabled": true,
+  "errorLens.multilineMessage": {
+    "decorationMaxNumberOfLines": 6,
+    "preferFittingMessageMultiplier": 2,
+    "maxColumnForCalculation": 130,
+    "alignStart": 0,
+    "alignEnd": 0,
+    "margin": 4,
+    "padding": 1
+  },
+
+  "errorLens.codeLensLength": {
+    "min": 0,
+    "max": 80
+  },
+
   "search.exclude": {
     "**/.yarn": true,
     "**/.pnp.*": true
   },
+
   "[vue]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
@@ -83,5 +110,61 @@
   },
   "[json]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "files.exclude": {
+    ".devcontainer": false,
+    ".editorconfig": false,
+    ".git": false,
+    ".gitignore": false,
+    ".prettierrc.yml": false,
+    ".vscode": false,
+    ".yarn": false,
+    ".yarnrc.yml": false,
+    "docker-compose.yml": false,
+    "eslint.config.mjs": false,
+    "lerna.json": false,
+    "node_modules": false,
+    "package.json": false,
+    "readme.md": false,
+    "tsconfig.build.json": false,
+    "tsconfig.json": false,
+    "vitest.workspace.ts": false,
+    "yarn.lock": false,
+    "packages/eslint-config": false,
+    "packages/foo": false,
+    "libs/quicktype": false,
+    "libs/transformer": false
+  },
+  "monorepoFocusWorkspace.internal": {
+    "@regioni/root": {
+      "managedFilesIgnoreEntries": [
+        ".devcontainer",
+        ".editorconfig",
+        ".git",
+        ".gitignore",
+        ".prettierrc.yml",
+        ".vscode",
+        ".yarn",
+        ".yarnrc.yml",
+        "docker-compose.yml",
+        "eslint.config.mjs",
+        "lerna.json",
+        "node_modules",
+        "package.json",
+        "readme.md",
+        "tsconfig.build.json",
+        "tsconfig.json",
+        "vitest.workspace.ts",
+        "yarn.lock",
+        "packages/eslint-config",
+        "packages/foo",
+        "libs/quicktype",
+        "libs/transformer"
+      ],
+      "focusedWorkspace": "@regioni/backend"
+    }
   }
 }

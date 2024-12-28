@@ -1,8 +1,5 @@
-import type { AccessControllerInstance } from 'packages/orbit/dist'
-import type { KeyValueIndexedDatabase } from '../../src/databases/keyvalue-indexed'
-import type { IdentityInstance } from '../../src/identities/identity'
+import type { AccessControllerInstance, IdentityInstance, KeyValueIndexedDatabase, OrbitDBHeliaInstance } from '../../src'
 
-import type { OrbitDBHeliaInstance } from '../../src/vendor'
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import fs from 'node:fs'
 
@@ -21,6 +18,7 @@ import testKeysPath from '../fixtures/test-keys-path'
 import createHelia from '../utils/create-helia'
 
 const keysPath = './testkeys'
+
 describe('keyValueIndexed Database', () => {
   let ipfs: OrbitDBHeliaInstance
   let keystore: KeyStore

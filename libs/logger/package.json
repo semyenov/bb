@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "logform": "^2.7.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

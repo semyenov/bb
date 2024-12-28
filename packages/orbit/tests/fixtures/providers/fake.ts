@@ -1,4 +1,4 @@
-import type { IdentityProviderInstance, IdentityProviderOptions } from 'packages/orbit/src/identities'
+import type { IdentityProviderInstance } from '../../../src/identities'
 
 const type = 'fake'
 

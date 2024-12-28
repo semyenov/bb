@@ -79,8 +79,6 @@ export async function createAjv() {
           }),
         })
       }
-
-      return valid
     },
   }
 }
