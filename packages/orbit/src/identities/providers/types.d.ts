@@ -1,14 +1,23 @@
-export interface IdentityProviderGetIdOptions { id: string }
-export interface IdentityProviderOptions { keystore: KeyStoreInstance }
-export interface IdentityProviderInstance {
+export type DataType = string | Uint8Array
+
+export interface IdentityProviderGetIdOptions { 
+  readonly id: string 
+}
+
+export interface IdentityProviderOptions { 
+  readonly keystore: KeyStoreInstance 
+}
+
+export interface IdentityProviderInstance<T extends string = string> {
+  readonly type: T
   getId: (options: IdentityProviderGetIdOptions) => Promise<string>
   signIdentity: (
-    data: string | Uint8Array,
+    data: DataType,
     options: IdentityProviderGetIdOptions
   ) => Promise<string>
-  type: string
 }
-export interface IdentityProvider {
-  create: (options: IdentityProviderOptions) => IdentityProviderInstance
-  type: string
+
+export interface IdentityProvider<T extends string = string> {
+  readonly type: T
+  create: (options: IdentityProviderOptions) => IdentityProviderInstance<T>
 }

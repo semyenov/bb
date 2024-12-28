@@ -7,19 +7,21 @@ import type { IdentityProviderInstance } from './providers'
 
 import { verifyMessage } from '../key-store'
 
+export type DataType = string | Uint8Array
+
 export interface IdentitySignatures {
-  id: string
-  publicKey: string
+  readonly id: string
+  readonly publicKey: string
 }
 
-export interface IdentityOptions {
-  id: string
-  provider?: IdentityProviderInstance
-  publicKey: string
-  sign: (data: string | Uint8Array) => Promise<string>
-  signatures: IdentitySignatures
-  type: string
-  verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
+export interface IdentityOptions<T extends string = string> {
+  readonly id: string
+  readonly provider?: IdentityProviderInstance<T>
+  readonly publicKey: string
+  readonly sign: (data: DataType) => Promise<string>
+  readonly signatures: IdentitySignatures
+  readonly type: T
+  readonly verify: (signature: string, publicKey: string, data: DataType) => Promise<boolean>
 }
 
 export interface IdentityInstance {

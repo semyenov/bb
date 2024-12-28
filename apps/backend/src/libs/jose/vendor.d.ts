@@ -4,12 +4,12 @@ import type {
   JWTVerifyGetKey,
 } from 'jose'
 
-export type KeyPair = {
-  privateKey: JWK_EC_Private
-  publicKey: JWK_EC_Public
+export interface KeyPair {
+  readonly privateKey: JWK_EC_Private
+  readonly publicKey: JWK_EC_Public
 }
 
 export interface IJoseVerify {
-  jwks: JWTVerifyGetKey
-  keyPair: KeyPair
+  readonly jwks: JWTVerifyGetKey
+  readonly keyPair: Readonly<KeyPair>
 }
