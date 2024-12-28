@@ -1,18 +1,17 @@
+import { copy } from 'fs-extra'
+import { deepStrictEqual, strictEqual } from 'node:assert'
+import { rimraf } from 'rimraf'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
+
 import type { Identity } from '../../../src/identities/identity'
 import type { OrbitDBHeliaInstance } from '../../../src/vendor'
-import { deepStrictEqual, strictEqual } from 'node:assert'
-import { copy } from 'fs-extra'
 
-import { rimraf } from 'rimraf'
-import { toString as uint8ArrayToString } from 'uint8arrays'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 import {
   Documents,
   Identities,
   KeyStore,
 } from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path'
-
 import connectPeers from '../../utils/connect-nodes'
 import createHelia from '../../utils/create-helia'
 import waitFor from '../../utils/wait-for'
@@ -54,28 +53,28 @@ describe('documents Database Replication', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs: ipfs1 })
-    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
+    identities = await Identities.create({ ipfs: ipfs1, keystore })
+    identities2 = await Identities.create({ ipfs: ipfs2, keystore })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
     testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
 
   beforeEach(async () => {
     db1 = await Documents.create({
-      ipfs: ipfs1,
-      identity: testIdentity1,
-      address: databaseId,
       accessController,
-      name: 'testdb1',
+      address: databaseId,
       directory: './orbitdb1',
+      identity: testIdentity1,
+      ipfs: ipfs1,
+      name: 'testdb1',
     })
     db2 = await Documents.create({
-      ipfs: ipfs2,
-      identity: testIdentity2,
-      address: databaseId,
-      name: 'testdb2',
       accessController,
+      address: databaseId,
       directory: './orbitdb2',
+      identity: testIdentity2,
+      ipfs: ipfs2,
+      name: 'testdb2',
     })
   })
   afterEach(async () => {
@@ -110,7 +109,13 @@ describe('documents Database Replication', () => {
   })
 
   it('basic Verification', async () => {
-    const msg = new Uint8Array([1, 2, 3, 4, 5])
+    const msg = new Uint8Array([
+      1,
+      2,
+      3,
+      4,
+      5,
+    ])
     const sig = await testIdentity1.sign(msg)
     const verified = await testIdentity2.verify(sig, testIdentity1.publicKey, msg)
     strictEqual(verified, true)

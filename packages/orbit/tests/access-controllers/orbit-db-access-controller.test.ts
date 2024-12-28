@@ -1,7 +1,6 @@
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-nocheck
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
-
 import { rimraf } from 'rimraf'
 import { afterAll, beforeAll, describe, it } from 'vitest'
 
@@ -39,16 +38,16 @@ describe('orbitDBAccessController', () => {
     testIdentity2 = await identities2.createIdentity({ id: 'userB' })
 
     orbitdb1 = await OrbitDB.create({
-      ipfs: ipfs1,
-      identities: identities1,
-      id: 'userA',
       directory: dbPath1,
+      id: 'userA',
+      identities: identities1,
+      ipfs: ipfs1,
     })
     orbitdb2 = await OrbitDB.create({
-      ipfs: ipfs2,
-      identities: identities2,
-      id: 'userB',
       directory: dbPath2,
+      id: 'userB',
+      identities: identities2,
+      ipfs: ipfs2,
     })
   })
 
@@ -79,8 +78,8 @@ describe('orbitDBAccessController', () => {
 
     beforeAll(async () => {
       accessController = await OrbitDBAccessController.create({
-        orbitdb: orbitdb1,
         identities: identities1,
+        orbitdb: orbitdb1,
       })
     })
 
@@ -118,9 +117,9 @@ describe('orbitDBAccessController', () => {
 
     beforeAll(async () => {
       accessController = await OrbitDBAccessController.create({
-        orbitdb: orbitdb1,
-        identities: identities1,
         address: 'testdb/add',
+        identities: identities1,
+        orbitdb: orbitdb1,
       })
     })
 
@@ -188,9 +187,9 @@ describe('orbitDBAccessController', () => {
       const canAppend1 = await accessController.canAppend(mockEntry1)
 
       const accessController2 = await OrbitDBAccessController.create({
-        orbitdb: orbitdb2,
-        identities: identities2,
         address: 'testdb/add',
+        identities: identities2,
+        orbitdb: orbitdb2,
       })
       const canAppend2 = await accessController2.canAppend(mockEntry2)
 
@@ -204,9 +203,9 @@ describe('orbitDBAccessController', () => {
 
     beforeAll(async () => {
       accessController = await OrbitDBAccessController.create({
-        orbitdb: orbitdb1,
-        identities: identities1,
         address: 'testdb/remove',
+        identities: identities1,
+        orbitdb: orbitdb1,
       })
     })
 

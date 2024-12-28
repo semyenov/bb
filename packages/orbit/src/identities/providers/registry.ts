@@ -10,10 +10,6 @@ export class IdentityProviderRegistry {
     IdentityProvider['create']
   >()
 
-  static isProviderSupported(type: string): boolean {
-    return this.providers.has(type)
-  }
-
   static getIdentityProvider(
     type: string,
   ): IdentityProvider['create'] | undefined {
@@ -24,6 +20,10 @@ export class IdentityProviderRegistry {
     }
 
     return this.providers.get(type)
+  }
+
+  static isProviderSupported(type: string): boolean {
+    return this.providers.has(type)
   }
 
   static useIdentityProvider(

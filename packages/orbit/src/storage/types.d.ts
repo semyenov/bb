@@ -4,14 +4,14 @@ export type StorageIteratorOptions = {
 }
 
 export interface StorageInstance<T> {
-  put: (hash: string, data: T) => Promise<void>
-  get: (hash: string) => Promise<T | null>
+  clear: () => Promise<void>
+  close: () => Promise<void>
   del: (hash: string) => Promise<void>
 
-  merge: (other: StorageInstance<T>) => Promise<void>
-
-  close: () => Promise<void>
-  clear: () => Promise<void>
+  get: (hash: string) => Promise<null | T>
 
   iterator: (options?: StorageIteratorOptions) => AsyncIterable<[string, T]>
+  merge: (other: StorageInstance<T>) => Promise<void>
+
+  put: (hash: string, data: T) => Promise<void>
 }

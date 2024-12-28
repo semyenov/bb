@@ -2,29 +2,29 @@ import type { DatabaseOptions } from '../database'
 import type { DocumentsDatabase } from './documents'
 import type { EventsDatabase } from './events'
 import type { KeyValueDatabase } from './keyvalue'
-
 import type { KeyValueIndexedDatabase } from './keyvalue-indexed'
+
 import { Documents } from './documents'
 import { Events } from './events'
 import { KeyValue } from './keyvalue'
 import { KeyValueIndexed } from './keyvalue-indexed'
 
 export interface DatabaseOperation<T> {
-  op: 'PUT' | 'DEL' | 'ADD'
-  key: string | null
-  value: T | null
+  key: null | string
+  op: 'ADD' | 'DEL' | 'PUT'
+  value: null | T
 }
 
 export interface DatabaseTypeMap<T = unknown> {
-  'events': EventsDatabase<T>
   'documents': DocumentsDatabase<T>
+  'events': EventsDatabase<T>
   'keyvalue': KeyValueDatabase<T>
   'keyvalue-indexed': KeyValueIndexedDatabase<T>
 }
 
 export interface DatabaseType<T, D extends keyof DatabaseTypeMap<T>> {
-  type: D
   create: (options: DatabaseOptions<T>) => Promise<DatabaseTypeMap<T>[D]>
+  type: D
 }
 
 const databaseTypes: Record<

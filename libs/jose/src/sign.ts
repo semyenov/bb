@@ -7,7 +7,6 @@ import type {
   JWTVerifyGetKey,
   VerifyOptions,
 } from 'jose'
-import type { KeyPair } from './vendor.d'
 
 import elliptic from 'elliptic'
 import {
@@ -16,11 +15,13 @@ import {
   SignJWT,
 } from 'jose'
 
+import type { KeyPair } from './vendor.d'
+
 const headerParams = {
-  kty: 'EC',
   alg: 'ES256K',
-  crv: 'secp256k1',
   b64: true,
+  crv: 'secp256k1',
+  kty: 'EC',
 } as const satisfies JWTHeaderParameters
 
 const EC = elliptic.ec
@@ -52,7 +53,7 @@ export async function secp256k1ToJWK(keyPair: Secp256k1PrivateKey): Promise<KeyP
     })
 
   return {
-    privateKey: { ...headerParams, kid, x, y, d },
+    privateKey: { ...headerParams, d, kid, x, y },
     publicKey: { ...headerParams, kid, x, y },
   }
 }

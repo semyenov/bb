@@ -1,7 +1,8 @@
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+
 import type { KeyStoreInstance } from '../../key-store'
 import type { IdentityProvider, IdentityProviderGetIdOptions, IdentityProviderInstance, IdentityProviderOptions } from './types.d'
 
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { IDENTITIES_PROVIDER_PUBLICKEY } from '../../constants'
 import { signMessage } from '../../key-store'
 
@@ -64,6 +65,6 @@ export class PublicKeyIdentityProvider implements IdentityProviderInstance {
 }
 
 export const PublicKeyIdentity: IdentityProvider = {
-  type: IDENTITIES_PROVIDER_PUBLICKEY,
   create: PublicKeyIdentityProvider.create,
+  type: IDENTITIES_PROVIDER_PUBLICKEY,
 }

@@ -1,15 +1,16 @@
 import type { PeerSet } from '@libp2p/peer-collections'
+
 import type { DatabaseOperation, DatabaseType } from '.'
 import type { DatabaseInstance, DatabaseOptions } from '../database'
 import type { EntryInstance } from '../oplog/entry'
 import type { LogInstance } from '../oplog/log'
 import type { StorageInstance } from '../storage'
 import type { SyncEvents, SyncInstance } from '../sync'
+
 import {
   DATABASE_KEYVALUE_INDEXED_TYPE,
   DATABASE_KEYVALUE_INDEXED_VALUE_ENCODING,
 } from '../constants'
-
 import { LevelStorage } from '../storage/level'
 import { join } from '../utils'
 import { KeyValueDatabase, type KeyValueInstance } from './keyvalue'
@@ -41,9 +42,32 @@ class Index<T> {
     return new Index<T>(index, indexedEntries)
   }
 
+  async close(): Promise<void> {
+    await this.index.close()
+    await this.indexedEntries.close()
+  }
+
+  async drop(): Promise<void> {
+    await this.index.clear()
+    await this.indexedEntries.clear()
+  }
+
+  get(key: string): Promise<EntryInstance<DatabaseOperation<T>> | null> {
+    return this.index.get(key)
+  }
+
+  iterator(
+    options: any = {},
+  ): AsyncIterable<[string, EntryInstance<DatabaseOperation<T>>]> {
+    return this.index.iterator({
+      limit: options.amount || -1,
+      ...options,
+    })
+  }
+
   async update(
     log: LogInstance<DatabaseOperation<T>>,
-    entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
+    entry: EntryInstance<DatabaseOperation<T>> | EntryInstance<T>,
   ): Promise<void> {
     const keys = new Set()
     const toBeIndexed = new Set()
@@ -74,7 +98,7 @@ class Index<T> {
     )) {
       const { hash, payload } = entry
       if (hash && (await isNotIndexed(hash))) {
-        const { op, key } = payload
+        const { key, op } = payload
         if (op === 'PUT' && !keys.has(key)) {
           keys.add(key)
           await this.index.put(key!, entry)
@@ -89,29 +113,6 @@ class Index<T> {
       }
     }
   }
-
-  async close(): Promise<void> {
-    await this.index.close()
-    await this.indexedEntries.close()
-  }
-
-  async drop(): Promise<void> {
-    await this.index.clear()
-    await this.indexedEntries.clear()
-  }
-
-  get(key: string): Promise<EntryInstance<DatabaseOperation<T>> | null> {
-    return this.index.get(key)
-  }
-
-  iterator(
-    options: any = {},
-  ): AsyncIterable<[string, EntryInstance<DatabaseOperation<T>>]> {
-    return this.index.iterator({
-      limit: options.amount || -1,
-      ...options,
-    })
-  }
 }
 
 export interface KeyValueIndexedOptions<T> {
@@ -125,16 +126,56 @@ export interface KeyValueIndexedInstance<T = unknown>
 
 export class KeyValueIndexedDatabase<T = unknown>
 implements KeyValueIndexedInstance<T> {
-  private keyValueStore: KeyValueInstance<T>
-  private index: Index<T>
+  static get type(): 'keyvalue-indexed' {
+    return DATABASE_KEYVALUE_INDEXED_TYPE
+  }
+
+  get accessController(): DatabaseInstance<T>['accessController'] {
+    return this.keyValueStore.accessController
+  }
+
+  get address(): string | undefined {
+    return this.keyValueStore.address
+  }
+
+  get events(): DatabaseInstance<T>['events'] {
+    return this.keyValueStore.events
+  }
+
+  get identity(): DatabaseInstance<T>['identity'] {
+    return this.keyValueStore.identity
+  }
+
+  get log(): LogInstance<DatabaseOperation<T>> {
+    return this.keyValueStore.log
+  }
+
+  get meta(): any {
+    return this.keyValueStore.meta
+  }
+
+  get name(): string | undefined {
+    return this.keyValueStore.name
+  }
+
+  get peers(): PeerSet {
+    return this.keyValueStore.peers
+  }
+
+  get sync(): SyncInstance<
+    DatabaseOperation<T>,
+    SyncEvents<DatabaseOperation<T>>
+  > {
+    return this.keyValueStore.sync
+  }
 
   get type(): 'keyvalue-indexed' {
     return DATABASE_KEYVALUE_INDEXED_TYPE
   }
 
-  static get type(): 'keyvalue-indexed' {
-    return DATABASE_KEYVALUE_INDEXED_TYPE
-  }
+  private index: Index<T>
+
+  private keyValueStore: KeyValueInstance<T>
 
   private constructor(keyValueStore: KeyValueInstance<T>, index: Index<T>) {
     this.keyValueStore = keyValueStore
@@ -145,16 +186,16 @@ implements KeyValueIndexedInstance<T> {
     options: DatabaseOptions<T> & KeyValueIndexedOptions<T>,
   ): Promise<KeyValueIndexedDatabase<T>> {
     const {
-      ipfs,
-      identity,
-      address,
-      name,
       accessController,
+      address,
       dir,
-      meta,
-      headsStorage,
       entryStorage,
+      headsStorage,
+      identity,
       indexStorage,
+      ipfs,
+      meta,
+      name,
       referencesCount,
       syncAutomatically,
     } = options
@@ -166,68 +207,43 @@ implements KeyValueIndexedInstance<T> {
 
     const index = await Index.create<T>(indexDirectory)
     const keyValueStore = await KeyValueDatabase.create({
-      ipfs,
-      identity,
-      address,
-      name,
       accessController,
+      address,
       dir,
-      meta,
-      headsStorage,
       entryStorage,
+      headsStorage,
+      identity,
       indexStorage,
+      ipfs,
+      meta,
+      name,
+      onUpdate: index.update.bind(index),
       referencesCount,
       syncAutomatically,
-      onUpdate: index.update.bind(index),
     })
 
     return new KeyValueIndexedDatabase(keyValueStore, index)
-  }
-
-  get name(): string | undefined {
-    return this.keyValueStore.name
-  }
-
-  get address(): string | undefined {
-    return this.keyValueStore.address
-  }
-
-  get meta(): any {
-    return this.keyValueStore.meta
-  }
-
-  get events(): DatabaseInstance<T>['events'] {
-    return this.keyValueStore.events
-  }
-
-  get identity(): DatabaseInstance<T>['identity'] {
-    return this.keyValueStore.identity
-  }
-
-  get accessController(): DatabaseInstance<T>['accessController'] {
-    return this.keyValueStore.accessController
-  }
-
-  get peers(): PeerSet {
-    return this.keyValueStore.peers
-  }
-
-  get log(): LogInstance<DatabaseOperation<T>> {
-    return this.keyValueStore.log
-  }
-
-  get sync(): SyncInstance<
-    DatabaseOperation<T>,
-    SyncEvents<DatabaseOperation<T>>
-  > {
-    return this.keyValueStore.sync
   }
 
   async addOperation(operation: DatabaseOperation<T>): Promise<string> {
     return this.keyValueStore.addOperation(operation)
   }
 
-  async get(key: string): Promise<T | null> {
+  async close(): Promise<void> {
+    await this.keyValueStore.close()
+    await this.index.close()
+  }
+
+  del(key: string): Promise<string> {
+    return this.keyValueStore.del(key)
+  }
+
+  async drop(): Promise<void> {
+    await this.keyValueStore.drop()
+    await this.index.drop()
+  }
+
+  async get(key: string): Promise<null | T> {
     const entry = await this.index.get(key)
     if (entry) {
       return entry.payload.value
@@ -236,18 +252,10 @@ implements KeyValueIndexedInstance<T> {
     return null
   }
 
-  put(key: string, value: T): Promise<string> {
-    return this.keyValueStore.put(key, value)
-  }
-
-  del(key: string): Promise<string> {
-    return this.keyValueStore.del(key)
-  }
-
   async *iterator({ amount = -1 }: { amount?: number } = {}): AsyncIterable<{
     hash: string
     key: string
-    value: T | null
+    value: null | T
   }> {
     for await (const [key, entry] of this.index.iterator({
       amount,
@@ -260,25 +268,19 @@ implements KeyValueIndexedInstance<T> {
       }
 
       yield {
-        key,
         hash,
+        key,
         value,
       }
     }
   }
 
-  async close(): Promise<void> {
-    await this.keyValueStore.close()
-    await this.index.close()
-  }
-
-  async drop(): Promise<void> {
-    await this.keyValueStore.drop()
-    await this.index.drop()
+  put(key: string, value: T): Promise<string> {
+    return this.keyValueStore.put(key, value)
   }
 }
 
 export const KeyValueIndexed: DatabaseType<unknown, 'keyvalue-indexed'> = {
-  type: DATABASE_KEYVALUE_INDEXED_TYPE,
   create: KeyValueIndexedDatabase.create,
+  type: DATABASE_KEYVALUE_INDEXED_TYPE,
 }

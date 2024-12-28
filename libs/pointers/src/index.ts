@@ -16,9 +16,9 @@ export function parsePath(path: string) {
   )
 
   return {
+    key,
     namespace,
     schemaId,
-    key,
   }
 }
 

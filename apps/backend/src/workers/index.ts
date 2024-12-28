@@ -4,8 +4,8 @@ import { Worker } from 'bullmq'
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'backend',
     label: 'worker',
+    service: 'backend',
     version: '1.0.0',
   },
 })

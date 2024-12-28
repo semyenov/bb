@@ -13,12 +13,12 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 const unmarshalPrivateKey = privateKeyFromRaw
 
 const logger = createLogger({
-  level: 'debug',
   defaultMeta: {
-    package: 'orbit',
     label: 'tests',
+    package: 'orbit',
     version: '0.0.1',
   },
+  level: 'debug',
 })
 
 async function main() {
@@ -33,13 +33,7 @@ async function main() {
     addresses: {
       listen: ['/ip4/0.0.0.0/tcp/12345/ws'],
     },
-    transports: [
-      webSockets({
-        filter: filters.all,
-      }),
-    ],
     connectionEncrypters: [noise()],
-    streamMuxers: [yamux()],
     services: {
       identify: identify(),
       pubsub: gossipsub({
@@ -47,12 +41,18 @@ async function main() {
       }),
       relay: circuitRelayServer({
         reservations: {
+          defaultDataLimit: BigInt(1024 * 1024 * 1024),
           maxReservations: 5000,
           reservationTtl: 1000,
-          defaultDataLimit: BigInt(1024 * 1024 * 1024),
         },
       }),
     },
+    streamMuxers: [yamux()],
+    transports: [
+      webSockets({
+        filter: filters.all,
+      }),
+    ],
   })
 
   server.addEventListener(
@@ -73,11 +73,11 @@ async function main() {
   logger.info(
     'peer id and multiaddrs',
     {
-      peerId: server.peerId.toString(),
       multiaddrs: server.getMultiaddrs()
         .map((ma) => {
           return ma.toString()
         }),
+      peerId: server.peerId.toString(),
     },
   )
 }

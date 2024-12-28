@@ -1,3 +1,8 @@
+import * as dagCbor from '@ipld/dag-cbor'
+import { base58btc } from 'multiformats/bases/base58'
+import * as Block from 'multiformats/block'
+import { sha256 } from 'multiformats/hashes/sha2'
+
 import type { AccessControllerInstance } from '.'
 import type { IdentitiesInstance } from '../identities'
 import type { EntryInstance } from '../oplog/entry'
@@ -6,10 +11,6 @@ import type {
   StorageInstance,
 } from '../storage'
 
-import * as dagCbor from '@ipld/dag-cbor'
-import { base58btc } from 'multiformats/bases/base58'
-import * as Block from 'multiformats/block'
-import { sha256 } from 'multiformats/hashes/sha2'
 import { ACCESS_CONTROLLER_IPFS_TYPE } from '../constants'
 import {
   ComposedStorage,
@@ -23,16 +24,16 @@ const hasher = sha256
 const hashStringEncoding = base58btc
 
 async function AccessControlList({
-  type,
   params,
   storage,
+  type,
 }: {
   type: string
   params: Record<string, any>
   storage: StorageInstance<Uint8Array>
 }) {
   const manifest = { ...params, type }
-  const { cid, bytes } = await Block.encode({ value: manifest, codec, hasher })
+  const { bytes, cid } = await Block.encode({ codec, hasher, value: manifest })
   const hash = cid.toString(hashStringEncoding)
   await storage.put(hash, bytes)
 
@@ -40,28 +41,29 @@ async function AccessControlList({
 }
 
 export interface IPFSAccessControllerInstance extends AccessControllerInstance {
-  type: string
   address: string
-  write: string[]
-
   canAppend: (entry: EntryInstance) => Promise<boolean>
+  type: string
+
+  write: string[]
 }
 
 export class IPFSAccessController implements IPFSAccessControllerInstance {
-  public address: string
-  public write: string[]
-
-  get type(): 'ipfs' {
-    return ACCESS_CONTROLLER_IPFS_TYPE
-  }
-
   static get type(): 'ipfs' {
     return ACCESS_CONTROLLER_IPFS_TYPE
   }
 
-  storage: StorageInstance<Uint8Array>
-  orbitdb: OrbitDBInstance
+  public address: string
+
   identities: IdentitiesInstance
+
+  orbitdb: OrbitDBInstance
+
+  storage: StorageInstance<Uint8Array>
+  public write: string[]
+  get type(): 'ipfs' {
+    return ACCESS_CONTROLLER_IPFS_TYPE
+  }
 
   private constructor(options: {
     orbitdb: OrbitDBInstance
@@ -84,8 +86,8 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     write?: string[]
     storage?: StorageInstance<Uint8Array>
   }): Promise<IPFSAccessControllerInstance> {
-    const { orbitdb, identities } = options
-    const { ipfs, identity: { id: identityId } } = orbitdb
+    const { identities, orbitdb } = options
+    const { identity: { id: identityId }, ipfs } = orbitdb
 
     const storage
       = options.storage
@@ -120,9 +122,9 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     }
     else {
       address = await AccessControlList({
-        type: ACCESS_CONTROLLER_IPFS_TYPE,
         params: { write },
         storage,
+        type: ACCESS_CONTROLLER_IPFS_TYPE,
       })
 
       address = join(
@@ -133,11 +135,11 @@ export class IPFSAccessController implements IPFSAccessControllerInstance {
     }
 
     const controller = new IPFSAccessController({
-      orbitdb,
-      identities,
       address,
-      write,
+      identities,
+      orbitdb,
       storage,
+      write,
     })
 
     return controller

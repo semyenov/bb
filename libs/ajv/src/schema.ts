@@ -4,16 +4,16 @@ export const userSchema: JSONSchemaType<{
   status: string
   date: string
 }> = {
-  type: 'object',
+  additionalProperties: false,
   properties: {
+    date: {
+      format: 'date-time',
+      type: 'string',
+    },
     status: {
       type: 'string',
     },
-    date: {
-      type: 'string',
-      format: 'date-time',
-    },
   },
   required: ['status'],
-  additionalProperties: false,
+  type: 'object',
 }

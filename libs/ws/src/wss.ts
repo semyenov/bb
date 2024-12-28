@@ -2,8 +2,8 @@ import type { IJoseVerify } from '@regioni/lib-jose'
 import type { ServerOptions, WebSocket } from 'ws'
 
 import { createLogger } from '@regioni/lib-logger'
-
 import { WebSocketServer } from 'ws'
+
 import { wrapSocket } from './wrapper'
 
 const logger = createLogger({

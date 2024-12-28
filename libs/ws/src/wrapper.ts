@@ -1,27 +1,28 @@
 import type { IJoseVerify } from '@regioni/lib-jose'
 import type { Buffer } from 'node:buffer'
 
-import type { WebSocketProxy } from './ws'
 import { sign, verify } from '@regioni/lib-jose'
 import { createLogger } from '@regioni/lib-logger'
 
+import type { WebSocketProxy } from './ws'
+
 type BufferLike =
-  | string
+  | { [Symbol.toPrimitive]: (hint: string) => string }
+  | { valueOf: () => ArrayBuffer }
+  | { valueOf: () => readonly number[] }
+  | { valueOf: () => SharedArrayBuffer }
+  | { valueOf: () => string }
+  | { valueOf: () => Uint8Array }
+  | ArrayBuffer
+  | ArrayBufferView
   | Buffer
   | DataView
   | number
-  | ArrayBufferView
-  | Uint8Array
-  | ArrayBuffer
-  | SharedArrayBuffer
   | readonly any[]
   | readonly number[]
-  | { valueOf: () => ArrayBuffer }
-  | { valueOf: () => SharedArrayBuffer }
-  | { valueOf: () => Uint8Array }
-  | { valueOf: () => readonly number[] }
-  | { valueOf: () => string }
-  | { [Symbol.toPrimitive]: (hint: string) => string }
+  | SharedArrayBuffer
+  | string
+  | Uint8Array
 
 const logger = createLogger({
   defaultMeta: {
@@ -101,7 +102,7 @@ async function customSend(
     return this.send(data, cb)
   }
 
-  logger.debug('Signing payload: ', { payload: data, jose: this.jose })
+  logger.debug('Signing payload: ', { jose: this.jose, payload: data })
 
   const jws = await sign(this.jose.keyPair.privateKey, {
     payload: JSON.parse(data.toString()),

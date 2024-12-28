@@ -3,27 +3,27 @@ import { defineWorkspace } from 'vitest/config'
 export default defineWorkspace([
   {
     test: {
-      root: './packages/orbit',
+      environment: 'node',
       include: ['tests/**/*.test.{ts,js}'],
+      maxConcurrency: 1,
+      name: 'orbit',
       poolOptions: {
         threads: {
-          singleThread: true,
           isolate: true,
+          singleThread: true,
         },
       },
+      root: './packages/orbit',
       sequence: {
-        setupFiles: 'list',
         concurrent: false,
         hooks: 'stack',
+        setupFiles: 'list',
       },
       sequencer: {
-        setupFiles: 'list',
         hooks: 'stack',
+        setupFiles: 'list',
       },
-      name: 'orbit',
-      environment: 'node',
       testTimeout: 5000,
-      maxConcurrency: 1,
     },
   },
 ])

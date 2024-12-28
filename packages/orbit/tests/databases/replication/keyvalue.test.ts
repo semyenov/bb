@@ -1,19 +1,18 @@
-import type { KeyValueDatabase } from '../../../src/databases/keyvalue'
-
-import type { IdentityInstance } from '../../../src/identities/identity'
-import type { OrbitDBHeliaInstance } from '../../../src/vendor'
-import { deepStrictEqual } from 'node:assert'
-
 import { copy } from 'fs-extra'
+import { deepStrictEqual } from 'node:assert'
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, describe, it } from 'vitest'
+
+import type { KeyValueDatabase } from '../../../src/databases/keyvalue'
+import type { IdentityInstance } from '../../../src/identities/identity'
+import type { OrbitDBHeliaInstance } from '../../../src/vendor'
+
 import {
   Identities,
   KeyStore,
   KeyValue,
 } from '../../../src'
 import testKeysPath from '../../fixtures/test-keys-path'
-
 import connectPeers from '../../utils/connect-nodes'
 import createHelia from '../../utils/create-helia'
 import waitFor from '../../utils/wait-for'
@@ -43,8 +42,8 @@ describe('keyValue Database Replication', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs: ipfs1 })
-    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
+    identities = await Identities.create({ ipfs: ipfs1, keystore })
+    identities2 = await Identities.create({ ipfs: ipfs2, keystore })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
     testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
@@ -80,7 +79,7 @@ describe('keyValue Database Replication', () => {
 
   it('replicates a database', async () => {
     let replicated = false
-    let expectedEntryHash: string | null = null
+    let expectedEntryHash: null | string = null
 
     const onConnected = (event: CustomEvent) => {
       const { heads } = event.detail
@@ -102,18 +101,18 @@ describe('keyValue Database Replication', () => {
     }
 
     kv1 = await KeyValue.create({
-      ipfs: ipfs1,
-      identity: testIdentity1,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb1',
+      identity: testIdentity1,
+      ipfs: ipfs1,
     })
     kv2 = await KeyValue.create({
-      ipfs: ipfs2,
-      identity: testIdentity2,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb2',
+      identity: testIdentity2,
+      ipfs: ipfs2,
     })
 
     kv2.sync.events.addEventListener('join', onConnected)
@@ -180,7 +179,7 @@ describe('keyValue Database Replication', () => {
 
   it('loads the database after replication', async () => {
     let replicated = false
-    let expectedEntryHash: string | null = null
+    let expectedEntryHash: null | string = null
 
     const onConnected = (event: CustomEvent) => {
       const { heads } = event.detail
@@ -202,18 +201,18 @@ describe('keyValue Database Replication', () => {
     }
 
     kv1 = await KeyValue.create({
-      ipfs: ipfs1,
-      identity: testIdentity1,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb1',
+      identity: testIdentity1,
+      ipfs: ipfs1,
     })
     kv2 = await KeyValue.create({
-      ipfs: ipfs2,
-      identity: testIdentity2,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb2',
+      identity: testIdentity2,
+      ipfs: ipfs2,
     })
 
     kv2.events.addEventListener('join', onConnected)
@@ -241,18 +240,18 @@ describe('keyValue Database Replication', () => {
     await kv2.close()
 
     kv1 = await KeyValue.create({
-      ipfs: ipfs1,
-      identity: testIdentity1,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb1',
+      identity: testIdentity1,
+      ipfs: ipfs1,
     })
     kv2 = await KeyValue.create({
-      ipfs: ipfs2,
-      identity: testIdentity2,
-      address: databaseId,
       accessController,
+      address: databaseId,
       directory: './.out/orbitdb2',
+      identity: testIdentity2,
+      ipfs: ipfs2,
     })
 
     const value0 = await kv2.get('init')

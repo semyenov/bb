@@ -30,6 +30,8 @@ async function verifyIdentity(_data) {
 class FakeIdentityProvider implements IdentityProviderInstance {
   public readonly type = 'fake'
 
+  verifyIdentity = verifyIdentity
+
   getId() {
     return 'pubKey'
   }
@@ -37,8 +39,6 @@ class FakeIdentityProvider implements IdentityProviderInstance {
   signIdentity = (data: string) => {
     return `false signature '${data}'`
   }
-
-  verifyIdentity = verifyIdentity
 }
 FakeIdentityProvider.type = type
 

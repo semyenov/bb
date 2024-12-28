@@ -1,8 +1,9 @@
 import type { PeerSet } from '@libp2p/peer-collections'
-import type { DatabaseOperation, DatabaseType } from '.'
 
+import type { DatabaseOperation, DatabaseType } from '.'
 import type { LogInstance } from '../oplog/log'
 import type { SyncEvents, SyncInstance } from '../sync'
+
 import { DATABASE_DOCUMENTS_TYPE } from '../constants'
 import {
   Database,
@@ -11,9 +12,9 @@ import {
 } from '../database'
 
 export interface DocumentsDoc<T = unknown> {
-  key?: string
   hash?: string
-  value: T | null
+  key?: string
+  value: null | T
 }
 
 export interface DocumentsIteratorOptions {
@@ -25,30 +26,70 @@ export interface DocumentsOptions {
 }
 
 export interface DocumentsInstance<T = unknown> extends DatabaseInstance<T> {
-  type: 'documents'
-  indexBy: string
-
   all: () => Promise<DocumentsDoc<T>[]>
   del: (key: string) => Promise<string>
+
   get: (key: string) => Promise<DocumentsDoc<T> | null>
+  indexBy: string
   iterator: (
     options?: DocumentsIteratorOptions,
   ) => AsyncIterable<DocumentsDoc<T>>
   put: (doc: T) => Promise<string>
   query: (findFn: (doc: T) => boolean) => Promise<T[]>
+  type: 'documents'
 }
 
 export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
-  private database: DatabaseInstance<T>
+  static get type(): 'documents' {
+    return DATABASE_DOCUMENTS_TYPE
+  }
+
   public indexBy = '_id'
+
+  get accessController(): DatabaseInstance<T>['accessController'] {
+    return this.database.accessController
+  }
+
+  get address(): string | undefined {
+    return this.database.address
+  }
+
+  get events(): DatabaseInstance<T>['events'] {
+    return this.database.events
+  }
+
+  get identity(): DatabaseInstance<T>['identity'] {
+    return this.database.identity
+  }
+
+  get log(): LogInstance<DatabaseOperation<T>> {
+    return this.database.log
+  }
+
+  get meta(): any {
+    return this.database.meta
+  }
+
+  get name(): string | undefined {
+    return this.database.name
+  }
+
+  get peers(): PeerSet {
+    return this.database.peers
+  }
+
+  get sync(): SyncInstance<
+    DatabaseOperation<T>,
+    SyncEvents<DatabaseOperation<T>>
+  > {
+    return this.database.sync
+  }
 
   get type(): 'documents' {
     return DATABASE_DOCUMENTS_TYPE
   }
 
-  static get type(): 'documents' {
-    return DATABASE_DOCUMENTS_TYPE
-  }
+  private database: DatabaseInstance<T>
 
   private constructor(database: DatabaseInstance<T>, indexBy: string) {
     this.database = database
@@ -64,117 +105,8 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
     return new DocumentsDatabase<T>(database, indexBy)
   }
 
-  get name(): string | undefined {
-    return this.database.name
-  }
-
-  get address(): string | undefined {
-    return this.database.address
-  }
-
-  get meta(): any {
-    return this.database.meta
-  }
-
-  get events(): DatabaseInstance<T>['events'] {
-    return this.database.events
-  }
-
-  get identity(): DatabaseInstance<T>['identity'] {
-    return this.database.identity
-  }
-
-  get accessController(): DatabaseInstance<T>['accessController'] {
-    return this.database.accessController
-  }
-
-  get peers(): PeerSet {
-    return this.database.peers
-  }
-
-  get log(): LogInstance<DatabaseOperation<T>> {
-    return this.database.log
-  }
-
-  get sync(): SyncInstance<
-    DatabaseOperation<T>,
-    SyncEvents<DatabaseOperation<T>>
-  > {
-    return this.database.sync
-  }
-
   async addOperation(operation: DatabaseOperation<T>): Promise<string> {
     return this.database.addOperation(operation)
-  }
-
-  async put(doc: T): Promise<string> {
-    const key = doc[this.indexBy as keyof T]
-    if (!key) {
-      throw new Error(
-        `The provided document doesn't contain field '${String(this.indexBy)}'`,
-      )
-    }
-
-    return this.database.addOperation({
-      op: 'PUT',
-      key: String(key),
-      value: doc,
-    })
-  }
-
-  async del(key: string): Promise<string> {
-    if (!(await this.get(key))) {
-      throw new Error(`No document with key '${key}' in the database`)
-    }
-
-    return this.database.addOperation({ op: 'DEL', key, value: null })
-  }
-
-  async get(key: string): Promise<DocumentsDoc<T> | null> {
-    for await (const doc of this.iterator()) {
-      if (key === doc.key) {
-        return doc
-      }
-    }
-
-    return null
-  }
-
-  async query(findFn: (doc: T) => boolean): Promise<T[]> {
-    const results: T[] = []
-    for await (const doc of this.iterator()) {
-      if (doc.value && findFn(doc.value)) {
-        results.push(doc.value)
-      }
-    }
-
-    return results
-  }
-
-  async *iterator({ amount }: DocumentsIteratorOptions = {}): AsyncGenerator<
-    DocumentsDoc<T>,
-    void,
-    unknown
-  > {
-    const keys: Record<string, boolean> = {}
-    let count = 0
-    const files = []
-    for await (const entry of this.database.log.iterator()) {
-      files.push(entry)
-      const { op, key, value } = entry.payload
-      if (op === 'PUT' && !keys[key!]) {
-        keys[key!] = true
-        count++
-        const hash = entry.hash!
-        yield { hash, key: key!, value: value || null }
-      }
-      else if (op === 'DEL' && !keys[key!]) {
-        keys[key!] = true
-      }
-      if (amount !== undefined && count >= amount) {
-        break
-      }
-    }
   }
 
   async all(): Promise<DocumentsDoc<T>[]> {
@@ -190,12 +122,82 @@ export class DocumentsDatabase<T = unknown> implements DocumentsInstance<T> {
     return this.database.close()
   }
 
+  async del(key: string): Promise<string> {
+    if (!(await this.get(key))) {
+      throw new Error(`No document with key '${key}' in the database`)
+    }
+
+    return this.database.addOperation({ key, op: 'DEL', value: null })
+  }
+
   drop(): Promise<void> {
     return this.database.drop()
+  }
+
+  async get(key: string): Promise<DocumentsDoc<T> | null> {
+    for await (const doc of this.iterator()) {
+      if (key === doc.key) {
+        return doc
+      }
+    }
+
+    return null
+  }
+
+  async *iterator({ amount }: DocumentsIteratorOptions = {}): AsyncGenerator<
+    DocumentsDoc<T>,
+    void,
+    unknown
+  > {
+    const keys: Record<string, boolean> = {}
+    let count = 0
+    const files = []
+    for await (const entry of this.database.log.iterator()) {
+      files.push(entry)
+      const { key, op, value } = entry.payload
+      if (op === 'PUT' && !keys[key!]) {
+        keys[key!] = true
+        count++
+        const hash = entry.hash!
+        yield { hash, key: key!, value: value || null }
+      }
+      else if (op === 'DEL' && !keys[key!]) {
+        keys[key!] = true
+      }
+      if (amount !== undefined && count >= amount) {
+        break
+      }
+    }
+  }
+
+  async put(doc: T): Promise<string> {
+    const key = doc[this.indexBy as keyof T]
+    if (!key) {
+      throw new Error(
+        `The provided document doesn't contain field '${String(this.indexBy)}'`,
+      )
+    }
+
+    return this.database.addOperation({
+      key: String(key),
+      op: 'PUT',
+      value: doc,
+    })
+  }
+
+  async query(findFn: (doc: T) => boolean): Promise<T[]> {
+    const results: T[] = []
+    for await (const doc of this.iterator()) {
+      if (doc.value && findFn(doc.value)) {
+        results.push(doc.value)
+      }
+    }
+
+    return results
   }
 }
 
 export const Documents: DatabaseType<unknown, 'documents'> = {
-  type: DATABASE_DOCUMENTS_TYPE,
   create: DocumentsDatabase.create,
+  type: DATABASE_DOCUMENTS_TYPE,
 }

@@ -1,7 +1,6 @@
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-nocheck
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
-
 import { rimraf } from 'rimraf'
 import { afterAll, beforeAll, describe, it } from 'vitest'
 
@@ -38,14 +37,14 @@ describe('iPFSAccessController', () => {
     keystore1 = await KeyStore.create({ path: `${dbPath1}/keys` })
     keystore2 = await KeyStore.create({ path: `${dbPath2}/keys` })
 
-    identities1 = await Identities.create({ keystore: keystore1, ipfs: ipfs1 })
-    identities2 = await Identities.create({ keystore: keystore2, ipfs: ipfs2 })
+    identities1 = await Identities.create({ ipfs: ipfs1, keystore: keystore1 })
+    identities2 = await Identities.create({ ipfs: ipfs2, keystore: keystore2 })
 
     testIdentity1 = await identities1.createIdentity({ id: 'userA' })
     testIdentity2 = await identities2.createIdentity({ id: 'userB' })
 
-    orbitdb1 = { ipfs: ipfs1, identity: testIdentity1 } as OrbitDBInstance
-    orbitdb2 = { ipfs: ipfs2, identity: testIdentity2 } as OrbitDBInstance
+    orbitdb1 = { identity: testIdentity1, ipfs: ipfs1 } as OrbitDBInstance
+    orbitdb2 = { identity: testIdentity2, ipfs: ipfs2 } as OrbitDBInstance
   })
 
   afterAll(async () => {
@@ -75,8 +74,8 @@ describe('iPFSAccessController', () => {
   describe('default write access', () => {
     beforeAll(async () => {
       accessController = await IPFSAccessController.create({
-        orbitdb: orbitdb1,
         identities: identities1,
+        orbitdb: orbitdb1,
       })
     })
 
@@ -117,9 +116,9 @@ describe('iPFSAccessController', () => {
 
     it('replicates the access controller', async () => {
       const replicatedAccessController = await IPFSAccessController.create({
-        orbitdb: orbitdb2,
-        identities: identities2,
         address: accessController.address,
+        identities: identities2,
+        orbitdb: orbitdb2,
       })
 
       strictEqual(replicatedAccessController.type, accessController.type)
@@ -131,8 +130,8 @@ describe('iPFSAccessController', () => {
   describe('write all access', () => {
     beforeAll(async () => {
       accessController = await IPFSAccessController.create({
-        orbitdb: orbitdb1,
         identities: identities1,
+        orbitdb: orbitdb1,
         write: ['*'],
       })
     })

@@ -11,15 +11,19 @@ export class MemoryStorage<T = unknown> implements StorageInstance<T> {
     return new MemoryStorage<T>()
   }
 
-  async put(hash: string, data: T): Promise<void> {
-    this.memory.set(hash, data)
+  async clear(): Promise<void> {
+    this.memory.clear()
+  }
+
+  async close(): Promise<void> {
+    // No-op for memory storage
   }
 
   async del(hash: string): Promise<void> {
     this.memory.delete(hash)
   }
 
-  async get(hash: string): Promise<T | null> {
+  async get(hash: string): Promise<null | T> {
     return this.memory.get(hash) || null
   }
 
@@ -37,11 +41,7 @@ export class MemoryStorage<T = unknown> implements StorageInstance<T> {
     }
   }
 
-  async clear(): Promise<void> {
-    this.memory.clear()
-  }
-
-  async close(): Promise<void> {
-    // No-op for memory storage
+  async put(hash: string, data: T): Promise<void> {
+    this.memory.set(hash, data)
   }
 }

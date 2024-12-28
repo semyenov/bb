@@ -1,3 +1,10 @@
+import { copy } from 'fs-extra'
+import { deepStrictEqual, strictEqual } from 'node:assert'
+import { existsSync, readdirSync } from 'node:fs'
+import Path from 'node:path'
+import { rimraf } from 'rimraf'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
+
 import type {
   AccessControllerInstance,
   DatabaseOperation,
@@ -5,16 +12,7 @@ import type {
   StorageInstance,
 } from '../src'
 import type { IdentityInstance } from '../src/identities/identity'
-
 import type { OrbitDBHeliaInstance } from '../src/vendor'
-import { deepStrictEqual, strictEqual } from 'node:assert'
-import { existsSync, readdirSync } from 'node:fs'
-
-import Path from 'node:path'
-
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
 
 import {
   Database,
@@ -52,7 +50,7 @@ describe('database', () => {
     ipfs = await createHelia() as unknown as OrbitDBHeliaInstance
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ ipfs, keystore })
     testIdentity = await identities.createIdentity({ id: 'userA' })
   })
 
@@ -75,14 +73,14 @@ describe('database', () => {
 
   it('adds an operation', async () => {
     db = await Database.create({
-      ipfs,
-      identity: testIdentity,
-      address: databaseId,
       accessController: accessController as AccessControllerInstance,
+      address: databaseId,
       dir: './.orbitdb',
+      identity: testIdentity,
+      ipfs,
     })
     const expected = 'zdpuAwhx6xVpnMPUA7Q4JrvZsyoti5wZ18iDeFwBjPAwsRNof'
-    const op = { op: 'PUT', key: '1', value: 'record 1 on db 1' }
+    const op = { key: '1', op: 'PUT', value: 'record 1 on db 1' }
     const actual = await db.addOperation(op as DatabaseOperation<unknown>)
 
     deepStrictEqual(actual, expected)
@@ -93,13 +91,13 @@ describe('database', () => {
   describe('options', () => {
     it('uses default directory for headsStorage', async () => {
       db = await Database.create({
-        ipfs,
-        identity: testIdentity,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.orbitdb',
+        identity: testIdentity,
+        ipfs,
       })
-      const op = { op: 'PUT', key: '1', value: 'record 1 on db 1' }
+      const op = { key: '1', op: 'PUT', value: 'record 1 on db 1' }
       const hash = await db.addOperation(op as DatabaseOperation<unknown>)
 
       const headsPath = Path.join(
@@ -129,13 +127,13 @@ describe('database', () => {
 
     it('uses given directory for headsStorage', async () => {
       db = await Database.create({
-        ipfs,
-        identity: testIdentity,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './custom-directory',
+        identity: testIdentity,
+        ipfs,
       })
-      const op = { op: 'PUT', key: '1', value: 'record 1 on db 1' }
+      const op = { key: '1', op: 'PUT', value: 'record 1 on db 1' }
       const hash = await db.addOperation(op as DatabaseOperation<unknown>)
 
       const headsPath = Path.join(
@@ -164,14 +162,14 @@ describe('database', () => {
     it('uses given MemoryStorage for headsStorage', async () => {
       const headsStorage = await MemoryStorage.create()
       db = await Database.create({
-        ipfs,
-        identity: testIdentity,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.orbitdb',
         headsStorage: headsStorage as StorageInstance<Uint8Array>,
+        identity: testIdentity,
+        ipfs,
       })
-      const op = { op: 'PUT', key: '1', value: 'record 1 on db 1' }
+      const op = { key: '1', op: 'PUT', value: 'record 1 on db 1' }
       const hash = await db.addOperation(op as DatabaseOperation<unknown>)
 
       deepStrictEqual(
@@ -185,14 +183,14 @@ describe('database', () => {
     it('uses given MemoryStorage for entryStorage', async () => {
       const entryStorage = await MemoryStorage.create()
       db = await Database.create({
-        ipfs,
-        identity: testIdentity,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.orbitdb',
         entryStorage: entryStorage as StorageInstance<Uint8Array>,
+        identity: testIdentity,
+        ipfs,
       })
-      const op = { op: 'PUT', key: '1', value: 'record 1 on db 1' }
+      const op = { key: '1', op: 'PUT', value: 'record 1 on db 1' }
       const hash = await db.addOperation(op as DatabaseOperation<unknown>)
 
       deepStrictEqual(
@@ -207,11 +205,11 @@ describe('database', () => {
   describe('events', () => {
     beforeEach(async () => {
       db = await Database.create({
-        ipfs,
-        identity: testIdentity,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.orbitdb',
+        identity: testIdentity,
+        ipfs,
       })
     })
 

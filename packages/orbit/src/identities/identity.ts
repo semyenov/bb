@@ -1,9 +1,10 @@
-import type { IdentityProviderInstance } from './providers'
-
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
+
+import type { IdentityProviderInstance } from './providers'
+
 import { verifyMessage } from '../key-store'
 
 export interface IdentitySignatures {
@@ -13,24 +14,24 @@ export interface IdentitySignatures {
 
 export interface IdentityOptions {
   id: string
-  type: string
-  publicKey: string
-  signatures: IdentitySignatures
   provider?: IdentityProviderInstance
+  publicKey: string
   sign: (data: string | Uint8Array) => Promise<string>
+  signatures: IdentitySignatures
+  type: string
   verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 }
 
 export interface IdentityInstance {
-  id: string
-  type: string
-  hash: string
   bytes: Uint8Array
-  publicKey: string
-  signatures: IdentitySignatures
+  hash: string
+  id: string
   provider?: IdentityProviderInstance
-
+  publicKey: string
   sign: (data: string | Uint8Array) => Promise<string>
+  signatures: IdentitySignatures
+
+  type: string
   verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 }
 
@@ -39,19 +40,19 @@ const hasher = sha256
 const hashStringEncoding = base58btc
 
 export class Identity implements IdentityInstance {
-  id: string
-  type: string
-  hash: string
   bytes: Uint8Array
+  hash: string
+  id: string
+  provider?: IdentityProviderInstance
   publicKey: string
-  signatures: IdentitySignatures
   sign: (data: string | Uint8Array) => Promise<string>
+  signatures: IdentitySignatures
+  type: string
+
   verify: (signature: string, publicKey: string, data: string | Uint8Array) => Promise<boolean>
 
-  provider?: IdentityProviderInstance
-
   private constructor(
-    options: IdentityOptions & { hash: string, bytes: Uint8Array },
+    options: { hash: string, bytes: Uint8Array } & IdentityOptions,
   ) {
     this.id = options.id
     this.type = options.type
@@ -72,6 +73,52 @@ export class Identity implements IdentityInstance {
       ...identity,
       ...options,
     })
+  }
+
+  static async decode(bytes: Uint8Array): Promise<Identity> {
+    const { value } = await Block.decode<IdentityOptions, 113, 18>({
+      bytes,
+      codec,
+      hasher,
+    })
+
+    return Identity.create({ ...value })
+  }
+
+  static isEqual(a: Identity, b: Identity): boolean {
+    return (
+      a.id === b.id
+      && a.hash === b.hash
+      && a.type === b.type
+      && a.publicKey === b.publicKey
+      && a.signatures.id === b.signatures.id
+      && a.signatures.publicKey === b.signatures.publicKey
+    )
+  }
+
+  static isIdentity(identity: unknown): identity is Identity {
+    return identity instanceof Identity
+  }
+
+  private static async encodeIdentity(
+    identity: IdentityOptions,
+  ): Promise<{ hash: string, bytes: Uint8Array }> {
+    const { id, publicKey, signatures, type } = identity
+    const { bytes, cid } = await Block.encode({
+      codec,
+      hasher,
+      value: {
+        id,
+        publicKey,
+        signatures,
+        type,
+      },
+    })
+
+    return {
+      bytes: Uint8Array.from(bytes),
+      hash: cid.toString(hashStringEncoding),
+    }
   }
 
   private static validateOptions(options: IdentityOptions): void {
@@ -95,56 +142,10 @@ export class Identity implements IdentityInstance {
     }
   }
 
-  private static async encodeIdentity(
-    identity: IdentityOptions,
-  ): Promise<{ hash: string, bytes: Uint8Array }> {
-    const { id, publicKey, signatures, type } = identity
-    const { cid, bytes } = await Block.encode({
-      codec,
-      hasher,
-      value: {
-        id,
-        publicKey,
-        signatures,
-        type,
-      },
-    })
-
-    return {
-      hash: cid.toString(hashStringEncoding),
-      bytes: Uint8Array.from(bytes),
-    }
-  }
-
-  static async decode(bytes: Uint8Array): Promise<Identity> {
-    const { value } = await Block.decode<IdentityOptions, 113, 18>({
-      bytes,
-      codec,
-      hasher,
-    })
-
-    return Identity.create({ ...value })
-  }
-
-  static isIdentity(identity: unknown): identity is Identity {
-    return identity instanceof Identity
-  }
-
-  static isEqual(a: Identity, b: Identity): boolean {
-    return (
-      a.id === b.id
-      && a.hash === b.hash
-      && a.type === b.type
-      && a.publicKey === b.publicKey
-      && a.signatures.id === b.signatures.id
-      && a.signatures.publicKey === b.signatures.publicKey
-    )
-  }
-
   async verifyIdentity(): Promise<boolean> {
     const {
-      publicKey,
       id,
+      publicKey,
       signatures,
     } = this
 

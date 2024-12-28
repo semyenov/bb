@@ -3,11 +3,9 @@ import type {
   RedisFunctions,
   RedisScripts,
 } from '@redis/client/dist/lib/commands'
-
 import type {
   RedisJSON,
 } from '@redis/json/dist/commands'
-
 import type {
   RedisClientOptions,
   RedisClientType,
@@ -44,27 +42,27 @@ export type RedisStoreOptions = RedisClientOptions<
 >
 
 export interface RedisCRUDOptions {
-  prefix: string
   connection: RedisStoreConnection
+  prefix: string
 }
 
 export interface RedisCRUDInstance<T extends RedisJSON> {
-  keyExists: (id: string) => Promise<boolean>
-  getKeys: () => Promise<string[]>
-  getAll: () => Promise<T[]>
-  insertOne: (item: JsonMSetItem) => Promise<T>
-  insertMany: (items: JsonMSetItem[]) => Promise<T[]>
-  findOne: (id: string) => Promise<T | undefined>
-  findMany: (...ids: string[]) => Promise<T[]>
-  deleteOne: (id: string) => Promise<boolean>
   deleteMany: (...ids: string[]) => Promise<boolean>
+  deleteOne: (id: string) => Promise<boolean>
+  findMany: (...ids: string[]) => Promise<T[]>
+  findOne: (id: string) => Promise<T | undefined>
+  getAll: () => Promise<T[]>
+  getKeys: () => Promise<string[]>
+  insertMany: (items: JsonMSetItem[]) => Promise<T[]>
+  insertOne: (item: JsonMSetItem) => Promise<T>
+  keyExists: (id: string) => Promise<boolean>
 }
 
 export interface RedisStore {
-  meta: RedisCRUDInstance<Meta>
-  users: RedisCRUDInstance<User>
   data: RedisCRUDInstance<RedisJSON>
+  disconnect: () => Promise<void>
+  meta: RedisCRUDInstance<Meta>
   schemas: RedisCRUDInstance<RedisJSON>
 
-  disconnect: () => Promise<void>
+  users: RedisCRUDInstance<User>
 }

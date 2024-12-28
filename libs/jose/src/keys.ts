@@ -1,7 +1,7 @@
-import type { KeyPair } from './vendor.d'
-
-import { readFile } from 'node:fs/promises'
 import { createLocalJWKSet, importJWK } from 'jose'
+import { readFile } from 'node:fs/promises'
+
+import type { KeyPair } from './vendor.d'
 
 async function main() {
   const keys1: KeyPair = JSON.parse(
@@ -19,9 +19,9 @@ async function main() {
   })
 
   return {
+    jwks,
     keys1Private,
     keys2Private,
-    jwks,
   }
 }
 

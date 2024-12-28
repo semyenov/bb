@@ -1,10 +1,10 @@
-import type { AccessControllerInstance, IdentitiesInstance, IdentityInstance, KeyStoreInstance, KeyValueInstance, OrbitDBHeliaInstance } from '../../src'
-
-import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
-
+import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
 import { rimraf } from 'rimraf'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
+
+import type { AccessControllerInstance, IdentitiesInstance, IdentityInstance, KeyStoreInstance, KeyValueInstance, OrbitDBHeliaInstance } from '../../src'
+
 import {
   Identities,
   KeyStore,
@@ -30,7 +30,7 @@ describe('keyValue Database', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ ipfs, keystore })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
   })
 
@@ -51,10 +51,10 @@ describe('keyValue Database', () => {
   describe('creating a KeyValue.createatabase', () => {
     beforeEach(async () => {
       db = await KeyValue.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -83,10 +83,10 @@ describe('keyValue Database', () => {
   describe('keyValue database API', () => {
     beforeEach(async () => {
       db = await KeyValue.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -233,10 +233,10 @@ describe('keyValue Database', () => {
   describe('iterator', () => {
     beforeAll(async () => {
       db = await KeyValue.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -254,8 +254,8 @@ describe('keyValue Database', () => {
 
     it('returns no key/value pairs when the database is empty', async () => {
       const all: any[] = []
-      for await (const { key, value, hash } of db.iterator()) {
-        all.unshift({ key, value, hash })
+      for await (const { hash, key, value } of db.iterator()) {
+        all.unshift({ hash, key, value })
       }
       strictEqual(all.length, 0)
     })
@@ -276,8 +276,8 @@ describe('keyValue Database', () => {
       await db.del('key6')
 
       const all: any[] = []
-      for await (const { key, value, hash } of db.iterator()) {
-        all.unshift({ key, value, hash })
+      for await (const { hash, key, value } of db.iterator()) {
+        all.unshift({ hash, key, value })
       }
       strictEqual(all.length, 5)
     })
@@ -285,9 +285,9 @@ describe('keyValue Database', () => {
     it('returns only the amount of key/value pairs given as a parameter', async () => {
       const amount = 3
       const all: any[] = []
-      for await (const { key, value, hash } of db.iterator({ amount })) {
-        console.log({ key, value, hash })
-        all.unshift({ key, value, hash })
+      for await (const { hash, key, value } of db.iterator({ amount })) {
+        console.log({ hash, key, value })
+        all.unshift({ hash, key, value })
       }
       strictEqual(all.length, amount)
     })
@@ -295,8 +295,8 @@ describe('keyValue Database', () => {
     it('returns only two key/value pairs if amount given as a parameter is 2', async () => {
       const amount = 2
       const all: any[] = []
-      for await (const { key, value, hash } of db.iterator({ amount })) {
-        all.unshift({ key, value, hash })
+      for await (const { hash, key, value } of db.iterator({ amount })) {
+        all.unshift({ hash, key, value })
       }
       strictEqual(all.length, amount)
     })
@@ -304,8 +304,8 @@ describe('keyValue Database', () => {
     it('returns only one key/value pairs if amount given as a parameter is 1', async () => {
       const amount = 1
       const all: any[] = []
-      for await (const { key, value, hash } of db.iterator({ amount })) {
-        all.unshift({ key, value, hash })
+      for await (const { hash, key, value } of db.iterator({ amount })) {
+        all.unshift({ hash, key, value })
       }
       strictEqual(all.length, amount)
     })

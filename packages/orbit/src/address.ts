@@ -4,16 +4,16 @@ import { CID } from 'multiformats/cid'
 import { join } from './utils'
 
 export interface OrbitDBAddressInstance {
-  protocol: string
-  hash: string
   address: string
+  hash: string
+  protocol: string
   toString: () => string
 }
 
 export class OrbitDBAddress implements OrbitDBAddressInstance {
-  readonly protocol: string = 'orbitdb'
-  readonly hash: string
   readonly address: string
+  readonly hash: string
+  readonly protocol: string = 'orbitdb'
 
   private constructor(address: string) {
     this.address = address
@@ -23,7 +23,7 @@ export class OrbitDBAddress implements OrbitDBAddressInstance {
   }
 
   static create(
-    address: string | OrbitDBAddressInstance,
+    address: OrbitDBAddressInstance | string,
   ): OrbitDBAddressInstance {
     if (typeof address !== 'string') {
       return address

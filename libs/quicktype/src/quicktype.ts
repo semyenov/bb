@@ -1,15 +1,15 @@
-import type {
-  JSONSchemaSourceData,
-  Options,
-  TargetLanguage,
-} from './vendor.d'
-
 import {
   FetchingJSONSchemaStore,
   InputData,
   JSONSchemaInput,
   quicktypeMultiFile,
 } from 'quicktype-core'
+
+import type {
+  JSONSchemaSourceData,
+  Options,
+  TargetLanguage,
+} from './vendor.d'
 
 export async function quicktypeMultipleJSONSchema(
   lang: string | TargetLanguage,
@@ -24,10 +24,10 @@ export async function quicktypeMultipleJSONSchema(
   inputData.addInput(jsonSchemaInput)
 
   return quicktypeMultiFile({
-    lang,
-    inputData,
-    combineClasses: true,
     alphabetizeProperties: true,
+    combineClasses: true,
+    inputData,
+    lang,
     ...options,
   })
 }

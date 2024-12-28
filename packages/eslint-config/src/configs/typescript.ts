@@ -1,26 +1,31 @@
 import type { Linter } from 'eslint'
+
 import tsParser from '@typescript-eslint/parser'
 
 const typescript = {
+  files: [
+    '**/*.ts',
+    '**/*.tsx',
+    '**/*.d.ts',
+  ],
   languageOptions: {
     parser: tsParser,
   },
-  files: ['**/*.ts', '**/*.tsx', '**/*.d.ts'],
   rules: {
 
-    // Typescript rules
-    'ts/explicit-function-return-type': 'off',
-    'ts/array-type': 'error',
-
+    'no-empty-function': 'off',
     'ts/adjacent-overload-signatures': 'error',
+
+    'ts/array-type': 'error',
     'ts/ban-tslint-comment': 'error',
     'ts/class-literal-property-style': 'error',
     'ts/consistent-generic-constructors': 'error',
     'ts/consistent-indexed-object-style': 'error',
     'ts/consistent-type-assertions': 'error',
     'ts/consistent-type-definitions': 'off',
+    // Typescript rules
+    'ts/explicit-function-return-type': 'off',
     'ts/no-confusing-non-null-assertion': 'error',
-    'no-empty-function': 'off',
     'ts/no-empty-function': 'error',
     'ts/no-empty-interface': 'error',
     'ts/no-inferrable-types': 'error',

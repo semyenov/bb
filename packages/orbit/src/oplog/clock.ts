@@ -1,9 +1,9 @@
 export interface ClockInstance {
+  clone: () => ClockInstance
   id: string
-  time: number
 
   tick: () => ClockInstance
-  clone: () => ClockInstance
+  time: number
 }
 
 export class Clock implements ClockInstance {
@@ -11,10 +11,6 @@ export class Clock implements ClockInstance {
     public id: string,
     public time = 0,
   ) {}
-
-  static create(id: string, time?: number): Clock {
-    return new Clock(id, time)
-  }
 
   static compare(a: ClockInstance, b: ClockInstance): number {
     const dist = a.time - b.time
@@ -26,11 +22,15 @@ export class Clock implements ClockInstance {
     return dist
   }
 
-  tick(): Clock {
-    return new Clock(this.id, this.time + 1)
+  static create(id: string, time?: number): Clock {
+    return new Clock(id, time)
   }
 
   clone(): Clock {
     return new Clock(this.id, this.time)
+  }
+
+  tick(): Clock {
+    return new Clock(this.id, this.time + 1)
   }
 }

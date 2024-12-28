@@ -1,13 +1,14 @@
+import { copy } from 'fs-extra'
+import { deepEqual, strictEqual } from 'node:assert'
+import { rimraf } from 'rimraf'
+import { afterEach, beforeEach, describe, it } from 'vitest'
+
 import type {
   AccessControllerInstance,
   StorageInstance,
 } from '../src'
 import type { EntryInstance } from '../src/oplog'
 
-import { deepEqual, strictEqual } from 'node:assert'
-import { copy } from 'fs-extra'
-import { rimraf } from 'rimraf'
-import { afterEach, beforeEach, describe, it } from 'vitest'
 import {
   ComposedStorage,
   Database,
@@ -18,7 +19,6 @@ import {
 } from '../src'
 import testKeysPath from './fixtures/test-keys-path'
 import { connectIpfsNodes } from './utils/connect-nodes'
-
 import createHelia from './utils/create-helia'
 import waitFor from './utils/wait-for'
 
@@ -55,8 +55,8 @@ describe('database - Replication', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs: ipfs1 })
-    identities2 = await Identities.create({ keystore, ipfs: ipfs2 })
+    identities = await Identities.create({ ipfs: ipfs1, keystore })
+    identities2 = await Identities.create({ ipfs: ipfs2, keystore })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
     testIdentity2 = await identities2.createIdentity({ id: 'userB' })
   })
@@ -97,13 +97,13 @@ describe('database - Replication', () => {
   describe('replicate across peers', () => {
     beforeEach(async () => {
       db1 = await Database.create({
-        meta: {},
-        ipfs: ipfs1,
-        identity: testIdentity1,
-        address: databaseId,
-        name: 'test',
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb1',
+        identity: testIdentity1,
+        ipfs: ipfs1,
+        meta: {},
+        name: 'test',
       })
     })
 
@@ -111,7 +111,7 @@ describe('database - Replication', () => {
       let replicated = false
       let expectedEntryHash: null | string = null
       const onConnected = (customEvent: CustomEvent) => {
-        const { peerId, heads } = customEvent.detail
+        const { heads, peerId } = customEvent.detail
         console.log('onConnected', peerId)
         replicated = expectedEntryHash !== null
         && heads.map((e: { hash: string }) => {
@@ -128,24 +128,24 @@ describe('database - Replication', () => {
       }
 
       db2 = await Database.create({
-        ipfs: ipfs2,
-        identity: testIdentity2,
-        address: databaseId,
-        name: 'test2',
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb2',
+        identity: testIdentity2,
+        ipfs: ipfs2,
+        name: 'test2',
       })
 
       db2.sync.events.addEventListener('join', onConnected)
       db2.events.addEventListener('update', onUpdate)
 
-      await db1.addOperation({ op: 'PUT', key: '1', value: 'record 1 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: '2', value: 'record 2 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: '3', value: 'record 3 on db 1' })
+      await db1.addOperation({ key: '1', op: 'PUT', value: 'record 1 on db 1' })
+      await db1.addOperation({ key: '2', op: 'PUT', value: 'record 2 on db 1' })
+      await db1.addOperation({ key: '3', op: 'PUT', value: 'record 3 on db 1' })
 
       expectedEntryHash = await db1.addOperation({
-        op: 'PUT',
         key: '4',
+        op: 'PUT',
         value: 'record 4 on db 1',
       })
 
@@ -177,7 +177,7 @@ describe('database - Replication', () => {
       let expectedEntryHash: null | string = null
 
       const onConnected = (event: CustomEvent) => {
-        const { peerId, heads } = event.detail
+        const { heads, peerId } = event.detail
         console.log('peerId', peerId)
         replicated = expectedEntryHash !== null
         && heads.map((e: { hash: string }) => {
@@ -193,19 +193,19 @@ describe('database - Replication', () => {
       }
 
       db2 = await Database.create({
-        ipfs: ipfs2,
-        identity: testIdentity2,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb2',
+        identity: testIdentity2,
+        ipfs: ipfs2,
       })
 
       db2.sync.events.addEventListener('join', onConnected)
       db2.events.addEventListener('update', onUpdate)
 
       await db1.addOperation({
-        op: 'PUT',
         key: '1',
+        op: 'PUT',
         value: 'record 1 on db 1',
       })
 
@@ -216,13 +216,13 @@ describe('database - Replication', () => {
       })
 
       await db1.addOperation({
-        op: 'PUT',
         key: '2',
+        op: 'PUT',
         value: 'record 2 on db 1',
       })
       await db1.addOperation({
-        op: 'PUT',
         key: '3',
+        op: 'PUT',
         value: 'record 3 on db 1',
       })
 
@@ -233,8 +233,8 @@ describe('database - Replication', () => {
       })
 
       expectedEntryHash = await db1.addOperation({
-        op: 'PUT',
         key: '4',
+        op: 'PUT',
         value: 'record 4 on db 1',
       })
 
@@ -268,17 +268,17 @@ describe('database - Replication', () => {
       }
 
       await db1.addOperation({
-        op: 'PUT',
         key: '1',
+        op: 'PUT',
         value: 'record 1 on db 1',
       })
 
       db2 = await Database.create({
-        ipfs: ipfs2,
-        identity: testIdentity2,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb2',
+        identity: testIdentity2,
+        ipfs: ipfs2,
       })
 
       db2.sync.events.addEventListener('join', onConnected)
@@ -317,20 +317,20 @@ describe('database - Replication', () => {
         storage2: await IPFSBlockStorage.create({ ipfs: ipfs2, pin: true }),
       }) as StorageInstance<Uint8Array<ArrayBufferLike>>
       db1 = await Database.create({
-        ipfs: ipfs1,
-        identity: testIdentity1,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb1',
         entryStorage: storage1 as StorageInstance<Uint8Array<ArrayBufferLike>>,
+        identity: testIdentity1,
+        ipfs: ipfs1,
       })
       db2 = await Database.create({
-        ipfs: ipfs2,
-        identity: testIdentity2,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb2',
         entryStorage: storage2 as StorageInstance<Uint8Array<ArrayBufferLike>>,
+        identity: testIdentity2,
+        ipfs: ipfs2,
       })
 
       let connected1 = false
@@ -347,10 +347,10 @@ describe('database - Replication', () => {
       db1.sync.events.addEventListener('join', onConnected1)
       db2.sync.events.addEventListener('join', onConnected2)
 
-      await db1.addOperation({ op: 'PUT', key: String(1), value: 'record 1 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: String(2), value: 'record 2 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: String(3), value: 'record 3 on db 1' })
-      await db1.addOperation({ op: 'PUT', key: String(4), value: 'record 4 on db 1' })
+      await db1.addOperation({ key: String(1), op: 'PUT', value: 'record 1 on db 1' })
+      await db1.addOperation({ key: String(2), op: 'PUT', value: 'record 2 on db 1' })
+      await db1.addOperation({ key: String(3), op: 'PUT', value: 'record 3 on db 1' })
+      await db1.addOperation({ key: String(4), op: 'PUT', value: 'record 4 on db 1' })
 
       await waitFor(
         async () => {
@@ -386,18 +386,18 @@ describe('database - Replication', () => {
   describe('events', () => {
     beforeEach(async () => {
       db1 = await Database.create({
-        ipfs: ipfs1,
-        identity: testIdentity1,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb1',
+        identity: testIdentity1,
+        ipfs: ipfs1,
       })
       db2 = await Database.create({
-        ipfs: ipfs2,
-        identity: testIdentity2,
-        address: databaseId,
         accessController: accessController as AccessControllerInstance,
+        address: databaseId,
         dir: './.out/orbitdb2',
+        identity: testIdentity2,
+        ipfs: ipfs2,
       })
     })
 
@@ -445,8 +445,8 @@ describe('database - Replication', () => {
       )
 
       await db1.addOperation({
-        op: 'PUT',
         key: '1',
+        op: 'PUT',
         value: 'record 1 on db 1',
       })
 
@@ -516,10 +516,10 @@ describe('database - Replication', () => {
         },
       )
 
-      await db1.addOperation({ op: 'PUT', key: String(1), value: '11' })
-      await db1.addOperation({ op: 'PUT', key: String(2), value: '22' })
-      await db1.addOperation({ op: 'PUT', key: String(3), value: '33' })
-      await db1.addOperation({ op: 'PUT', key: String(4), value: '44' })
+      await db1.addOperation({ key: String(1), op: 'PUT', value: '11' })
+      await db1.addOperation({ key: String(2), op: 'PUT', value: '22' })
+      await db1.addOperation({ key: String(3), op: 'PUT', value: '33' })
+      await db1.addOperation({ key: String(4), op: 'PUT', value: '44' })
 
       await waitFor(
         async () => {

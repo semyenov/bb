@@ -1,10 +1,11 @@
-import type { IdentityInstance } from '../identities'
-import type { ClockInstance } from './clock'
-
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
+
+import type { IdentityInstance } from '../identities'
+import type { ClockInstance } from './clock'
+
 import { Clock } from './clock'
 
 const codec = dagCbor
@@ -12,17 +13,17 @@ const hasher = sha256
 const hashStringEncoding = base58btc
 
 export interface EntryInstance<T = unknown> {
-  id: string
-  payload: T
-  next: string[]
-  refs: string[]
-  clock: ClockInstance
-  v: number
-  key?: string
-  hash?: string
-  identity?: string
   bytes?: Uint8Array
+  clock: ClockInstance
+  hash?: string
+  id: string
+  identity?: string
+  key?: string
+  next: string[]
+  payload: T
+  refs: string[]
   sig?: string
+  v: number
 }
 
 export const Entry = {
@@ -48,15 +49,15 @@ export const Entry = {
     }
 
     const entry: EntryInstance<T> = {
-      id,
-      payload,
-      next,
-      refs,
       clock: clock || new Clock(identity.publicKey),
+      id,
+      next,
+      payload,
+      refs,
       v: 2,
     }
 
-    const { bytes } = await Block.encode({ value: entry, codec, hasher })
+    const { bytes } = await Block.encode({ codec, hasher, value: entry })
     const signature = await identity.sign!(bytes)
 
     entry.key = identity.publicKey
@@ -64,6 +65,57 @@ export const Entry = {
     entry.sig = signature
 
     return await this.encode2(entry)
+  },
+
+  async decode<T>(bytes: Uint8Array): Promise<EntryInstance<T>> {
+    const { cid, value } = await Block.decode<EntryInstance<T>, 113, 18>({
+      bytes,
+      codec,
+      hasher,
+    })
+
+    const hash = cid.toString(hashStringEncoding)
+
+    return { ...value, bytes, hash }
+  },
+
+  async encode(entry: EntryInstance): Promise<Uint8Array> {
+    const { bytes } = await Block.encode({
+      codec,
+      hasher,
+      value: entry,
+    })
+
+    return bytes
+  },
+
+  async encode2<T>(entry: EntryInstance<T>) {
+    const { bytes, cid } = await Block.encode({
+      codec,
+      hasher,
+      value: entry,
+    })
+
+    entry.hash = cid.toString(hashStringEncoding)
+    entry.bytes = bytes
+
+    return entry
+  },
+
+  isEntry(obj: any): obj is EntryInstance {
+    return (
+      obj
+      && obj.id !== undefined
+      && obj.next !== undefined
+      && obj.payload !== undefined
+      && obj.v !== undefined
+      && obj.clock !== undefined
+      && obj.refs !== undefined
+    )
+  },
+
+  isEqual<T>(a: EntryInstance<T>, b: EntryInstance<T>): boolean {
+    return a && b && a.hash === b.hash
   },
 
   async verify<T>(
@@ -90,71 +142,20 @@ export const Entry = {
     }
 
     const value = {
-      id: entry.id,
-      payload: entry.payload,
-      next: entry.next,
-      refs: entry.refs,
       clock: entry.clock,
+      id: entry.id,
+      next: entry.next,
+      payload: entry.payload,
+      refs: entry.refs,
       v: entry.v,
     }
 
     const { bytes } = await Block.encode<EntryInstance<T>, 113, 18>({
-      value,
       codec,
       hasher,
+      value,
     })
 
     return identities.verify!(entry.sig, entry.key, bytes)
-  },
-
-  isEntry(obj: any): obj is EntryInstance {
-    return (
-      obj
-      && obj.id !== undefined
-      && obj.next !== undefined
-      && obj.payload !== undefined
-      && obj.v !== undefined
-      && obj.clock !== undefined
-      && obj.refs !== undefined
-    )
-  },
-
-  isEqual<T>(a: EntryInstance<T>, b: EntryInstance<T>): boolean {
-    return a && b && a.hash === b.hash
-  },
-
-  async decode<T>(bytes: Uint8Array): Promise<EntryInstance<T>> {
-    const { value, cid } = await Block.decode<EntryInstance<T>, 113, 18>({
-      bytes,
-      codec,
-      hasher,
-    })
-
-    const hash = cid.toString(hashStringEncoding)
-
-    return { ...value, hash, bytes }
-  },
-
-  async encode2<T>(entry: EntryInstance<T>) {
-    const { bytes, cid } = await Block.encode({
-      value: entry,
-      codec,
-      hasher,
-    })
-
-    entry.hash = cid.toString(hashStringEncoding)
-    entry.bytes = bytes
-
-    return entry
-  },
-
-  async encode(entry: EntryInstance): Promise<Uint8Array> {
-    const { bytes } = await Block.encode({
-      value: entry,
-      codec,
-      hasher,
-    })
-
-    return bytes
   },
 }

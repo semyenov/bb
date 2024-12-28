@@ -1,10 +1,10 @@
 import type { IJoseVerify } from '@regioni/lib-jose'
+
 import { sign, verify } from '@regioni/lib-jose'
 import { createLogger } from '@regioni/lib-logger'
-
 import WebSocket, { type MessageEvent } from 'ws'
 
-type BufferLike = string | ArrayBufferView | ArrayBufferLike
+type BufferLike = ArrayBufferLike | ArrayBufferView | string
 
 const logger = createLogger({
   defaultMeta: {
@@ -64,7 +64,7 @@ function customOn(
         try {
           const { payload } = await verify(data.toString(), this.jose.jwks)
           const newEvent = createMessageEvent(event, payload)
-          logger.debug('Receiving payload', { payload, event: newEvent })
+          logger.debug('Receiving payload', { event: newEvent, payload })
 
           return listener.call(this, newEvent)
         }
@@ -101,7 +101,7 @@ async function customSend(this: WebSocketBrowserProxy, data: BufferLike) {
     return
   }
 
-  logger.debug('Signing payload: ', { payload: data, jose: this.jose })
+  logger.debug('Signing payload: ', { jose: this.jose, payload: data })
 
   const jws = await sign(this.jose.keyPair.privateKey, {
     payload: JSON.parse(data.toString()),

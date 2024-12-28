@@ -27,62 +27,63 @@ import { ManifestStore } from './manifest-store'
 import { createId, join } from './utils'
 
 export interface OrbitDBOpenOptions<T, D extends keyof DatabaseTypeMap> {
-  type?: D
-  meta?: any
-  address?: string
-  referencesCount?: number
-  syncAutomatically?: boolean
-
-  Database?: (...args: any[]) => DatabaseTypeMap<T>[D]
   AccessController?: (
     ...args: any[]
   ) => Promise<AccessControllerTypeMap[keyof AccessControllerTypeMap]>
-
-  headsStorage?: StorageInstance<Uint8Array>
+  address?: string
+  Database?: (...args: any[]) => DatabaseTypeMap<T>[D]
   entryStorage?: StorageInstance<Uint8Array>
+  headsStorage?: StorageInstance<Uint8Array>
+
   indexStorage?: StorageInstance<boolean>
+  meta?: any
+
+  referencesCount?: number
+  syncAutomatically?: boolean
+  type?: D
 }
 
 export interface OrbitDBOptions {
-  ipfs: OrbitDBHeliaInstance
-  identity?: IdentityInstance
-  identities?: IdentitiesInstance
   dir?: string
   id?: string
+  identities?: IdentitiesInstance
+  identity?: IdentityInstance
+  ipfs: OrbitDBHeliaInstance
 }
 
 export interface OrbitDBInstance {
-  id: string
   dir: string
+  id: string
+  identity: IdentityInstance
   ipfs: OrbitDBHeliaInstance
   keystore: KeyStoreInstance
-  identity: IdentityInstance
-  peerId: PeerId
-
   open: <T, D extends keyof DatabaseTypeMap>(
     type: D,
     address: string,
     options?: OrbitDBOpenOptions<T, D>,
   ) => Promise<DatabaseTypeMap<T>[D]>
+
+  peerId: PeerId
   stop: () => Promise<void>
 }
 
 const DEFAULT_ACCESS_CONTROLLER = IPFSAccessController.create
 
 export class OrbitDB implements OrbitDBInstance {
-  public id: string
   public dir: string
+  public id: string
+  public identity: IdentityInstance
   public ipfs: OrbitDBHeliaInstance
   public keystore: KeyStoreInstance
-  public identity: IdentityInstance
   public peerId: PeerId
 
-  private identities: IdentitiesInstance
-  private manifestStore: ManifestStore
   private databases: Record<
     string,
     DatabaseTypeMap<any>[keyof DatabaseTypeMap<any>]
   > = {}
+
+  private identities: IdentitiesInstance
+  private manifestStore: ManifestStore
 
   private constructor(
     id: string,
@@ -109,9 +110,9 @@ export class OrbitDB implements OrbitDBInstance {
     }
 
     const {
-      ipfs,
-      id = await createId(),
       dir = './orbitdb',
+      id = await createId(),
+      ipfs,
     } = options
 
     let keystore: KeyStoreInstance
@@ -165,11 +166,11 @@ export class OrbitDB implements OrbitDBInstance {
     options: OrbitDBOpenOptions<T, D> = {},
   ): Promise<DatabaseTypeMap<T>[D]> {
     const {
-      syncAutomatically,
-      headsStorage,
       entryStorage,
+      headsStorage,
       indexStorage,
       referencesCount,
+      syncAutomatically,
     } = options
 
     let { meta } = options
@@ -202,9 +203,9 @@ export class OrbitDB implements OrbitDBInstance {
       }
 
       accessController = await AccessController({
-        orbitdb: this,
-        identities: this.identities,
         address: manifest.accessController,
+        identities: this.identities,
+        orbitdb: this,
       })
 
       // eslint-disable-next-line prefer-destructuring
@@ -220,15 +221,15 @@ export class OrbitDB implements OrbitDBInstance {
         = options.AccessController || DEFAULT_ACCESS_CONTROLLER
 
       accessController = await AccessController({
-        orbitdb: this,
         identities: this.identities,
+        orbitdb: this,
       })
 
       const m = await this.manifestStore.create({
-        name: address_,
-        type: type_,
         accessController: accessController.address!,
         meta,
+        name: address_,
+        type: type_,
       })
 
       address_ = m.hash
@@ -250,18 +251,18 @@ export class OrbitDB implements OrbitDBInstance {
     }
 
     const database = await Database({
-      ipfs: this.ipfs,
-      identity: this.identity,
-      address: address_,
-      name,
-      meta,
       accessController,
+      address: address_,
       dir: this.dir,
-      syncAutomatically,
-      headsStorage,
       entryStorage,
+      headsStorage,
+      identity: this.identity,
       indexStorage,
+      ipfs: this.ipfs,
+      meta,
+      name,
       referencesCount,
+      syncAutomatically,
     }) as DatabaseTypeMap<T>[typeof type]
 
     database.events.addEventListener('close', this.onDatabaseClosed(address_))
@@ -269,12 +270,6 @@ export class OrbitDB implements OrbitDBInstance {
     this.databases[address_!] = database
 
     return database
-  }
-
-  private onDatabaseClosed = (address: string) => {
-    return (): void => {
-      delete this.databases[address!]
-    }
   }
 
   async stop(): Promise<void> {
@@ -290,6 +285,12 @@ export class OrbitDB implements OrbitDBInstance {
 
     for (const key of Object.keys(this.databases)) {
       delete this.databases[key!]
+    }
+  }
+
+  private onDatabaseClosed = (address: string) => {
+    return (): void => {
+      delete this.databases[address!]
     }
   }
 }

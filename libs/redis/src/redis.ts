@@ -3,6 +3,8 @@ import type {
   User,
 } from '@regioni/backend'
 
+import { createClient } from 'redis'
+
 import type {
   JsonMSetItem,
   RedisCRUDInstance,
@@ -12,25 +14,23 @@ import type {
   RedisStoreOptions,
 } from './types.d'
 
-import { createClient } from 'redis'
-
 export async function createRedisStore(options: RedisStoreOptions): Promise<RedisStore> {
   const connection = createClient(options)
   await connection.connect()
 
   return {
-    data: createCRUD({ prefix: 'data', connection }),
-    meta: createCRUD<Meta>({ prefix: 'meta', connection }),
-    users: createCRUD<User>({ prefix: 'users', connection }),
-    schemas: createCRUD({ prefix: 'schemas', connection }),
-
+    data: createCRUD({ connection, prefix: 'data' }),
     disconnect: connection.disconnect,
+    meta: createCRUD<Meta>({ connection, prefix: 'meta' }),
+    schemas: createCRUD({ connection, prefix: 'schemas' }),
+
+    users: createCRUD<User>({ connection, prefix: 'users' }),
   }
 }
 
 export function createCRUD<T extends RedisJSON>({
-  prefix = '',
   connection,
+  prefix = '',
 }: RedisCRUDOptions): RedisCRUDInstance<T> {
   const formatPattern = (...args: string[]) => {
     return [prefix, ...args].join(':')
@@ -131,17 +131,17 @@ export function createCRUD<T extends RedisJSON>({
   }
 
   return {
-    keyExists,
-    getKeys,
-    getAll,
-
-    findOne,
+    deleteMany,
+    deleteOne,
     findMany,
 
-    insertOne,
+    findOne,
+    getAll,
+
+    getKeys,
     insertMany,
 
-    deleteOne,
-    deleteMany,
+    insertOne,
+    keyExists,
   }
 }

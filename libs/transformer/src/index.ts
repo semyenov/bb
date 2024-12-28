@@ -1,6 +1,6 @@
-import type { DataTransformerOptions } from './vendor.d'
-
 import { decode, encode } from '@msgpack/msgpack'
+
+import type { DataTransformerOptions } from './vendor.d'
 
 export function uint8ArrayToString(arr: Uint8Array) {
   return Array.from(arr)
@@ -19,19 +19,19 @@ export function stringToUint8Array(str: string) {
 
 export const transformer: DataTransformerOptions = {
   input: {
-    serialize: (obj: unknown) => {
-      return uint8ArrayToString(encode(obj))
-    },
     deserialize: (obj: string) => {
       return decode(stringToUint8Array(obj))
+    },
+    serialize: (obj: unknown) => {
+      return uint8ArrayToString(encode(obj))
     },
   },
   output: {
-    serialize: (obj: unknown) => {
-      return uint8ArrayToString(encode(obj))
-    },
     deserialize: (obj: string) => {
       return decode(stringToUint8Array(obj))
+    },
+    serialize: (obj: unknown) => {
+      return uint8ArrayToString(encode(obj))
     },
   },
 }

@@ -1,6 +1,7 @@
 import type { GossipsubEvents } from '@chainsafe/libp2p-gossipsub'
 import type { Identify } from '@libp2p/identify'
 import type { PubSub } from '@libp2p/interface'
+
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
 import { yamux } from '@chainsafe/libp2p-yamux'
@@ -18,6 +19,7 @@ import { all } from '@libp2p/websockets/filters'
 import { LevelBlockstore } from 'blockstore-level'
 import { createHelia } from 'helia'
 import { createLibp2p, type Libp2pOptions } from 'libp2p'
+
 import { OrbitDB } from './orbitdb'
 
 const directory = './orbitdb'
@@ -30,41 +32,41 @@ const options: Libp2pOptions<{
   addresses: {
     listen: ['/ip4/127.0.0.1/tcp/0/ws'],
   },
-  peerDiscovery: [
-    mdns(),
-    // bootstrap(),
-  ],
-  transports: [
-    tcp(),
-    webRTC(),
-    webSockets({ filter: all }),
-    circuitRelayTransport(),
-  ],
   connectionEncrypters: [noise()],
-  streamMuxers: [yamux()],
-  connectionManager: { maxPeerAddrsToDial: 1000 },
   connectionGater: {
     denyDialMultiaddr: () => {
       return false
     },
   },
+  connectionManager: { maxPeerAddrsToDial: 1000 },
+  peerDiscovery: [
+    mdns(),
+    // bootstrap(),
+  ],
   services: {
     identify: identify(),
     pubsub: gossipsub({
       allowPublishToZeroTopicPeers: true,
     }),
   },
+  streamMuxers: [yamux()],
+  transports: [
+    tcp(),
+    webRTC(),
+    webSockets({ filter: all }),
+    circuitRelayTransport(),
+  ],
 }
 
 async function main() {
   const ipfs = await createHelia({
-    libp2p: await createLibp2p({ ...options }),
-    blockstore: new LevelBlockstore(`${directory}/ipfs/blocks`),
     blockBrokers: [bitswap()],
+    blockstore: new LevelBlockstore(`${directory}/ipfs/blocks`),
+    libp2p: await createLibp2p({ ...options }),
   })
   const orbit = await OrbitDB.create({
-    id,
     dir: './orbitdb',
+    id,
     ipfs,
   })
 

@@ -2,13 +2,13 @@ import type { TransformableInfo } from 'logform'
 import type { LoggerOptions as WinstonLoggerOptions } from 'winston'
 
 export interface LoggerMeta extends TransformableInfo {
-  service: string
-  module: string
   label: string
-  version: string
-
+  module: string
+  service: string
   stack?: string
+
   timestamp?: string
+  version: string
 }
 
 export interface LoggerOptions extends WinstonLoggerOptions {

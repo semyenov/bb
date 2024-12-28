@@ -1,7 +1,5 @@
 import type { AnySchemaObject } from 'ajv'
 
-import { readFile } from 'node:fs/promises'
-import { basename } from 'node:path'
 import { createLogger } from '@regioni/lib-logger'
 import { TRPCError } from '@trpc/server'
 import Ajv from 'ajv'
@@ -9,35 +7,36 @@ import ajvErrors from 'ajv-errors'
 import ajvFormats from 'ajv-formats'
 import ajvI18n from 'ajv-i18n'
 import ajvKeywords from 'ajv-keywords'
-
 import glob from 'fast-glob'
+import { readFile } from 'node:fs/promises'
+import { basename } from 'node:path'
 
 import { userSchema } from './schema'
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'ajv',
     label: 'create',
+    service: 'ajv',
   },
 })
 
 export async function createAjv() {
   const ajv = new Ajv({
+    allErrors: true,
+
     logger,
 
-    schemaId: '$id',
-
+    messages: false,
     meta: true,
+    schemaId: '$id',
     strict: 'log',
     strictTypes: 'log',
-    allErrors: true,
-    messages: false,
     verbose: true,
   })
 
   const files = await glob('*.json', {
-    cwd: 'defs',
     absolute: true,
+    cwd: 'defs',
   })
 
   const schemas = await Promise.all(
@@ -74,8 +73,8 @@ export async function createAjv() {
           cause: ajv.errors,
           code: 'BAD_REQUEST',
           message: ajv.errorsText(ajv.errors, {
-            separator: '\n',
             dataVar: 'data',
+            separator: '\n',
           }),
         })
       }

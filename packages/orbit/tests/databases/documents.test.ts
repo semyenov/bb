@@ -7,19 +7,18 @@ import type {
   OrbitDBHeliaInstance,
 } from '@regioni/orbit'
 
+import { copy } from 'fs-extra'
 // @ts-nocheck
 import { deepStrictEqual, notStrictEqual, strictEqual } from 'node:assert'
-import { copy } from 'fs-extra'
 import { rimraf } from 'rimraf'
-
 import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'vitest'
+
 import {
   Documents,
   Identities,
   KeyStore,
 } from '../../src'
 import testKeysPath from '../fixtures/test-keys-path'
-
 import createHelia from '../utils/create-helia'
 
 const keysPath = './testkeys'
@@ -39,7 +38,7 @@ describe('documents Database', () => {
 
     await copy(testKeysPath, keysPath)
     keystore = await KeyStore.create({ path: keysPath })
-    identities = await Identities.create({ keystore, ipfs })
+    identities = await Identities.create({ ipfs, keystore })
     testIdentity1 = await identities.createIdentity({ id: 'userA' })
   })
 
@@ -60,10 +59,10 @@ describe('documents Database', () => {
   describe('default index _id:', () => {
     beforeEach(async () => {
       db = await Documents.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -95,7 +94,7 @@ describe('documents Database', () => {
       let err
       const key = 'hello world 1'
 
-      const expected = { wrong_key: key, msg: 'writing 1 to db' }
+      const expected = { msg: 'writing 1 to db', wrong_key: key }
 
       try {
         await db.put(expected)
@@ -113,7 +112,7 @@ describe('documents Database', () => {
       let err
       const key = 'hello world 1'
 
-      const expected = { wrong_key: key, msg: 'writing 1 to db' }
+      const expected = { msg: 'writing 1 to db', wrong_key: key }
 
       try {
         await db.put(expected)
@@ -186,11 +185,11 @@ describe('documents Database', () => {
   describe('custom index doc', () => {
     beforeEach(async () => {
       db = await Documents.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
         indexBy: 'doc',
+        ipfs,
       })
     })
 
@@ -312,10 +311,10 @@ describe('documents Database', () => {
   describe('iterator', () => {
     beforeAll(async () => {
       db = await Documents.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -396,30 +395,38 @@ describe('documents Database', () => {
 
   describe('supported data types', () => {
     const data = {
+      arrays: { _id: 'arrays', value: [
+        1,
+        2,
+        3,
+      ] },
       booleans: { _id: 'booleans', value: true },
-      integers: { _id: 'integers', value: 123 },
       floats: { _id: 'floats', value: 3.14 },
-      arrays: { _id: 'arrays', value: [1, 2, 3] },
+      integers: { _id: 'integers', value: 123 },
       maps: { _id: 'maps', value: new Map([['a', 1], ['b', 2]]) },
-      uint8: { _id: 'uint8', value: new Uint8Array([1, 2, 3]) },
+      uint8: { _id: 'uint8', value: new Uint8Array([
+        1,
+        2,
+        3,
+      ]) },
     }
 
     beforeEach(async () => {
       db = await Documents.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
       for (const doc of Object.values(data)) {
         await db.put(doc)
       }
       await db.close()
       db = await Documents.create({
-        ipfs,
-        identity: testIdentity1,
-        address: databaseId,
         accessController,
+        address: databaseId,
+        identity: testIdentity1,
+        ipfs,
       })
     })
 
@@ -465,7 +472,12 @@ describe('documents Database', () => {
 
     it('doesn\'t support Sets', async () => {
       const _id = 'test'
-      const value = new Set([1, 2, 3, 4])
+      const value = new Set([
+        1,
+        2,
+        3,
+        4,
+      ])
 
       let err
 

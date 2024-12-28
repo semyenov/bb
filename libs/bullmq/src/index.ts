@@ -11,8 +11,8 @@ export const bullmq = new Queue<{ message: string }, { status: number }>(
     },
     defaultJobOptions: {
       backoff: {
-        type: 'exponential',
         delay: 1000,
+        type: 'exponential',
       },
       removeOnComplete: false,
       removeOnFail: false,

@@ -1,9 +1,11 @@
 const type = 'no-verify-identity'
 
 function NoVerifyIdentityIdentityProvider() {
-  return async () => ({
-    type,
-  })
+  return async () => {
+    return {
+      type,
+    }
+  }
 }
 
 NoVerifyIdentityIdentityProvider.type = type

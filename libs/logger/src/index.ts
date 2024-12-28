@@ -1,5 +1,4 @@
 import type { TransformableInfo } from 'logform'
-import type { LoggerMeta, LoggerOptions } from './types'
 
 import { inspect } from 'node:util'
 import {
@@ -9,22 +8,21 @@ import {
   transports as t,
 } from 'winston'
 
+import type { LoggerMeta, LoggerOptions } from './types'
+
 const {
   colors: defaultColors,
   levels: defaultLevels,
 } = c.npm
 
 export function createLogger({
-  levels = defaultLevels,
   defaultMeta,
+  levels = defaultLevels,
   ...options
 }: LoggerOptions) {
   return createWinstonLogger({
-    levels,
     defaultMeta,
     exitOnError: false,
-    handleExceptions: true,
-    handleRejections: true,
     format: f.combine(
       ...[
         f.label({
@@ -34,11 +32,10 @@ export function createLogger({
           format: 'DD.MM.YYYY HH:mm:ss.SSS',
         }),
         f.errors({
-          stack: true,
           inspect: false,
+          stack: true,
         }),
         f.metadata({
-          key: 'data',
           fillExcept: [
             'service',
             'module',
@@ -50,37 +47,41 @@ export function createLogger({
             'stack',
             'timestamp',
           ],
+          key: 'data',
         }),
       ],
     ),
+    handleExceptions: true,
+    handleRejections: true,
+    levels,
 
     transports: [
       new t.Console({
         format: f.combine(
           f.colorize({
+            colors: defaultColors,
             level: true,
             message: false,
-            colors: defaultColors,
           }),
           f.printf((log): string => {
             const {
-              level = 'debug',
               label = 'label',
-              service = 'service',
+              level = 'debug',
               module = 'module',
-              version = '0.0.0',
+              service = 'service',
+              stack,
               timestamp = new Date()
                 .toISOString(),
-              stack,
+              version = '0.0.0',
             } = log as LoggerMeta
 
             let {
-              message,
               data = {},
-            } = log as TransformableInfo & {
-              message: string | object
+              message,
+            } = log as {
+              message: object | string
               data: object
-            }
+            } & TransformableInfo
 
             if (typeof message === 'object') {
               data = { ...data, ...message }
@@ -111,11 +112,11 @@ export function createLogger({
               Object.keys(data).length > 0
                 ? inspect(data, {
                     breakLength: 80,
-                    compact: true,
                     colors: true,
+                    compact: true,
+                    depth: 4,
                     showHidden: true,
                     sorted: true,
-                    depth: 4,
                   })
                 : undefined,
             ]
@@ -127,14 +128,14 @@ export function createLogger({
       }),
 
       new t.File({
-        level: 'debug',
         filename: '.out/logs/debug.log',
         format: f.json(),
+        level: 'debug',
       }),
       new t.File({
-        level: 'error',
         filename: '.out/logs/errors.log',
         format: f.json(),
+        level: 'error',
       }),
     ],
 

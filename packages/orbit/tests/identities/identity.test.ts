@@ -1,5 +1,4 @@
 import assert from 'node:assert'
-
 import { beforeAll, beforeEach, describe, it } from 'vitest'
 
 import { Identity } from '../../src/identities'

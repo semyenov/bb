@@ -18,12 +18,22 @@ export class ComposedStorage<T> implements StorageInstance<T> {
     return new ComposedStorage<T>(options)
   }
 
-  async put(hash: string, data: T): Promise<void> {
-    await this.storage1.put(hash, data)
-    await this.storage2.put(hash, data)
+  async clear(): Promise<void> {
+    await this.storage1.clear()
+    await this.storage2.clear()
   }
 
-  async get(hash: string): Promise<T | null> {
+  async close(): Promise<void> {
+    await this.storage1.close()
+    await this.storage2.close()
+  }
+
+  async del(hash: string): Promise<void> {
+    await this.storage1.del(hash)
+    await this.storage2.del(hash)
+  }
+
+  async get(hash: string): Promise<null | T> {
     let value = await this.storage1.get(hash)
     if (!value) {
       value = await this.storage2.get(hash)
@@ -33,11 +43,6 @@ export class ComposedStorage<T> implements StorageInstance<T> {
     }
 
     return value
-  }
-
-  async del(hash: string): Promise<void> {
-    await this.storage1.del(hash)
-    await this.storage2.del(hash)
   }
 
   async *iterator(options?: any): AsyncIterableIterator<[string, T]> {
@@ -60,13 +65,8 @@ export class ComposedStorage<T> implements StorageInstance<T> {
     await other.merge(this.storage2)
   }
 
-  async clear(): Promise<void> {
-    await this.storage1.clear()
-    await this.storage2.clear()
-  }
-
-  async close(): Promise<void> {
-    await this.storage1.close()
-    await this.storage2.close()
+  async put(hash: string, data: T): Promise<void> {
+    await this.storage1.put(hash, data)
+    await this.storage2.put(hash, data)
   }
 }

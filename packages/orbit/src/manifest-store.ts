@@ -1,10 +1,11 @@
-import type { DatabaseTypeMap } from './databases'
-import type { OrbitDBHeliaInstance } from './vendor.d'
-
 import * as dagCbor from '@ipld/dag-cbor'
 import { base58btc } from 'multiformats/bases/base58'
 import * as Block from 'multiformats/block'
 import { sha256 } from 'multiformats/hashes/sha2'
+
+import type { DatabaseTypeMap } from './databases'
+import type { OrbitDBHeliaInstance } from './vendor.d'
+
 import {
   ComposedStorage,
   IPFSBlockStorage,
@@ -13,10 +14,10 @@ import {
 } from './storage'
 
 export interface Manifest {
-  name: string
-  type: keyof DatabaseTypeMap
   accessController: string
   meta?: any
+  name: string
+  type: keyof DatabaseTypeMap
 }
 
 export interface ManifestStoreOptions {
@@ -25,9 +26,9 @@ export interface ManifestStoreOptions {
 }
 
 export interface ManifestStoreInstance {
-  get: (address: string) => Promise<Manifest | null>
-  create: (manifest: Manifest) => Promise<{ hash: string, manifest: Manifest }>
   close: () => Promise<void>
+  create: (manifest: Manifest) => Promise<{ hash: string, manifest: Manifest }>
+  get: (address: string) => Promise<Manifest | null>
 }
 
 const codec = dagCbor
@@ -52,26 +53,15 @@ export class ManifestStore implements ManifestStoreInstance {
     return new ManifestStore(storage_)
   }
 
-  async get(address: string): Promise<Manifest | null> {
-    const bytes = await this.storage.get(address)
-    if (!bytes) {
-      return null
-    }
-
-    const { value } = await Block.decode<Manifest, 113, 18>({
-      bytes,
-      codec,
-      hasher,
-    })
-
-    return value
+  async close(): Promise<void> {
+    await this.storage.close()
   }
 
   async create({
-    name,
-    type,
     accessController,
     meta,
+    name,
+    type,
   }: Manifest): Promise<{ hash: string, manifest: Manifest }> {
     if (!name) {
       throw new Error('name is required')
@@ -85,18 +75,18 @@ export class ManifestStore implements ManifestStoreInstance {
 
     const manifest = Object.assign(
       {
+        accessController,
         name,
         type,
-        accessController,
       },
       // meta field is only added to manifest if meta parameter is defined
       meta !== undefined ? { meta } : {},
     )
 
-    const { cid, bytes } = await Block.encode({
-      value: manifest,
+    const { bytes, cid } = await Block.encode({
       codec,
       hasher,
+      value: manifest,
     })
 
     const hash = cid.toString(hashStringEncoding)
@@ -108,7 +98,18 @@ export class ManifestStore implements ManifestStoreInstance {
     }
   }
 
-  async close(): Promise<void> {
-    await this.storage.close()
+  async get(address: string): Promise<Manifest | null> {
+    const bytes = await this.storage.get(address)
+    if (!bytes) {
+      return null
+    }
+
+    const { value } = await Block.decode<Manifest, 113, 18>({
+      bytes,
+      codec,
+      hasher,
+    })
+
+    return value
   }
 }

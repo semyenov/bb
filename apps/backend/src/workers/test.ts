@@ -28,13 +28,6 @@ function generateCombinations(test: Record<string, string[]>): string[][] {
 }
 
 const test: TestType = {
-  size: [
-    'xs',
-    's',
-    'm',
-    'l',
-    'xl',
-  ],
   color: [
     'red',
     'green',
@@ -44,6 +37,13 @@ const test: TestType = {
     'wood',
     'plastic',
     'metal',
+  ],
+  size: [
+    'xs',
+    's',
+    'm',
+    'l',
+    'xl',
   ],
 }
 

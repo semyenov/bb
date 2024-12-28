@@ -19,14 +19,7 @@ const Libp2pOptions = {
   addresses: {
     listen: ['/webrtc'],
   },
-  transports: [
-    webRTC(),
-    webSockets({
-      filter: all,
-    }),
-  ],
   connectionEncryption: [noise()],
-  streamMuxers: [yamux()],
   connectionGater: {
     denyDialMultiaddr: () => {
       return false
@@ -38,6 +31,13 @@ const Libp2pOptions = {
       allowPublishToZeroTopicPeers: true,
     }),
   },
+  streamMuxers: [yamux()],
+  transports: [
+    webRTC(),
+    webSockets({
+      filter: all,
+    }),
+  ],
 }
 
 /**
@@ -47,14 +47,7 @@ const Libp2pBrowserOptions = {
   addresses: {
     listen: ['/webrtc'],
   },
-  transports: [
-    webRTC(),
-    webSockets({
-      filter: all,
-    }),
-  ],
   connectionEncryption: [noise()],
-  streamMuxers: [yamux()],
   connectionGater: {
     denyDialMultiaddr: () => {
       return false
@@ -66,6 +59,13 @@ const Libp2pBrowserOptions = {
       allowPublishToZeroTopicPeers: true,
     }),
   },
+  streamMuxers: [yamux()],
+  transports: [
+    webRTC(),
+    webSockets({
+      filter: all,
+    }),
+  ],
 }
 
 interface CreateHeliaOptions {
@@ -86,8 +86,8 @@ export default async ({ dir }: CreateHeliaOptions = { dir: '.orbitdb' }) => {
     : new MemoryBlockstore()
 
   return createHelia({
-    libp2p,
-    blockstore,
     blockBrokers: [bitswap()],
+    blockstore,
+    libp2p,
   })
 }

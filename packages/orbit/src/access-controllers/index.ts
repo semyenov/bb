@@ -9,25 +9,25 @@ import { IPFSAccessController } from './ipfs'
 import { OrbitDBAccessController } from './orbitdb'
 
 export interface CreateAccessControllerOptions {
-  write?: string[]
   storage?: StorageInstance<Uint8Array>
+  write?: string[]
 }
 
 export interface AccessControllerOptions {
-  orbitdb: OrbitDBInstance
-  identities: IdentitiesInstance
   address?: string
+  identities: IdentitiesInstance
   name?: string
+  orbitdb: OrbitDBInstance
 }
 
 export interface AccessControllerInstance {
-  type: string
-  write: string[]
   address?: string
-
   canAppend: (entry: EntryInstance) => Promise<boolean>
   close?: () => Promise<void>
+
   drop?: () => Promise<void>
+  type: string
+  write: string[]
 }
 
 export type AccessControllerTypeMap = {
@@ -36,8 +36,8 @@ export type AccessControllerTypeMap = {
 }
 
 export interface AccessControllerType<D extends keyof AccessControllerTypeMap> {
-  type: D
   create: (...args: any[]) => Promise<AccessControllerTypeMap[D]>
+  type: D
 }
 
 const accessControllers: Record<

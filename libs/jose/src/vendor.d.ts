@@ -10,6 +10,6 @@ export type KeyPair = {
 }
 
 export interface IJoseVerify {
-  keyPair: KeyPair
   jwks: JWTVerifyGetKey
+  keyPair: KeyPair
 }

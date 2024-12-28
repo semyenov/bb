@@ -53,8 +53,8 @@ function fakeIdentityProvider() {
 
   return {
     default: FakeIdentityProvider,
-    verifyIdentity,
     type: 'fake',
+    verifyIdentity,
   }
 }
 

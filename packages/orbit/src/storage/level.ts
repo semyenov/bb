@@ -1,7 +1,9 @@
 import type { IteratorOptions as LevelIteratorOptions } from 'level'
-import type { StorageInstance } from './types.d'
 
 import { Level } from 'level'
+
+import type { StorageInstance } from './types.d'
+
 import { STORAGE_LEVEL_PATH, STORAGE_LEVEL_VALUE_ENCODING } from '../constants'
 
 export interface LevelStorageOptions {
@@ -17,8 +19,8 @@ export class LevelStorage<T = unknown> implements StorageInstance<T> {
     private valueEncoding: string = STORAGE_LEVEL_VALUE_ENCODING,
   ) {
     this.level = new Level<string, T>(this.path, {
-      valueEncoding: this.valueEncoding,
       createIfMissing: true,
+      valueEncoding: this.valueEncoding,
     })
   }
 
@@ -31,15 +33,19 @@ export class LevelStorage<T = unknown> implements StorageInstance<T> {
     return storage
   }
 
-  async put(hash: string, value: T): Promise<void> {
-    await this.level.put(hash, value)
+  async clear(): Promise<void> {
+    await this.level.clear()
+  }
+
+  async close(): Promise<void> {
+    await this.level.close()
   }
 
   async del(hash: string): Promise<void> {
     await this.level.del(hash)
   }
 
-  async get(hash: string): Promise<T | null> {
+  async get(hash: string): Promise<null | T> {
     try {
       const value = await this.level.get(hash)
 
@@ -62,11 +68,7 @@ export class LevelStorage<T = unknown> implements StorageInstance<T> {
     // No-op for LevelStorage
   }
 
-  async clear(): Promise<void> {
-    await this.level.clear()
-  }
-
-  async close(): Promise<void> {
-    await this.level.close()
+  async put(hash: string, value: T): Promise<void> {
+    await this.level.put(hash, value)
   }
 }

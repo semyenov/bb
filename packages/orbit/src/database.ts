@@ -1,4 +1,8 @@
 import type { PeerSet } from '@libp2p/peer-collections'
+
+import { TypedEventEmitter } from '@libp2p/interface'
+import PQueue from 'p-queue'
+
 import type { AccessControllerInstance } from './access-controllers'
 import type { DatabaseOperation } from './databases'
 import type {
@@ -13,8 +17,6 @@ import type {
 import type { SyncEvents, SyncInstance } from './sync'
 import type { OrbitDBHeliaInstance, PeerId } from './vendor.d'
 
-import { TypedEventEmitter } from '@libp2p/interface'
-import PQueue from 'p-queue'
 import {
   DATABASE_CACHE_SIZE,
   DATABASE_PATH,
@@ -31,31 +33,31 @@ import { Sync } from './sync'
 import { join } from './utils'
 
 export interface DatabaseOptions<T> {
-  meta?: any
-  name?: string
+  accessController: AccessControllerInstance
   address?: string
   dir: string
-  referencesCount?: number
-  syncAutomatically?: boolean
-  ipfs: OrbitDBHeliaInstance
-  identity: IdentityInstance
-  accessController: AccessControllerInstance
-  identities?: IdentitiesInstance
-  headsStorage?: StorageInstance<Uint8Array>
   entryStorage?: StorageInstance<Uint8Array>
+  headsStorage?: StorageInstance<Uint8Array>
+  identities?: IdentitiesInstance
+  identity: IdentityInstance
   indexStorage?: StorageInstance<boolean>
+  ipfs: OrbitDBHeliaInstance
+  meta?: any
+  name?: string
   onUpdate?: (
     log: LogInstance<DatabaseOperation<T>>,
-    entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
+    entry: EntryInstance<DatabaseOperation<T>> | EntryInstance<T>,
   ) => Promise<void>
+  referencesCount?: number
+  syncAutomatically?: boolean
 }
 
 export interface DatabaseEvents<T = unknown> {
-  join: CustomEvent<{ peerId: PeerId, heads: EntryInstance<T>[] }>
-  leave: CustomEvent<{ peerId: PeerId }>
   close: CustomEvent
   drop: CustomEvent
   error: ErrorEvent
+  join: CustomEvent<{ peerId: PeerId, heads: EntryInstance<T>[] }>
+  leave: CustomEvent<{ peerId: PeerId }>
   update: CustomEvent<{ entry: EntryInstance<T> }>
 }
 
@@ -63,44 +65,45 @@ export interface DatabaseInstance<
   T,
   E extends DatabaseEvents<T> = DatabaseEvents<T>,
 > {
-  name?: string
-  address?: string
-  peers: PeerSet
-  meta: any
-  log: LogInstance<DatabaseOperation<T>>
-  sync: SyncInstance<DatabaseOperation<T>, SyncEvents<DatabaseOperation<T>>>
-  events: TypedEventEmitter<E>
-  identity: IdentityInstance
   accessController: AccessControllerInstance
   addOperation: (op: DatabaseOperation<T>) => Promise<string>
+  address?: string
   close: () => Promise<void>
   drop: () => Promise<void>
+  events: TypedEventEmitter<E>
+  identity: IdentityInstance
+  log: LogInstance<DatabaseOperation<T>>
+  meta: any
+  name?: string
+  peers: PeerSet
+  sync: SyncInstance<DatabaseOperation<T>, SyncEvents<DatabaseOperation<T>>>
 }
 
 export class Database<
   T = unknown,
   E extends DatabaseEvents<T> = DatabaseEvents<T> & SyncEvents<T>,
 > implements DatabaseInstance<T, E> {
-  public name?: string
+  public accessController: AccessControllerInstance
   public address?: string
+  public events: TypedEventEmitter<E>
+  public identity: IdentityInstance
   public indexBy?: string
-  public peers: PeerSet
-  public meta: any
   public log: LogInstance<DatabaseOperation<T>>
+  public meta: any
+
+  public name?: string
+  public peers: PeerSet
   public sync: SyncInstance<
     DatabaseOperation<T>,
     SyncEvents<DatabaseOperation<T>>
   >
 
-  public events: TypedEventEmitter<E>
-  public identity: IdentityInstance
-  public accessController: AccessControllerInstance
-
-  private queue: PQueue
   private onUpdate?: (
     log: LogInstance<DatabaseOperation<T>>,
-    entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
+    entry: EntryInstance<DatabaseOperation<T>> | EntryInstance<T>,
   ) => Promise<void>
+
+  private queue: PQueue
 
   private constructor(
     identity: IdentityInstance,
@@ -115,7 +118,7 @@ export class Database<
     meta?: any,
     onUpdate?: (
       log: LogInstance<DatabaseOperation<T>>,
-      entry: EntryInstance<T> | EntryInstance<DatabaseOperation<T>>,
+      entry: EntryInstance<DatabaseOperation<T>> | EntryInstance<T>,
     ) => Promise<void>,
   ) {
     this.meta = meta
@@ -134,14 +137,14 @@ export class Database<
 
   static async create<T>(options: DatabaseOptions<T>) {
     const {
-      name,
-      address,
-      ipfs,
-      onUpdate,
-      dir: directory,
-      meta = {},
-      identity,
       accessController,
+      address,
+      dir: directory,
+      identity,
+      ipfs,
+      meta = {},
+      name,
+      onUpdate,
       syncAutomatically = true,
     } = options
 
@@ -179,17 +182,16 @@ export class Database<
       })
 
     const log = new Log<DatabaseOperation<T>>(identity, {
-      logId: address,
       accessController,
       entryStorage,
       headsStorage,
       indexStorage,
+      logId: address,
     })
 
     const sync = await Sync.create({
       ipfs,
       log,
-      start: syncAutomatically ?? true,
       onSynced: async (bytes) => {
         const task = async () => {
           const entry = await Entry.decode<DatabaseOperation<T>>(bytes)
@@ -213,6 +215,7 @@ export class Database<
 
         await queue.add(task)
       },
+      start: syncAutomatically ?? true,
     })
 
     return new Database(
@@ -251,15 +254,6 @@ export class Database<
     return hash as string
   }
 
-  public async drop(): Promise<void> {
-    await this.queue.onIdle()
-    await this.log.clear()
-    if (this.accessController && this.accessController.drop) {
-      await this.accessController.drop()
-    }
-    this.events.dispatchEvent(new CustomEvent('drop'))
-  }
-
   public async close(): Promise<void> {
     await this.sync.stop()
     await this.queue.onIdle()
@@ -268,5 +262,14 @@ export class Database<
       await this.accessController.close()
     }
     this.events.dispatchEvent(new CustomEvent('close'))
+  }
+
+  public async drop(): Promise<void> {
+    await this.queue.onIdle()
+    await this.log.clear()
+    if (this.accessController && this.accessController.drop) {
+      await this.accessController.drop()
+    }
+    this.events.dispatchEvent(new CustomEvent('drop'))
   }
 }

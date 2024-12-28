@@ -1,12 +1,12 @@
 import type { TypedEventEmitter } from '@libp2p/interface'
+
 import type { AccessControllerInstance } from '.'
-
 import type { DatabaseEvents } from '../database'
-
 import type { DatabaseTypeMap } from '../databases'
 import type { IdentitiesInstance } from '../identities'
 import type { EntryInstance } from '../oplog/entry'
 import type { OrbitDBInstance } from '../orbitdb'
+
 import { ACCESS_CONTROLLER_ORBITDB_TYPE } from '../constants'
 import { createId } from '../utils'
 import { IPFSAccessController } from './ipfs'
@@ -14,41 +14,41 @@ import { IPFSAccessController } from './ipfs'
 export interface OrbitDBAccessControllerInstance<
   E extends DatabaseEvents<string[]> = DatabaseEvents<string[]>,
 > extends AccessControllerInstance {
-  type: string
-  events: TypedEventEmitter<E>
   address: string
-  write: string[]
-
+  capabilities: () => Promise<Record<string, Set<string>>>
   close: () => Promise<void>
   drop: () => Promise<void>
-  capabilities: () => Promise<Record<string, Set<string>>>
+
+  events: TypedEventEmitter<E>
   get: (capability: string) => Promise<Set<string>>
   grant: (capability: string, key: string) => Promise<void>
   hasCapability: (capability: string, key: string) => Promise<boolean>
   revoke: (capability: string, key: string) => Promise<void>
+  type: string
+  write: string[]
 }
 
 interface OrbitDBAccessControllerOptions {
-  orbitdb: OrbitDBInstance
-  identities: IdentitiesInstance
   address?: string
+  identities: IdentitiesInstance
   name?: string
+  orbitdb: OrbitDBInstance
   write?: string[]
 }
 
 export class OrbitDBAccessController
 implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
-  get type(): 'orbitdb' {
-    return ACCESS_CONTROLLER_ORBITDB_TYPE
-  }
-
   static get type(): 'orbitdb' {
     return ACCESS_CONTROLLER_ORBITDB_TYPE
   }
 
   public address: string
-  public write: string[]
+
   public events: TypedEventEmitter<DatabaseEvents<string[]>>
+  public write: string[]
+  get type(): 'orbitdb' {
+    return ACCESS_CONTROLLER_ORBITDB_TYPE
+  }
 
   private database: DatabaseTypeMap<string[]>['keyvalue']
   private identities: IdentitiesInstance
@@ -70,15 +70,15 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
   static async create(
     options: OrbitDBAccessControllerOptions,
   ): Promise<OrbitDBAccessControllerInstance<DatabaseEvents<string[]>>> {
-    const { orbitdb, identities, name, write } = options
+    const { identities, name, orbitdb, write } = options
     const address = options.address || name || (await createId(64))
 
     const database = await orbitdb.open<string[], 'keyvalue'>(
       'keyvalue',
       address,
       {
-        type: 'keyvalue',
         AccessController: IPFSAccessController.create,
+        type: 'keyvalue',
       },
     )
 
@@ -138,12 +138,6 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
     return caps
   }
 
-  async get(capability: string): Promise<Set<string>> {
-    const caps = await this.capabilities()
-
-    return caps[capability!] || new Set([])
-  }
-
   async close(): Promise<void> {
     await this.database.close()
   }
@@ -152,10 +146,10 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
     await this.database.drop()
   }
 
-  async hasCapability(capability: string, key: string): Promise<boolean> {
-    const access = await this.get(capability)
+  async get(capability: string): Promise<Set<string>> {
+    const caps = await this.capabilities()
 
-    return access.has(key) || access.has('*')
+    return caps[capability!] || new Set([])
   }
 
   async grant(capability: string, key: string): Promise<void> {
@@ -164,6 +158,12 @@ implements OrbitDBAccessControllerInstance<DatabaseEvents<string[]>> {
       key,
     ])
     await this.database.put(capability, Array.from(caps))
+  }
+
+  async hasCapability(capability: string, key: string): Promise<boolean> {
+    const access = await this.get(capability)
+
+    return access.has(key) || access.has('*')
   }
 
   async revoke(capability: string, key: string): Promise<void> {

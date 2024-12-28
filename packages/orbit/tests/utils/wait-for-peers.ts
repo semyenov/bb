@@ -2,12 +2,13 @@
 
 import type { PeerId } from '@libp2p/interface'
 import type { OrbitDBHeliaInstance } from '@regioni/orbit'
+
 import { createLogger } from '@regioni/lib-logger'
 
 const logger = createLogger({
   defaultMeta: {
-    service: 'orbit',
     label: 'wait-for-peers',
+    service: 'orbit',
     version: '0.0.1',
   },
 })

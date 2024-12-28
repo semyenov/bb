@@ -1,6 +1,5 @@
-import assert from 'node:assert'
-
 import { copy } from 'fs-extra'
+import assert from 'node:assert'
 import { rimraf } from 'rimraf'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
@@ -48,7 +47,7 @@ describe('identities', () => {
     })
 
     it('has the correct id', async () => {
-      identities = await Identities.create({ path: keysPath, ipfs })
+      identities = await Identities.create({ ipfs, path: keysPath })
       identity = await identities.createIdentity({ id })
       const key = await identities.keystore.getKey(id)
       const externalId = uint8ArrayToString(key!.public.marshal(), 'base16')
@@ -69,7 +68,7 @@ describe('identities', () => {
     })
 
     it('gets the identity from storage', async () => {
-      identities = await Identities.create({ path: keysPath, ipfs })
+      identities = await Identities.create({ ipfs, path: keysPath })
       identity = await identities.createIdentity({ id })
       const result = await identities.getIdentity(identity.hash as string)
       assert.strictEqual(result?.id, identity.id)
@@ -83,7 +82,7 @@ describe('identities', () => {
 
     it('passes in an identity provider', async () => {
       const keystore = await KeyStore.create({ path: keysPath })
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
       const provider = new PublicKeyIdentityProvider({ keystore })
       identity = await identities.createIdentity({ id, provider })
       const result = await identities.getIdentity(identity.hash as string)
@@ -106,7 +105,7 @@ describe('identities', () => {
 
     beforeAll(async () => {
       keystore = await KeyStore.create({ path: keysPath })
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
     })
 
     afterAll(async () => {
@@ -184,7 +183,7 @@ describe('identities', () => {
     beforeAll(async () => {
       savedKeysKeyStore = await KeyStore.create({ path: keysPath })
 
-      identities = await Identities.create({ keystore: savedKeysKeyStore, ipfs })
+      identities = await Identities.create({ ipfs, keystore: savedKeysKeyStore })
       identity = await identities.createIdentity({ id })
     })
 
@@ -252,7 +251,7 @@ describe('identities', () => {
     })
 
     it('identity pkSignature verifies', async () => {
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
       identity = await identities.createIdentity({ id })
       const verified = await verifyMessage(
         identity.signatures.id,
@@ -263,7 +262,7 @@ describe('identities', () => {
     })
 
     it('identity signature verifies', async () => {
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
       identity = await identities.createIdentity({ id })
       const verified = await verifyMessage(
         identity.signatures.publicKey,
@@ -293,7 +292,7 @@ describe('identities', () => {
 
     beforeAll(async () => {
       keystore = await KeyStore.create({ path: keysPath })
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
     })
 
     afterAll(async () => {
@@ -320,7 +319,7 @@ describe('identities', () => {
 
     beforeAll(async () => {
       keystore = await KeyStore.create({ path: keysPath })
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
       identity = await identities.createIdentity({ id })
     })
 
@@ -378,7 +377,7 @@ describe('identities', () => {
     })
 
     beforeEach(async () => {
-      identities = await Identities.create({ keystore, ipfs })
+      identities = await Identities.create({ ipfs, keystore })
       identity = await identities.createIdentity({ id })
       signature = await identities.sign(identity, data)
     })

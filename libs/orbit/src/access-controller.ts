@@ -1,6 +1,6 @@
 import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, KeyValueDatabase, OrbitDBInstance } from '@regioni/orbit'
 
-export type ACLCap = 'PUT' | 'DEL' | '*'
+export type ACLCap = '*' | 'DEL' | 'PUT'
 export type ACLRecord = Record<'caps', ACLCap[]>
 export type ACLDatabase = KeyValueDatabase<ACLRecord>
 
@@ -11,25 +11,25 @@ const ACL_DEL_CAP = 'DEL' as const
 const ACL_ALL_CAP = '*' as const
 
 export interface CustomAccessControllerInstance extends AccessControllerInstance {
-  type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
-  write: string[]
+  canAppend: (entry: EntryInstance) => Promise<boolean>
   grant: (id: string, key: string, caps: ACLCap[]) => Promise<void>
   revoke: (id: string, key: string, caps: ACLCap[]) => Promise<void>
-  canAppend: (entry: EntryInstance) => Promise<boolean>
+  type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
+  write: string[]
 }
 
 export class CustomAccessController implements CustomAccessControllerInstance {
-  public type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE = CUSTOM_ACCESS_CONTROLLER_TYPE
-
   static get type(): typeof CUSTOM_ACCESS_CONTROLLER_TYPE {
     return CUSTOM_ACCESS_CONTROLLER_TYPE
   }
 
+  public address: string
+
+  public type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE = CUSTOM_ACCESS_CONTROLLER_TYPE
+  public write: string[] = []
+
   private db: ACLDatabase
   private identities: IdentitiesInstance
-
-  public address: string
-  public write: string[] = []
 
   private constructor(options: {
     identities: IdentitiesInstance
@@ -48,8 +48,8 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   }): Promise<CustomAccessControllerInstance> {
     const {
       address,
-      orbitdb,
       identities,
+      orbitdb,
     } = options
     const db: ACLDatabase = await orbitdb.open<ACLRecord, 'keyvalue'>(
       'keyvalue',
@@ -58,9 +58,43 @@ export class CustomAccessController implements CustomAccessControllerInstance {
 
     return new CustomAccessController({
       address,
-      identities,
       db,
+      identities,
     })
+  }
+
+  async canAppend(entry: EntryInstance): Promise<boolean> {
+    const {
+      identity,
+      payload,
+    } = entry
+
+    if (!identity) {
+      return false
+    }
+
+    const writerIdentity = await this.identities.getIdentity(identity)
+    if (!writerIdentity) {
+      return false
+    }
+
+    const {
+      key,
+      op: cap,
+    } = payload as {
+      key: string
+      op: ACLCap
+    }
+    const hasCapability = await this.hasCapability(
+      writerIdentity.id,
+      key,
+      cap,
+    )
+    if (hasCapability) {
+      return this.identities.verifyIdentity(writerIdentity)
+    }
+
+    return false
   }
 
   async grant(id: string, key: string, caps: ACLCap[]): Promise<void> {
@@ -133,40 +167,6 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     }
 
     return currentCaps.includes(cap)
-  }
-
-  async canAppend(entry: EntryInstance): Promise<boolean> {
-    const {
-      identity,
-      payload,
-    } = entry
-
-    if (!identity) {
-      return false
-    }
-
-    const writerIdentity = await this.identities.getIdentity(identity)
-    if (!writerIdentity) {
-      return false
-    }
-
-    const {
-      key,
-      op: cap,
-    } = payload as {
-      key: string
-      op: ACLCap
-    }
-    const hasCapability = await this.hasCapability(
-      writerIdentity.id,
-      key,
-      cap,
-    )
-    if (hasCapability) {
-      return this.identities.verifyIdentity(writerIdentity)
-    }
-
-    return false
   }
 }
 

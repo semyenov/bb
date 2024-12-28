@@ -1,6 +1,7 @@
+import { LRUCache } from 'lru-cache'
+
 import type { StorageInstance } from './types.d'
 
-import { LRUCache } from 'lru-cache'
 import { STORAGE_LRU_SIZE } from '../constants'
 
 export interface LRUStorageOptions {
@@ -20,15 +21,19 @@ export class LRUStorage<T = unknown> implements StorageInstance<T> {
     return new LRUStorage<T>(options)
   }
 
-  async put(hash: string, data: T): Promise<void> {
-    this.lru.set(hash, { data })
+  async clear(): Promise<void> {
+    this.lru.clear()
+  }
+
+  async close(): Promise<void> {
+    // No-op for LRU storage
   }
 
   async del(hash: string): Promise<void> {
     this.lru.delete(hash)
   }
 
-  async get(hash: string): Promise<T | null> {
+  async get(hash: string): Promise<null | T> {
     return this.lru.get(hash)?.data || null
   }
 
@@ -47,11 +52,7 @@ export class LRUStorage<T = unknown> implements StorageInstance<T> {
     }
   }
 
-  async clear(): Promise<void> {
-    this.lru.clear()
-  }
-
-  async close(): Promise<void> {
-    // No-op for LRU storage
+  async put(hash: string, data: T): Promise<void> {
+    this.lru.set(hash, { data })
   }
 }

@@ -27,23 +27,23 @@ async function verifyIdentity(_data) {
 class CustomIdentityProvider implements IdentityProviderInstance {
   static type = 'custom'
 
+  static verifyIdentity = verifyIdentity
+
   constructor() {
     console.log('CustomIdentityProvider.constructor')
-  }
-
-  signIdentity() {
-    return 'false signature'
-  }
-
-  getId = () => {
-    return 'pubKey'
   }
 
   static signIdentity = (data) => {
     return `false signature '${data}'`
   }
 
-  static verifyIdentity = verifyIdentity
+  getId = () => {
+    return 'pubKey'
+  }
+
+  signIdentity() {
+    return 'false signature'
+  }
 }
 
 // CustomIdentityProvider.type = type

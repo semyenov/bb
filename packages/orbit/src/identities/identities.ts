@@ -1,10 +1,11 @@
+import { toString as uint8ArrayToString } from 'uint8arrays'
+
 import type { KeyStoreInstance } from '../key-store'
 import type { StorageInstance } from '../storage'
 import type { OrbitDBHeliaInstance } from '../vendor.d'
 import type { IdentityInstance } from './identity'
 import type { IdentityProviderInstance } from './providers'
 
-import { toString as uint8ArrayToString } from 'uint8arrays'
 import { KeyStore, signMessage, verifyMessage } from '../key-store'
 import { ComposedStorage, IPFSBlockStorage, LRUStorage } from '../storage'
 import { join } from '../utils'
@@ -17,36 +18,37 @@ interface IdentitiesCreateIdentityOptions {
 }
 
 export interface IdentitiesOptions {
-  path?: string
   ipfs?: OrbitDBHeliaInstance
   keystore?: KeyStoreInstance
+  path?: string
   storage?: StorageInstance<Uint8Array>
 }
 
 export interface IdentitiesInstance {
-  keystore: KeyStoreInstance
-
   createIdentity: (options?: IdentitiesCreateIdentityOptions) => Promise<IdentityInstance>
+
   getIdentity: (id: string) => Promise<IdentityInstance | null>
-  verifyIdentity: (identity: IdentityInstance) => Promise<boolean>
+  keystore: KeyStoreInstance
   sign: (identity: IdentityInstance, data: string) => Promise<string>
   verify: (signature: string, publickey: string, data: string) => Promise<boolean>
+  verifyIdentity: (identity: IdentityInstance) => Promise<boolean>
 }
 
 const DEFAULT_KEYS_PATH = join('./orbitdb', 'identities')
 
 export class Identities implements IdentitiesInstance {
   keystore: KeyStoreInstance
-  private storage: StorageInstance<Uint8Array>
   private cache: LRUStorage<
-    Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+    Omit<IdentityInstance, 'getKey' | 'provider' | 'sign' | 'verify'>
   >
+
+  private storage: StorageInstance<Uint8Array>
 
   private constructor(options: {
     keystore: KeyStoreInstance
     storage: StorageInstance<Uint8Array>
     cache: LRUStorage<
-      Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+      Omit<IdentityInstance, 'getKey' | 'provider' | 'sign' | 'verify'>
     >
   }) {
     this.keystore = options.keystore
@@ -72,15 +74,15 @@ export class Identities implements IdentitiesInstance {
         })
 
     const cache = await LRUStorage.create<
-      Omit<IdentityInstance, 'getKey' | 'sign' | 'verify' | 'provider'>
+      Omit<IdentityInstance, 'getKey' | 'provider' | 'sign' | 'verify'>
     >({
       size: 1000,
     })
 
     return new Identities({
+      cache,
       keystore,
       storage,
-      cache,
     })
   }
 
@@ -132,20 +134,20 @@ export class Identities implements IdentitiesInstance {
 
     const identity = await Identity.create({
       id,
-      publicKey,
-      signatures,
-      type: identityProvider.type,
       provider: identityProvider,
-      verify: verifyFactory(),
+      publicKey,
       sign: signFactory(
         this.keystore,
         identityId,
       ),
+      signatures,
+      type: identityProvider.type,
+      verify: verifyFactory(),
     })
 
     const {
-      hash,
       bytes: data,
+      hash,
     } = identity
 
     await this.storage.put(
@@ -154,49 +156,6 @@ export class Identities implements IdentitiesInstance {
     )
 
     return identity
-  }
-
-  async verifyIdentity(identity: IdentityInstance): Promise<boolean> {
-    if (!Identity.isIdentity(identity)) {
-      return false
-    }
-
-    const {
-      id,
-      publicKey,
-      provider,
-      signatures: {
-        id: signatureId,
-      },
-    } = identity
-
-    if (!await verifyMessage(
-      signatureId,
-      publicKey,
-      id,
-    )) {
-      return false
-    }
-
-    const cached = await this.cache.get(id)
-    if (cached) {
-      return Identity.isEqual(identity, await Identity.create({
-        ...cached,
-        sign: signFactory(this.keystore, id),
-        verify: verifyFactory(),
-        provider,
-      }))
-    }
-
-    const identityVerified = await identity.verifyIdentity()
-    if (identityVerified) {
-      await this.cache.put(
-        id,
-        identity,
-      )
-    }
-
-    return identityVerified
   }
 
   async getIdentity(hash: string): Promise<IdentityInstance | null> {
@@ -223,6 +182,49 @@ export class Identities implements IdentitiesInstance {
     data: string | Uint8Array,
   ): Promise<boolean> {
     return verifyMessage(signature, publicKey, data)
+  }
+
+  async verifyIdentity(identity: IdentityInstance): Promise<boolean> {
+    if (!Identity.isIdentity(identity)) {
+      return false
+    }
+
+    const {
+      id,
+      provider,
+      publicKey,
+      signatures: {
+        id: signatureId,
+      },
+    } = identity
+
+    if (!await verifyMessage(
+      signatureId,
+      publicKey,
+      id,
+    )) {
+      return false
+    }
+
+    const cached = await this.cache.get(id)
+    if (cached) {
+      return Identity.isEqual(identity, await Identity.create({
+        ...cached,
+        provider,
+        sign: signFactory(this.keystore, id),
+        verify: verifyFactory(),
+      }))
+    }
+
+    const identityVerified = await identity.verifyIdentity()
+    if (identityVerified) {
+      await this.cache.put(
+        id,
+        identity,
+      )
+    }
+
+    return identityVerified
   }
 }
 

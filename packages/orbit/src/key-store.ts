@@ -1,33 +1,33 @@
-import type { StorageInstance } from './storage'
-import type { Secp256k1PrivateKey } from './vendor.d'
-
 import {
   generateKeyPair,
   privateKeyFromRaw,
   publicKeyFromRaw,
 } from '@libp2p/crypto/keys'
-
 import {
   compare as uint8ArrayCompare,
   fromString as uint8ArrayFromString,
   toString as uint8ArrayToString,
 } from 'uint8arrays'
+
+import type { StorageInstance } from './storage'
+import type { Secp256k1PrivateKey } from './vendor.d'
+
 import { KEYSTORE_PATH } from './constants'
 import { ComposedStorage, LevelStorage, LRUStorage } from './storage'
 
 export interface KeyStoreOptions {
-  storage?: StorageInstance<Uint8Array>
   path?: string
+  storage?: StorageInstance<Uint8Array>
 }
 
 export interface KeyStoreInstance {
-  createKey: (id: string) => Promise<Secp256k1PrivateKey>
-  hasKey: (id: string) => Promise<boolean>
   addKey: (id: string, key: Secp256k1PrivateKey) => Promise<void>
-  removeKey: (id: string) => Promise<void>
-  getKey: (id: string) => Promise<Secp256k1PrivateKey | null>
   clear: () => Promise<void>
   close: () => Promise<void>
+  createKey: (id: string) => Promise<Secp256k1PrivateKey>
+  getKey: (id: string) => Promise<null | Secp256k1PrivateKey>
+  hasKey: (id: string) => Promise<boolean>
+  removeKey: (id: string) => Promise<void>
 }
 
 const VERIFIED_CACHE_STORAGE = LRUStorage.create<{
@@ -54,12 +54,40 @@ export class KeyStore implements KeyStoreInstance {
     return new KeyStore(storage)
   }
 
+  async addKey(id: string, key: Secp256k1PrivateKey): Promise<void> {
+    await this.storage.put(`private_${id}`, key.raw)
+  }
+
   async clear(): Promise<void> {
     await this.storage.clear()
   }
 
   async close(): Promise<void> {
     await this.storage.close()
+  }
+
+  async createKey(id: string): Promise<Secp256k1PrivateKey> {
+    if (!id) {
+      throw new Error('id needed to create a key')
+    }
+
+    const key = await generateKeyPair('secp256k1')
+    await this.storage.put(`private_${id}`, key.raw)
+
+    return key
+  }
+
+  async getKey(id: string): Promise<null | Secp256k1PrivateKey> {
+    if (!id) {
+      throw new Error('id needed to get a key')
+    }
+
+    const storedKey = await this.storage.get(`private_${id}`)
+    if (!storedKey) {
+      return null
+    }
+
+    return privateKeyFromRaw(storedKey) as Secp256k1PrivateKey
   }
 
   async hasKey(id: string): Promise<boolean> {
@@ -79,34 +107,6 @@ export class KeyStore implements KeyStoreInstance {
     return hasKey
   }
 
-  async addKey(id: string, key: Secp256k1PrivateKey): Promise<void> {
-    await this.storage.put(`private_${id}`, key.raw)
-  }
-
-  async createKey(id: string): Promise<Secp256k1PrivateKey> {
-    if (!id) {
-      throw new Error('id needed to create a key')
-    }
-
-    const key = await generateKeyPair('secp256k1')
-    await this.storage.put(`private_${id}`, key.raw)
-
-    return key
-  }
-
-  async getKey(id: string): Promise<Secp256k1PrivateKey | null> {
-    if (!id) {
-      throw new Error('id needed to get a key')
-    }
-
-    const storedKey = await this.storage.get(`private_${id}`)
-    if (!storedKey) {
-      return null
-    }
-
-    return privateKeyFromRaw(storedKey) as Secp256k1PrivateKey
-  }
-
   async removeKey(id: string): Promise<void> {
     if (!id) {
       throw new Error('id needed to remove a key')
@@ -116,7 +116,7 @@ export class KeyStore implements KeyStoreInstance {
   }
 }
 
-function ensureUint8Array(data: Uint8Array | string) {
+function ensureUint8Array(data: string | Uint8Array) {
   return (typeof data === 'string'
     ? uint8ArrayFromString(data, 'utf8')
     : new Uint8Array(data))
@@ -125,7 +125,7 @@ function ensureUint8Array(data: Uint8Array | string) {
 async function verify(
   publicKey: string,
   signature: string,
-  data: Uint8Array | string,
+  data: string | Uint8Array,
 ) {
   const pubKey = publicKeyFromRaw(uint8ArrayFromString(publicKey, 'base16'))
   if (!pubKey) {
@@ -190,8 +190,8 @@ export async function verifyMessage(
     const verified = await verifySignature(signature, publicKey, data)
     if (verified) {
       await verifiedCache.put(signature, {
-        publicKey,
         data: ensureUint8Array(data),
+        publicKey,
       })
     }
 

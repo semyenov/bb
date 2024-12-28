@@ -1,10 +1,5 @@
-import type {
-  Secp256k1PrivateKey,
-  StorageInstance,
-} from '../src'
-
-import { deepEqual, strictEqual } from 'node:assert'
 import { copy } from 'fs-extra'
+import { deepEqual, strictEqual } from 'node:assert'
 import { rimraf } from 'rimraf'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import {
@@ -14,6 +9,12 @@ import {
   describe,
   it,
 } from 'vitest'
+
+import type {
+  Secp256k1PrivateKey,
+  StorageInstance,
+} from '../src'
+
 import {
   KeyStore,
   LevelStorage,
@@ -22,7 +23,6 @@ import {
   signMessage,
   verifyMessage,
 } from '../src/key-store'
-
 import testKeysPath from './fixtures/test-keys-path'
 
 const defaultPath = './.orbitdb/keystore'
@@ -367,7 +367,7 @@ describe('keyStore', () => {
     })
 
     describe('verifying', async () => {
-      let key: Secp256k1PrivateKey, publicKey: string | null
+      let key: Secp256k1PrivateKey, publicKey: null | string
 
       beforeEach(async () => {
         key = await keystore.getKey('userA') as Secp256k1PrivateKey
