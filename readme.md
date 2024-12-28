@@ -1,6 +1,7 @@
 # Regioni Monorepo
 
-A modern, distributed application framework built on OrbitDB, featuring type-safe APIs and robust data synchronization capabilities.
+A modern, distributed application framework built on OrbitDB,
+featuring type-safe APIs and robust data synchronization capabilities.
 
 ## 🚀 Features
 
@@ -52,27 +53,32 @@ The monorepo is organized into three main categories:
 ### Getting Started
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/your-org/regioni.git
    cd regioni
    ```
 
 2. Install dependencies:
+
    ```bash
    yarn install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp .env.example .env
    ```
 
 4. Build all packages:
+
    ```bash
    yarn build
    ```
 
 5. Start development servers:
+
    ```bash
    yarn dev
    ```
@@ -95,4 +101,5 @@ We welcome contributions! Please follow these steps:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License -
+see the [LICENSE](LICENSE) file for details.
