@@ -57,12 +57,3 @@ export interface RedisCRUDInstance<T extends RedisJSON> {
   insertOne: (item: JsonMSetItem) => Promise<T>
   keyExists: (id: string) => Promise<boolean>
 }
-
-export interface RedisStore {
-  data: RedisCRUDInstance<RedisJSON>
-  disconnect: () => Promise<void>
-  meta: RedisCRUDInstance<Meta>
-  schemas: RedisCRUDInstance<RedisJSON>
-
-  users: RedisCRUDInstance<User>
-}

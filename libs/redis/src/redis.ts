@@ -1,32 +1,9 @@
 import type {
-  Meta,
-  User,
-} from '@regioni/backend'
-
-import { createClient } from 'redis'
-
-import type {
   JsonMSetItem,
   RedisCRUDInstance,
   RedisCRUDOptions,
   RedisJSON,
-  RedisStore,
-  RedisStoreOptions,
 } from './types.d'
-
-export async function createRedisStore(options: RedisStoreOptions): Promise<RedisStore> {
-  const connection = createClient(options)
-  await connection.connect()
-
-  return {
-    data: createCRUD({ connection, prefix: 'data' }),
-    disconnect: connection.disconnect,
-    meta: createCRUD<Meta>({ connection, prefix: 'meta' }),
-    schemas: createCRUD({ connection, prefix: 'schemas' }),
-
-    users: createCRUD<User>({ connection, prefix: 'users' }),
-  }
-}
 
 export function createCRUD<T extends RedisJSON>({
   connection,
