@@ -33,8 +33,8 @@ interface IdentityInstance {
 ```typescript
 interface KeyStoreInstance {
   addKey: (id: string, key: Secp256k1PrivateKey) => Promise<void>
-  getKey: (id: string) => Promise<null | Secp256k1PrivateKey>
   createKey: (id: string) => Promise<Secp256k1PrivateKey>
+  getKey: (id: string) => Promise<null | Secp256k1PrivateKey>
 }
 ```
 
@@ -44,8 +44,8 @@ interface KeyStoreInstance {
 import { OrbitDB } from '@regioni/orbit'
 
 const orbitdb = await OrbitDB.createInstance({
-  ipfs: ipfsNode,
   directory: './orbitdb',
+  ipfs: ipfsNode,
 })
 
 // Create/open databases

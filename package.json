@@ -1,7 +1,6 @@
 {
   "name": "@regioni/root",
   "private": true,
-  "npmClient": "yarn",
   "packageManager": "yarn@4.5.3",
   "exports": {
     "import": {
@@ -17,9 +16,11 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.cts",
   "scripts": {
-    "build": "lerna run build",
-    "test": "vitest",
-    "lint": "eslint"
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "eslint --config eslint.config.mjs",
+    "lint:fix": "eslint --config eslint.config.mjs --fix",
+    "dev": "turbo run dev"
   },
   "dependencies": {
     "@regioni/foo": "workspace:*",
@@ -27,13 +28,6 @@
     "vitest": "^2.1.8"
   },
   "devDependencies": {
-    "@lerna-lite/cli": "^3.10.1",
-    "@lerna-lite/exec": "^3.10.1",
-    "@lerna-lite/list": "^3.10.1",
-    "@lerna-lite/publish": "^3.10.1",
-    "@lerna-lite/run": "^3.10.1",
-    "@lerna-lite/version": "^3.10.1",
-    "@lerna-lite/watch": "^3.10.1",
     "@regioni/eslint-config": "workspace:*",
     "@types/node": "^22.10.2",
     "@types/semver": "^7.5.8",
@@ -41,6 +35,7 @@
     "eslint": "9.17.0",
     "semver": "^7.6.3",
     "tsx": "^4.19.2",
+    "turbo": "latest",
     "typescript": "^5.7.2"
   },
   "workspaces": [

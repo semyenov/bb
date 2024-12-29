@@ -13,7 +13,6 @@ import { ErrorKeyNotFound } from '../errors'
 
 export interface KeyStoreConfig {
   deserialize?: (str: string) => Promise<Secp256k1PrivateKey>
-
   keyType: KeyType
   serialize?: (key: Secp256k1PrivateKey) => string
 }
