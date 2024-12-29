@@ -21,7 +21,7 @@
     "build": "pkgroll --minify"
   },
   "devDependencies": {
-    "pkgroll": "^2.5.1",
+    "pkgroll": "^2.6.0",
     "typescript": "~5.7.2"
   }
 }

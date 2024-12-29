@@ -37,7 +37,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "pkgroll",
+    "build": "pkgroll --minify",
     "start": "cross-env NODE_OPTIONS=\"--no-warnings --experimental-modules --experimental-import-meta-resolve\" yarn node dist/esm/index.mjs",
     "schema": "yarn typescript-json-schema --out schema.json --skipLibCheck src/index.ts Options",
     "typecheck": "yarn tsc --noEmit",
@@ -113,7 +113,7 @@
     "cborg": "^4.2.7",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",
-    "consola": "^3.3.1",
+    "consola": "^3.3.3",
     "dag-jose": "^5.1.1",
     "dag-jose-utils": "^4.0.0",
     "datastore-core": "^10.0.2",
@@ -157,13 +157,13 @@
     "ts-pattern": "^5.6.0",
     "uint8arraylist": "^2.4.8",
     "uint8arrays": "^5.1.0",
-    "unstorage": "^1.14.1",
+    "unstorage": "^1.14.4",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "fs-extra": "^11.2.0",
-    "pkgroll": "^2.5.1",
+    "pkgroll": "^2.6.0",
     "tsx": "^4.19.2",
     "vitest": "^2.1.8"
   }

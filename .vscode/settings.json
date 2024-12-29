@@ -6,6 +6,7 @@
   "editor.wordWrap": "bounded",
   "editor.wordWrapColumn": 80,
   "editor.wrappingIndent": "deepIndent",
+  "editor.experimentalInlineEdit.showToolbar": "always",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"

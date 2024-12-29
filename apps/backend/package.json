@@ -81,7 +81,7 @@
     "@stablelib/x25519": "^2.0.0",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
-    "@types/async": "^3",
+    "@types/async": "^3.2.24",
     "@types/elliptic": "^6.4.18",
     "@types/readable-stream": "^4.0.18",
     "@types/ws": "^8.5.13",
@@ -94,7 +94,7 @@
     "cborg": "^4.2.7",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",
-    "consola": "^3.3.1",
+    "consola": "^3.3.3",
     "cross-env": "7.0.3",
     "dag-jose": "^5.1.1",
     "dag-jose-utils": "^4.0.0",
@@ -117,12 +117,12 @@
     "trpc-cli": "^0.5.1",
     "ts-pattern": "^5.6.0",
     "uint8arrays": "^5.1.0",
-    "unstorage": "^1.14.1",
+    "unstorage": "^1.14.4",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.3.0",
-    "pkgroll": "^2.5.1",
+    "pkgroll": "^2.6.0",
     "tsx": "^4.19.2"
   }
 }

@@ -1,4 +1,10 @@
-import type { AccessControllerInstance, EntryInstance, IdentitiesInstance, KeyValueDatabase, OrbitDBInstance } from '@regioni/orbit'
+import type {
+  AccessControllerInstance,
+  EntryInstance,
+  IdentitiesInstance,
+  KeyValueDatabase,
+  OrbitDBInstance,
+} from '@regioni/orbit'
 
 export type ACLCap = '*' | 'DEL' | 'PUT'
 export type ACLRecord = Record<'caps', ACLCap[]>
@@ -10,7 +16,8 @@ const ACL_PUT_CAP = 'PUT' as const
 const ACL_DEL_CAP = 'DEL' as const
 const ACL_ALL_CAP = '*' as const
 
-export interface CustomAccessControllerInstance extends AccessControllerInstance {
+export interface CustomAccessControllerInstance
+  extends AccessControllerInstance {
   canAppend: (entry: EntryInstance) => Promise<boolean>
   grant: (id: string, key: string, caps: ACLCap[]) => Promise<void>
   revoke: (id: string, key: string, caps: ACLCap[]) => Promise<void>
@@ -25,7 +32,9 @@ export class CustomAccessController implements CustomAccessControllerInstance {
 
   public address: string
 
-  public type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE = CUSTOM_ACCESS_CONTROLLER_TYPE
+  public type: typeof CUSTOM_ACCESS_CONTROLLER_TYPE
+    = CUSTOM_ACCESS_CONTROLLER_TYPE
+
   public write: string[] = []
 
   private db: ACLDatabase
@@ -46,11 +55,7 @@ export class CustomAccessController implements CustomAccessControllerInstance {
     orbitdb: OrbitDBInstance
     identities: IdentitiesInstance
   }): Promise<CustomAccessControllerInstance> {
-    const {
-      address,
-      identities,
-      orbitdb,
-    } = options
+    const { address, identities, orbitdb } = options
     const db: ACLDatabase = await orbitdb.open<ACLRecord, 'keyvalue'>(
       'keyvalue',
       `${address}-acl`,
@@ -64,10 +69,7 @@ export class CustomAccessController implements CustomAccessControllerInstance {
   }
 
   async canAppend(entry: EntryInstance): Promise<boolean> {
-    const {
-      identity,
-      payload,
-    } = entry
+    const { identity, payload } = entry
 
     if (!identity) {
       return false
@@ -78,18 +80,11 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return false
     }
 
-    const {
-      key,
-      op: cap,
-    } = payload as {
+    const { key, op: cap } = payload as {
       key: string
       op: ACLCap
     }
-    const hasCapability = await this.hasCapability(
-      writerIdentity.id,
-      key,
-      cap,
-    )
+    const hasCapability = await this.hasCapability(writerIdentity.id, key, cap)
     if (hasCapability) {
       return this.identities.verifyIdentity(writerIdentity)
     }
@@ -118,30 +113,20 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return
     }
 
-    const {
-      caps: currentCaps,
-    } = aclData
+    const { caps: currentCaps } = aclData
     const updatedCaps = caps.includes(ACL_ALL_CAP)
       ? [ACL_ALL_CAP]
       : (currentCaps.includes(ACL_ALL_CAP)
-          ? [
-              ACL_PUT_CAP,
-              ACL_DEL_CAP,
-            ]
-              .filter((op) => {
-                return !caps.includes(op as ACLCap)
-              })
-          : currentCaps
-              .filter((op) => {
-                return !caps.includes(op as ACLCap)
-              }))
+          ? [ACL_PUT_CAP, ACL_DEL_CAP].filter((op) => {
+              return !caps.includes(op as ACLCap)
+            })
+          : currentCaps.filter((op) => {
+              return !caps.includes(op as ACLCap)
+            }))
 
-    await this.db.put(
-      aclKey,
-      {
-        caps: updatedCaps,
-      },
-    )
+    await this.db.put(aclKey, {
+      caps: updatedCaps,
+    })
   }
 
   private async hasCapability(
@@ -155,9 +140,7 @@ export class CustomAccessController implements CustomAccessControllerInstance {
       return false
     }
 
-    const {
-      caps: currentCaps,
-    } = aclData
+    const { caps: currentCaps } = aclData
     if (!currentCaps) {
       return false
     }
@@ -173,12 +156,8 @@ export class CustomAccessController implements CustomAccessControllerInstance {
 function formatKey(...args: string[]): string {
   return args
     .map((arg) => {
-      return arg
-        .trim()
-        .replaceAll(
-          '/',
-          '-',
-        )
+      return arg.trim()
+        .replaceAll('/', '-')
     })
     .join(':')
 }

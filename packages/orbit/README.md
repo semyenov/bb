@@ -1,6 +1,7 @@
 # @regioni/orbit
 
-TypeScript implementation of OrbitDB core functionality with strong typing and modern async patterns.
+TypeScript implementation of OrbitDB core functionality
+with strong typing and modern async patterns.
 
 ## Features
 
@@ -19,7 +20,11 @@ interface IdentityInstance {
   id: string
   publicKey: string
   sign: (data: string | Uint8Array) => Promise<string>
-  verify: (signature: string, publicKey: string, data: string) => Promise<boolean>
+  verify: (
+    signature: string,
+    publicKey: string,
+    data: string,
+  ) => Promise<boolean>
 }
 ```
 
@@ -40,7 +45,7 @@ import { OrbitDB } from '@regioni/orbit'
 
 const orbitdb = await OrbitDB.createInstance({
   ipfs: ipfsNode,
-  directory: './orbitdb'
+  directory: './orbitdb',
 })
 
 // Create/open databases
