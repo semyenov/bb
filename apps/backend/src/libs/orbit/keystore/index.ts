@@ -13,8 +13,9 @@ import { ErrorKeyNotFound } from '../errors'
 
 export interface KeyStoreConfig {
   deserialize?: (str: string) => Promise<Secp256k1PrivateKey>
+
   keyType: KeyType
-  serialize: (key: Secp256k1PrivateKey) => string
+  serialize?: (key: Secp256k1PrivateKey) => string
 }
 
 export abstract class BaseKeyStore implements KeyStoreInstance {
@@ -28,6 +29,11 @@ export abstract class BaseKeyStore implements KeyStoreInstance {
         return privateKeyFromRaw(
           uint8ArrayFromString(str),
         ) as Secp256k1PrivateKey
+      },
+      serialize: (data: Secp256k1PrivateKey) => {
+        return uint8ArrayToString(
+          data.raw,
+        )
       },
       ...config,
     }

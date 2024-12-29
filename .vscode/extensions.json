@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "aaron-bond.better-comments",
+    "alberto-varela.monorepo-focus-workspace",
     "alefragnani.bookmarks",
     "aliariff.auto-add-brackets",
     "antfu.auto-npx",
@@ -29,6 +30,7 @@
     "howardzuo.vscode-npm-dependency",
     "IBM.output-colorizer",
     "idered.npm",
+    "ietxaniz.fold-ninja",
     "kisstkondoros.vscode-codemetrics",
     "lacroixdavid1.vscode-format-context-menu",
     "lokalise.i18n-ally",
@@ -46,6 +48,7 @@
     "oderwat.indent-rainbow",
     "piotrpalarz.vscode-gitignore-generator",
     "quicktype.quicktype",
+    "romanpeshkov.tailwind-nested",
     "solomonkinard.git-search",
     "stackbreak.comment-divider",
     "stylelint.vscode-stylelint",
@@ -55,15 +58,12 @@
     "VisualStudioExptTeam.vscodeintellicode",
     "vivaxy.vscode-conventional-commits",
     "vue.volar",
+    "vunguyentuan.vscode-postcss",
     "wejectchan.vue3-snippets-for-vscode",
     "wmaurer.change-case",
     "yatki.vscode-surround",
     "yoavbls.pretty-ts-errors",
     "Yseop.vscode-yseopml",
-    "zardoy.ts-essential-plugins",
-    "ietxaniz.fold-ninja",
-    "vunguyentuan.vscode-postcss",
-    "romanpeshkov.tailwind-nested",
-    "alberto-varela.monorepo-focus-workspace"
+    "zardoy.ts-essential-plugins"
   ]
 }
